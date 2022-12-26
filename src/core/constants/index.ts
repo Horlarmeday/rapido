@@ -1,0 +1,9 @@
+export const DEVELOPMENT = 'development';
+export const TEST = 'test';
+export const PRODUCTION = 'production';
+export const CASCADE = 'CASCADE';
+export const LOCAL = 'local';
+export const JWT = 'jwt';
+export const SUCCESS = 'success';
+export const FAILED = 'failed';
+export const APPROVED = 'approved';
