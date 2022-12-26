@@ -9,7 +9,7 @@ import { ResponseInterceptor } from './core/interceptors/response.interceptors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = process.env.PORT;
+  const port = <number>(<unknown>process.env.PORT);
   const logger: LoggerService = new Logger();
 
   app.use(helmet());
