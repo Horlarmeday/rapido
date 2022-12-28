@@ -1,4 +1,4 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, SchemaFactory, Schema } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 
 export type TokenDocument = HydratedDocument<Token>;
@@ -9,6 +9,7 @@ export enum TokenType {
   FORGOT_PASSWORD = 'FORGOT',
 }
 
+@Schema()
 export class Token {
   @Prop({ required: true, type: String })
   token: string;
@@ -19,13 +20,12 @@ export class Token {
   @Prop({
     required: true,
     enum: {
-      values: [
-        TokenType.EMAIL,
-        TokenType.PHONE,
-        TokenType.FORGOT_PASSWORD,
-      ],
+      values: [TokenType.EMAIL, TokenType.PHONE, TokenType.FORGOT_PASSWORD],
     },
   })
   type: TokenType;
+
+  @Prop({ required: true, type: Date })
+  expires_in: Date;
 }
 export const TokenSchema = SchemaFactory.createForClass(Token);
