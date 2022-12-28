@@ -28,7 +28,7 @@ export class UsersService {
       ...socialMediaUserType,
     });
   }
-  async findById(id: Types.ObjectId): Promise<User> {
+  async findById(id: Types.ObjectId): Promise<UserDocument> {
     return await findById(this.userModel, id);
   }
 

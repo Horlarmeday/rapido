@@ -2,8 +2,14 @@ import { uuid } from 'uuidv4';
 import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { Messages } from '../../core/messages/messages';
 import { MailService } from '../../core/emails/mail.service';
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
+import { IJwtPayload } from '../../modules/auth/types/jwt-payload.type';
 
+type GenerateEmailAndSendType = {
+  email: string;
+  subject: Messages;
+  emailBody: any;
+};
 @Injectable()
 export class GeneralHelpers {
   constructor(private mailService: MailService) {}
@@ -43,11 +49,12 @@ export class GeneralHelpers {
     return `${currentDate}-${this.generateRandomCharacters(17)}`;
   }
 
-  generateEmailAndSend(user, token: string, message: Messages) {
-    const { _id, email, first_name } = user;
-    // Get email body
-    const emailBody = verificationEmail(first_name, token, _id);
+  generateEmailAndSend({
+    email,
+    subject,
+    emailBody,
+  }: GenerateEmailAndSendType) {
     // Send email
-    this.mailService.sendMail(email, message, emailBody);
+    this.mailService.sendMail(email, subject, emailBody);
   }
 }
