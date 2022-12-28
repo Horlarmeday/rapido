@@ -6,7 +6,7 @@ import { Messages } from '../../core/messages/messages';
 import { UsersService } from '../users/users.service';
 import * as crypto from 'crypto';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
-import moment from 'moment';
+import * as moment from 'moment';
 
 @Injectable()
 export class TokensService {
@@ -37,12 +37,12 @@ export class TokensService {
       });
 
       // delete the token
-      await this.removeEmailVerification(foundToken._id);
+      await this.removeToken(foundToken._id);
       return true;
     }
     //delete expired code
-    await this.removeEmailVerification(foundToken._id);
-    throw new BadRequestException(Messages.EXPIRED_TOKEN);
+    await this.removeToken(foundToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
   async verifyPhoneToken(userId, token) {
@@ -57,24 +57,28 @@ export class TokensService {
       });
 
       // delete the token
-      await this.removePhoneVerification(foundToken._id);
+      await this.removeToken(foundToken._id);
       return true;
     }
     //delete expired code
-    await this.removePhoneVerification(foundToken._id);
-    throw new BadRequestException(Messages.EXPIRED_TOKEN);
+    await this.removeToken(foundToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async removePhoneVerification(tokenId: Types.ObjectId) {
+  async removeToken(tokenId: Types.ObjectId) {
     return this.tokenModel.deleteOne({ _id: tokenId });
+  }
+
+  async findToken(token: string) {
+    return this.tokenModel.findOne({ token });
   }
 
   async findEmailTokenByUserId(userId: string, token: string) {
     return this.tokenModel.findOne({ userId, token, type: TokenType.EMAIL });
   }
 
-  async removeEmailVerification(tokenId: Types.ObjectId) {
-    return this.tokenModel.deleteOne({ _id: tokenId });
+  async findTokenByUserId(userId: Types.ObjectId, tokenType: TokenType) {
+    return this.tokenModel.findOne({ userId, type: tokenType });
   }
 
   private createToken(type: TokenType, userId: Types.ObjectId) {
