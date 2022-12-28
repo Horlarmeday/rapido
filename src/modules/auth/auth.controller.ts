@@ -11,7 +11,6 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { GoogleOauthGuard } from './guards/google-auth.guard';
 import { AppleOauthGuard } from './guards/apple-auth.guard';
 
 @Controller('auth')
@@ -31,19 +30,6 @@ export class AuthController {
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
-  @Get('google')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuth(@Request() req) {
-    console.log('Getting Google Oauth');
-  }
-
-  @Get('google/redirect')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuthRedirect(@Request() req: Request) {
-    const result = await this.authService.googleLogin(req);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
-  }
-
   @Get()
   @UseGuards(AppleOauthGuard)
   async appleAuth(@Request() req): Promise<any> {
@@ -53,6 +39,12 @@ export class AuthController {
   @Post('apple/redirect')
   async redirect(@Body() payload): Promise<any> {
     const result = await this.authService.appleLogin(payload);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Post('google')
+  async googleLogin(@Body() token: string): Promise<any> {
+    const result = await this.authService.googleLogin(token);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 }

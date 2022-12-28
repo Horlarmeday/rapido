@@ -9,9 +9,9 @@ import { Messages } from '../../core/messages/messages';
 import { SocialMediaUserType } from './types/social-media.type';
 import { TokensService } from '../tokens/tokens.service';
 import { TokenType } from '../tokens/entities/token.entity';
-import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { MailService } from '../../core/emails/mail.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { GoogleAuth } from './strategies/googleAuth.strategy';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +21,7 @@ export class AuthService {
     private tokensService: TokensService,
     private readonly mailService: MailService,
     private readonly generalHelpers: GeneralHelpers,
+    private readonly googleAuth: GoogleAuth,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -53,14 +54,20 @@ export class AuthService {
     return { user, token };
   }
 
-  async googleLogin(req) {
-    if (!req.user) throw new BadRequestException(Messages.NO_GOOGLE_USER);
+  async googleLogin(token: string) {
+    const data = await this.decodeGoogleData(token);
+    if (!data.email) throw new BadRequestException(Messages.NO_GOOGLE_USER);
     return this.socialMediaLogin({
-      ...req.user,
+      ...data,
       reg_medium: RegMedium.GOOGLE,
       is_email_verified: true,
       email_verified_at: new Date(),
     });
+  }
+
+  async decodeGoogleData(token: string) {
+    if (!token) throw new BadRequestException(Messages.UNAUTHORIZED);
+    return await this.googleAuth.validate(token);
   }
 
   async decodeAppleData(payload: any) {
@@ -88,7 +95,7 @@ export class AuthService {
 
   async appleLogin(req) {
     const data = await this.decodeAppleData(req);
-    if (!req.email) throw new BadRequestException(Messages.NO_APPLE_USER);
+    if (!data.email) throw new BadRequestException(Messages.NO_APPLE_USER);
     return this.socialMediaLogin({
       ...data,
       reg_medium: RegMedium.APPLE,
@@ -140,12 +147,4 @@ export class AuthService {
   ) {
     return await this.jwtService.signAsync(payload);
   }
-
-  // generateEmailAndSend(user, token) {
-  //   const { _id, email, first_name } = user;
-  //   // Get email body
-  //   const emailBody = verificationEmail(first_name, token, _id);
-  //   // Send email
-  //   this.mailService.sendMail(email, Messages.EMAIL_VERIFICATION, emailBody);
-  // }
 }
