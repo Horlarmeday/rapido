@@ -9,4 +9,9 @@ export enum Messages {
   UNAUTHORIZED = 'You are not authorized to access this resource',
   USER_EXISTS = 'Account already exists, please login',
   USER_AUTHENTICATED = 'User authenticated',
+  NO_GOOGLE_USER = 'No Google user found',
+  NO_APPLE_USER = 'No Apple user found',
+  SOCIAL_MEDIA_LOGIN = 'Invalid login, please login via other medium',
+  INVALID_TOKEN = 'Invalid token',
+  EMAIL_VERIFICATION = 'Email Verification',
 }
