@@ -1,15 +1,16 @@
 import { uuid } from 'uuidv4';
+import { verificationEmail } from '../../core/emails/mails/verificationEmail';
+import { Messages } from '../../core/messages/messages';
+import { MailService } from '../../core/emails/mail.service';
+import { Injectable } from "@nestjs/common";
 
+@Injectable()
 export class GeneralHelpers {
+  constructor(private mailService: MailService) {}
   generateRandomNumbers(length: number) {
     return Math.floor(
       Math.pow(10, length - 1) + Math.random() * 9 * Math.pow(10, length - 1),
     );
-  }
-
-  addHours(hour: number) {
-    const now = new Date();
-    return now.setHours(hour);
   }
 
   generateRandomCharacters(length: number) {
@@ -40,5 +41,13 @@ export class GeneralHelpers {
   genTxReference() {
     const currentDate = new Date().toISOString().slice(0, 11);
     return `${currentDate}-${this.generateRandomCharacters(17)}`;
+  }
+
+  generateEmailAndSend(user, token: string, message: Messages) {
+    const { _id, email, first_name } = user;
+    // Get email body
+    const emailBody = verificationEmail(first_name, token, _id);
+    // Send email
+    this.mailService.sendMail(email, message, emailBody);
   }
 }

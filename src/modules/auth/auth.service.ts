@@ -1,16 +1,17 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { UsersService } from "../users/users.service";
-import { CreateUserDto } from "../users/dto/create-user.dto";
-import * as bcrypt from "bcrypt";
-import { RegMedium, User, UserDocument } from "../users/entities/user.entity";
-import { IJwtPayload } from "./types/jwt-payload.type";
-import { JwtService } from "@nestjs/jwt";
-import { Messages } from "../../core/messages/messages";
-import { SocialMediaUserType } from "./types/social-media.type";
-import { TokensService } from "../tokens/tokens.service";
-import { TokenType } from "../tokens/entities/token.entity";
-import { verificationEmail } from "../../core/emails/mails/verificationEmail";
-import { MailService } from "../../core/emails/mail.service";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { RegMedium, User, UserDocument } from '../users/entities/user.entity';
+import { IJwtPayload } from './types/jwt-payload.type';
+import { JwtService } from '@nestjs/jwt';
+import { Messages } from '../../core/messages/messages';
+import { SocialMediaUserType } from './types/social-media.type';
+import { TokensService } from '../tokens/tokens.service';
+import { TokenType } from '../tokens/entities/token.entity';
+import { verificationEmail } from '../../core/emails/mails/verificationEmail';
+import { MailService } from '../../core/emails/mail.service';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
 
 @Injectable()
 export class AuthService {
@@ -19,17 +20,18 @@ export class AuthService {
     private jwtService: JwtService,
     private tokensService: TokensService,
     private readonly mailService: MailService,
+    private readonly generalHelpers: GeneralHelpers,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
     //TODO: Wrap in transactions
     const user = await this.usersService.create(createUserDto);
-    const { _id, email, first_name } = user;
-    const token = await this.tokensService.create(TokenType.EMAIL, _id);
-    // Get email body
-    const emailBody = verificationEmail(first_name, token.token);
-    // Send email
-    this.mailService.sendMail(email, Messages.EMAIL_VERIFICATION, emailBody);
+    const token = await this.tokensService.create(TokenType.EMAIL, user._id);
+    this.generalHelpers.generateEmailAndSend(
+      user,
+      token.token,
+      Messages.EMAIL_VERIFICATION,
+    );
     return AuthService.excludeFields(user);
   }
 
@@ -41,7 +43,7 @@ export class AuthService {
     if (user && user.reg_medium !== RegMedium.LOCAL)
       throw new BadRequestException(Messages.SOCIAL_MEDIA_LOGIN);
 
-    if (await AuthService.comparePassword(pass, user.password))
+    if (user && (await AuthService.comparePassword(pass, user.password)))
       return AuthService.formatJwtPayload(user);
     return null;
   }
@@ -119,6 +121,7 @@ export class AuthService {
     return {
       sub: user._id,
       email: user.email,
+      first_name: user.first_name,
       user_type: user.user_type,
       is_email_verified: user.is_email_verified,
       is_phone_verified: user.is_phone_verified,
@@ -137,4 +140,12 @@ export class AuthService {
   ) {
     return await this.jwtService.signAsync(payload);
   }
+
+  // generateEmailAndSend(user, token) {
+  //   const { _id, email, first_name } = user;
+  //   // Get email body
+  //   const emailBody = verificationEmail(first_name, token, _id);
+  //   // Send email
+  //   this.mailService.sendMail(email, Messages.EMAIL_VERIFICATION, emailBody);
+  // }
 }

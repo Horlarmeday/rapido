@@ -24,21 +24,21 @@ export class AuthController {
     return sendSuccessResponse(Messages.ACCOUNT_CREATED, result);
   }
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
+  @UseGuards(LocalAuthGuard)
   async loginWithEmail(@Request() req) {
     const result = await this.authService.login(req.user);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
-  @UseGuards(GoogleOauthGuard)
   @Get('google')
+  @UseGuards(GoogleOauthGuard)
   async googleAuth(@Request() req) {
     console.log('Getting Google Oauth');
   }
 
-  @UseGuards(GoogleOauthGuard)
   @Get('google/redirect')
+  @UseGuards(GoogleOauthGuard)
   async googleAuthRedirect(@Request() req: Request) {
     const result = await this.authService.googleLogin(req);
     return sendSuccessResponse(Messages.RETRIEVED, result);

@@ -4,13 +4,14 @@ import { AuthController } from './auth.controller';
 import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from "@nestjs/jwt";
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import * as dotenv from 'dotenv';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { TokensModule } from '../tokens/tokens.module';
 import { MailService } from '../../core/emails/mail.service';
+import { GeneralHelpers } from "../../common/helpers/general.helpers";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ dotenv.config();
     JwtStrategy,
     GoogleStrategy,
     MailService,
+    GeneralHelpers,
   ],
 })
 export class AuthModule {}
