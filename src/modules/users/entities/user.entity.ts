@@ -13,7 +13,13 @@ export enum UserType {
   SPECIALIST = 'Specialist',
 }
 
-@Schema()
+export enum RegMedium {
+  GOOGLE = 'GOOGLE',
+  APPLE = 'APPLE',
+  LOCAL = 'LOCAL',
+}
+
+@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class User {
   @Prop({ required: true, minlength: 3, type: String, trim: true })
   first_name: string;
@@ -37,34 +43,34 @@ export class User {
   email: string;
 
   @Prop({
-    required: true,
+    required: false,
     type: String,
     enum: {
       values: [Gender.FEMALE, Gender.MALE],
       message: '{VALUE} is not supported',
     },
   })
-  gender: Gender;
+  gender?: Gender;
 
   @Prop(
     raw({
-      country_code: { type: String, required: true },
+      country_code: { type: String, required: false },
       number: {
         type: String,
-        required: true,
+        required: false,
         minLength: 10,
         maxLength: 10,
         unique: true,
       },
     }),
   )
-  phone: string;
+  phone?: string;
 
-  @Prop({ required: true, type: Date })
-  date_of_birth: Date;
+  @Prop({ required: false, type: Date })
+  date_of_birth?: Date;
 
   @Prop({
-    required: true,
+    required: false,
     type: String,
     validate: {
       validator: function (v) {
@@ -93,5 +99,28 @@ export class User {
 
   @Prop({ type: Boolean, default: false })
   marketing: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  is_email_verified: boolean;
+
+  @Prop({ type: Date })
+  email_verified_at: Date;
+
+  @Prop({ type: Boolean, default: false })
+  is_phone_verified: boolean;
+
+  @Prop({ type: Date })
+  phone_verified_at: Date;
+
+  @Prop({
+    required: true,
+    type: String,
+    default: RegMedium.LOCAL,
+    enum: {
+      values: [RegMedium.APPLE, RegMedium.GOOGLE, RegMedium.LOCAL],
+      message: '{VALUE} is not supported',
+    },
+  })
+  reg_medium: RegMedium;
 }
 export const UserSchema = SchemaFactory.createForClass(User);
