@@ -14,4 +14,9 @@ export enum Messages {
   SOCIAL_MEDIA_LOGIN = 'Invalid login, please login via other medium',
   INVALID_TOKEN = 'Invalid token',
   EMAIL_VERIFICATION = 'Email Verification',
+  EMAIL_VERIFIED = 'Email Verified',
+  PHONE_VERIFIED = 'Phone Verified',
+  EXPIRED_TOKEN = 'Token expired, get a valid token',
+  EMAIL_VERIFICATION_SENT = 'Email verification sent',
+  PHONE_VERIFICATION_SENT = 'Phone verification sent',
 }
