@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { AuthModule } from './modules/auth/auth.module';
+import { TokensModule } from './modules/tokens/tokens.module';
+import { MailModule } from './core/emails/mail.module';
 
 dotenv.config();
 
@@ -14,6 +16,8 @@ dotenv.config();
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     UsersModule,
     AuthModule,
+    MailModule,
+    TokensModule,
     MongooseModule.forRoot(<string>process.env.MONGO_URL),
   ],
   controllers: [AppController],

@@ -14,12 +14,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
+import { Types } from "mongoose";
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: Types.ObjectId) {
     const result = await this.usersService.findById(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }

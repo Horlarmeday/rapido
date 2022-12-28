@@ -1,4 +1,4 @@
-import { Document, HydratedDocument, Model } from 'mongoose';
+import { Document, HydratedDocument, Model, Types } from "mongoose";
 
 export const create = async (model: Model<HydratedDocument<any>>, fields) =>
   model.create({ ...fields });
@@ -8,7 +8,7 @@ export const findOne = async (
 ) => model.findOne({ ...query });
 export const findById = async (
   model: Model<HydratedDocument<any>>,
-  id: string,
+  id: Types.ObjectId,
   options?: object | string | [string],
 ) => model.findById(id, options).exec();
 export const find = async (model: Model<HydratedDocument<any>>, query: any) =>
