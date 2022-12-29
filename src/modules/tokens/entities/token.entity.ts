@@ -6,7 +6,7 @@ export type TokenDocument = HydratedDocument<Token>;
 export enum TokenType {
   EMAIL = 'EMAIL',
   PHONE = 'PHONE',
-  FORGOT_PASSWORD = 'FORGOT',
+  FORGOT_PASSWORD = 'FORGOT_PASSWORD',
 }
 
 @Schema()

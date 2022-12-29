@@ -6,7 +6,8 @@ import { Messages } from '../../core/messages/messages';
 import { UsersService } from '../users/users.service';
 import * as crypto from 'crypto';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
-import moment from 'moment';
+import * as moment from 'moment';
+import { create, deleteOne, findOne } from '../../common/crud/crud';
 
 @Injectable()
 export class TokensService {
@@ -22,10 +23,10 @@ export class TokensService {
     userId: Types.ObjectId,
   ): Promise<TokenDocument> {
     const token = await this.createToken(tokenType, userId);
-    return await this.tokenModel.create(token);
+    return await create(this.tokenModel, token);
   }
 
-  async verifyEmailToken(userId, token) {
+  async verifyEmailToken(userId: Types.ObjectId, token: string) {
     const foundToken = await this.findEmailTokenByUserId(userId, token);
     if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
@@ -37,19 +38,19 @@ export class TokensService {
       });
 
       // delete the token
-      await this.removeEmailVerification(foundToken._id);
+      await this.removeToken(foundToken._id);
       return true;
     }
     //delete expired code
-    await this.removeEmailVerification(foundToken._id);
-    throw new BadRequestException(Messages.EXPIRED_TOKEN);
+    await this.removeToken(foundToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
   async verifyPhoneToken(userId, token) {
-    const foundToken = await this.findEmailTokenByUserId(userId, token);
-    if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
+    const userToken = await this.findEmailTokenByUserId(userId, token);
+    if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
-    if (moment(foundToken.expires_in).isSameOrBefore(moment())) {
+    if (moment(userToken.expires_in).isSameOrBefore(moment())) {
       // update user to verified
       await this.usersService.updateOne(userId, {
         is_phone_verified: true,
@@ -57,24 +58,28 @@ export class TokensService {
       });
 
       // delete the token
-      await this.removePhoneVerification(foundToken._id);
+      await this.removeToken(userToken._id);
       return true;
     }
     //delete expired code
-    await this.removePhoneVerification(foundToken._id);
-    throw new BadRequestException(Messages.EXPIRED_TOKEN);
+    await this.removeToken(userToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async removePhoneVerification(tokenId: Types.ObjectId) {
-    return this.tokenModel.deleteOne({ _id: tokenId });
+  async removeToken(tokenId: Types.ObjectId) {
+    return deleteOne(this.tokenModel, { _id: tokenId });
   }
 
-  async findEmailTokenByUserId(userId: string, token: string) {
-    return this.tokenModel.findOne({ userId, token, type: TokenType.EMAIL });
+  async findToken(token: string) {
+    return findOne(this.tokenModel, { token });
   }
 
-  async removeEmailVerification(tokenId: Types.ObjectId) {
-    return this.tokenModel.deleteOne({ _id: tokenId });
+  async findEmailTokenByUserId(userId: Types.ObjectId, token: string) {
+    return findOne(this.tokenModel, { userId, token, type: TokenType.EMAIL });
+  }
+
+  async findTokenByUserId(userId: Types.ObjectId, tokenType: TokenType) {
+    return findOne(this.tokenModel, { userId, type: tokenType });
   }
 
   private createToken(type: TokenType, userId: Types.ObjectId) {

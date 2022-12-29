@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Param, Post, Request, UseGuards } from "@nestjs/common";
-import { Messages } from "../../core/messages/messages";
-import { sendSuccessResponse } from "../../core/responses/success.responses";
-import { TokensService } from "./tokens.service";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { TokenType } from "./entities/token.entity";
-import { GeneralHelpers } from "../../common/helpers/general.helpers";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { Messages } from '../../core/messages/messages';
+import { sendSuccessResponse } from '../../core/responses/success.responses';
+import { TokensService } from './tokens.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TokenType } from './entities/token.entity';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 
 @Controller('verifications')
 export class TokensController {
@@ -35,11 +44,15 @@ export class TokensController {
       TokenType.EMAIL,
       req.user.sub,
     );
-    this.generalHelpers.generateEmailAndSend(
-      { ...req.user, _id: req.user.sub },
-      token.token,
-      Messages.EMAIL_VERIFICATION,
-    );
+    this.generalHelpers.generateEmailAndSend({
+      email: req.user.email,
+      subject: Messages.EMAIL_VERIFICATION,
+      emailBody: verificationEmail(
+        req.user.first_name,
+        token.token,
+        req.user.sub,
+      ),
+    });
     return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
   }
 
