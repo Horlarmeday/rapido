@@ -60,7 +60,17 @@ export class AuthService {
     return { user, token };
   }
 
-  async googleLogin(token: string) {
+  async googleLogin(req) {
+    if (!req.user) throw new BadRequestException(Messages.NO_GOOGLE_USER);
+    return this.socialMediaLogin({
+      ...req.user,
+      reg_medium: RegMedium.GOOGLE,
+      is_email_verified: true,
+      email_verified_at: new Date(),
+    });
+  }
+
+  async googleAltLogin(token: string) {
     const data = await this.decodeGoogleData(token);
     if (!data.email) throw new BadRequestException(Messages.NO_GOOGLE_USER);
     return this.socialMediaLogin({
