@@ -5,13 +5,18 @@ import {
   Body,
   UseGuards,
   Get,
+  HttpStatus,
+  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { GoogleOauthGuard } from './guards/google-auth.guard';
 import { AppleOauthGuard } from './guards/apple-auth.guard';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -25,9 +30,23 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @HttpCode(HttpStatus.OK)
   async loginWithEmail(@Request() req) {
     const result = await this.authService.login(req.user);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleOauthGuard)
+  async googleAuth(@Request() req) {
+    console.log('Getting Google Oauth');
+  }
+
+  @Get('google/redirect')
+  @UseGuards(GoogleOauthGuard)
+  async googleAuthRedirect(@Request() req: Request) {
+    const result = await this.authService.googleLogin(req);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
   @Get()
@@ -37,12 +56,27 @@ export class AuthController {
   }
 
   @Post('apple/redirect')
+  @HttpCode(HttpStatus.OK)
   async redirect(@Body() payload): Promise<any> {
     const result = await this.authService.appleLogin(payload);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
-  @Post('google')
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto);
+    return sendSuccessResponse(Messages.PASSWORD_RESET_SENT, null);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(resetPasswordDto);
+    return sendSuccessResponse(Messages.PASSWORD_RESET, null);
+  }
+
+  @Post('google/login')
   async googleLogin(@Body() token: string): Promise<any> {
     const result = await this.authService.googleLogin(token);
     return sendSuccessResponse(Messages.RETRIEVED, result);

@@ -11,6 +11,12 @@ import { TokensService } from '../tokens/tokens.service';
 import { TokenType } from '../tokens/entities/token.entity';
 import { MailService } from '../../core/emails/mail.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Types } from 'mongoose';
+import { verificationEmail } from '../../core/emails/mails/verificationEmail';
+import { forgotPasswordEmail } from '../../core/emails/mails/forgotPasswordEmail';
+import { passwordResetEmail } from '../../core/emails/mails/passwordReset';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 
 @Injectable()
@@ -28,11 +34,11 @@ export class AuthService {
     //TODO: Wrap in transactions
     const user = await this.usersService.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
-    this.generalHelpers.generateEmailAndSend(
-      user,
-      token.token,
-      Messages.EMAIL_VERIFICATION,
-    );
+    this.generalHelpers.generateEmailAndSend({
+      email: user.email,
+      subject: Messages.EMAIL_VERIFICATION,
+      emailBody: verificationEmail(user.first_name, token.token, user._id),
+    });
     return AuthService.excludeFields(user);
   }
 
@@ -116,6 +122,55 @@ export class AuthService {
     const payload = AuthService.formatJwtPayload(user);
     const token = await this.generateToken(payload);
     return { payload, token };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const user = await this.usersService.findOneByEmail(
+      forgotPasswordDto.email,
+    );
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+
+    const existingToken = await this.tokensService.findTokenByUserId(
+      user._id,
+      TokenType.FORGOT_PASSWORD,
+    );
+    if (existingToken) await this.tokensService.removeToken(existingToken.id);
+
+    const token = await this.tokensService.create(
+      TokenType.FORGOT_PASSWORD,
+      user._id,
+    );
+
+    this.generalHelpers.generateEmailAndSend({
+      email: user.email,
+      subject: Messages.FORGOT_PASSWORD,
+      emailBody: forgotPasswordEmail(user.first_name, token.token, user._id),
+    });
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<unknown> {
+    const { password, userId, token } = resetPasswordDto;
+
+    const passwordResetToken = await this.tokensService.findToken(token);
+    if (!passwordResetToken)
+      throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+
+    const user = await this.usersService.findById(
+      <Types.ObjectId>(<unknown>userId),
+    );
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+
+    user.password = password;
+    await user.save();
+
+    await this.tokensService.removeToken(passwordResetToken._id);
+
+    this.generalHelpers.generateEmailAndSend({
+      email: user.email,
+      subject: Messages.PASSWORD_RESET,
+      emailBody: passwordResetEmail(user.first_name),
+    });
+    return true;
   }
 
   private static excludeFields(user: UserDocument) {
