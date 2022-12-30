@@ -39,7 +39,7 @@ export class TokensController {
 
   @UseGuards(JwtAuthGuard)
   @Post('email/resend')
-  async regenerateEmailToken(@Request() req) {
+  async resendEmailToken(@Request() req) {
     const token = await this.tokensService.create(
       TokenType.EMAIL,
       req.user.sub,
@@ -58,7 +58,7 @@ export class TokensController {
 
   @UseGuards(JwtAuthGuard)
   @Post('phone/resend')
-  async regeneratePhoneToken(@Request() req) {
+  async resendPhoneToken(@Request() req) {
     const token = await this.tokensService.create(
       TokenType.PHONE,
       req.user.sub,
