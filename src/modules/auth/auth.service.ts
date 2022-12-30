@@ -17,6 +17,7 @@ import { Types } from 'mongoose';
 import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { forgotPasswordEmail } from '../../core/emails/mails/forgotPasswordEmail';
 import { passwordResetEmail } from '../../core/emails/mails/passwordReset';
+import { GoogleAuth } from './strategies/googleAuth.strategy';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private tokensService: TokensService,
     private readonly mailService: MailService,
     private readonly generalHelpers: GeneralHelpers,
+    private readonly googleAuth: GoogleAuth,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -68,6 +70,22 @@ export class AuthService {
     });
   }
 
+  async googleAltLogin(token: string) {
+    const data = await this.decodeGoogleData(token);
+    if (!data.email) throw new BadRequestException(Messages.NO_GOOGLE_USER);
+    return this.socialMediaLogin({
+      ...data,
+      reg_medium: RegMedium.GOOGLE,
+      is_email_verified: true,
+      email_verified_at: new Date(),
+    });
+  }
+
+  async decodeGoogleData(token: string) {
+    if (!token) throw new BadRequestException(Messages.UNAUTHORIZED);
+    return await this.googleAuth.validate(token);
+  }
+
   async decodeAppleData(payload: any) {
     let user;
     if (!payload?.id_token)
@@ -93,7 +111,7 @@ export class AuthService {
 
   async appleLogin(req) {
     const data = await this.decodeAppleData(req);
-    if (!req.email) throw new BadRequestException(Messages.NO_APPLE_USER);
+    if (!data.email) throw new BadRequestException(Messages.NO_APPLE_USER);
     return this.socialMediaLogin({
       ...data,
       reg_medium: RegMedium.APPLE,

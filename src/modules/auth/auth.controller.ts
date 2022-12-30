@@ -75,4 +75,10 @@ export class AuthController {
     await this.authService.resetPassword(resetPasswordDto);
     return sendSuccessResponse(Messages.PASSWORD_RESET, null);
   }
+
+  @Post('google/alt-login')
+  async googleLogin(@Body() token: string) {
+    const result = await this.authService.googleAltLogin(token);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
 }
