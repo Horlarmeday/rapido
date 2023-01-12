@@ -94,7 +94,7 @@ export class TokensService {
       case TokenType.PHONE:
         return {
           userId,
-          token: this.generalHelpers.generateRandomNumbers(6),
+          token: this.generalHelpers.generateRandomNumbers(4),
           type,
           expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
         };
