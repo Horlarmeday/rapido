@@ -24,7 +24,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private tokensService: TokensService,
+    private readonly tokensService: TokensService,
     private readonly mailService: MailService,
     private readonly generalHelpers: GeneralHelpers,
     private readonly googleAuth: GoogleAuth,
@@ -35,9 +35,13 @@ export class AuthService {
     const user = await this.usersService.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     this.generalHelpers.generateEmailAndSend({
-      email: user.email,
+      email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
-      emailBody: verificationEmail(user.first_name, token.token, user._id),
+      emailBody: verificationEmail(
+        user.profile.first_name,
+        token.token,
+        user._id,
+      ),
     });
     return AuthService.excludeFields(user);
   }
@@ -50,7 +54,10 @@ export class AuthService {
     if (user && user.reg_medium !== RegMedium.LOCAL)
       throw new BadRequestException(Messages.SOCIAL_MEDIA_LOGIN);
 
-    if (user && (await AuthService.comparePassword(pass, user.password)))
+    if (
+      user &&
+      (await AuthService.comparePassword(pass, user.profile.password))
+    )
       return AuthService.formatJwtPayload(user);
     return null;
   }
@@ -152,9 +159,13 @@ export class AuthService {
     );
 
     this.generalHelpers.generateEmailAndSend({
-      email: user.email,
+      email: user.profile.contact.email,
       subject: Messages.FORGOT_PASSWORD,
-      emailBody: forgotPasswordEmail(user.first_name, token.token, user._id),
+      emailBody: forgotPasswordEmail(
+        user.profile.first_name,
+        token.token,
+        user._id,
+      ),
     });
   }
 
@@ -170,30 +181,31 @@ export class AuthService {
     );
     if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
 
-    user.password = password;
+    user.profile.password = password;
     await user.save();
 
     await this.tokensService.removeToken(passwordResetToken._id);
 
     this.generalHelpers.generateEmailAndSend({
-      email: user.email,
+      email: user.profile.contact.email,
       subject: Messages.PASSWORD_RESET,
-      emailBody: passwordResetEmail(user.first_name),
+      emailBody: passwordResetEmail(user.profile.first_name),
     });
     return true;
   }
 
   private static excludeFields(user: UserDocument) {
     const serializedUser = user.toJSON() as Partial<User>;
-    delete serializedUser.password;
+    delete serializedUser.profile?.password;
     return serializedUser;
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {
+    const { profile } = user;
     return {
       sub: user._id,
-      email: user.email,
-      first_name: user.first_name,
+      email: profile.contact.email,
+      first_name: profile.first_name,
       user_type: user.user_type,
       is_email_verified: user.is_email_verified,
       is_phone_verified: user.is_phone_verified,

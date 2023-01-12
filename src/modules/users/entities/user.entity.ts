@@ -1,12 +1,14 @@
-import { Prop, raw, SchemaFactory, Schema } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { Gender, MaritalStatus, Profile } from '../types/profile.types';
+import { Condition, ConditionsSchema } from './pre-existing-condition.entity';
+import {
+  EmergencyContact,
+  EmergencyContactSchema,
+} from './emergency-contact.entity';
+import { Dependant, DependantSchema } from './dependant.entity';
 
 export type UserDocument = HydratedDocument<User>;
-
-export enum Gender {
-  MALE = 'Male',
-  FEMALE = 'Female',
-}
 
 export enum UserType {
   PATIENT = 'Patient',
@@ -21,67 +23,87 @@ export enum RegMedium {
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class User {
-  @Prop({ required: true, minlength: 3, type: String, trim: true })
-  first_name: string;
-
-  @Prop({ required: true, minlength: 3, type: String, trim: true })
-  last_name: string;
-
-  @Prop({
-    required: true,
-    type: String,
-    trim: true,
-    lowercase: true,
-    unique: true,
-    validate: {
-      validator: function (v) {
-        return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid email!`,
-    },
-  })
-  email: string;
-
-  @Prop({
-    required: false,
-    type: String,
-    enum: {
-      values: [Gender.FEMALE, Gender.MALE],
-      message: '{VALUE} is not supported',
-    },
-  })
-  gender?: Gender;
-
   @Prop(
     raw({
-      country_code: { type: String, required: false },
-      number: {
-        type: String,
+      first_name: { type: String, required: true, minLength: 3, trim: true },
+      last_name: { type: String, required: true, minLength: 3, trim: true },
+      gender: {
         required: false,
-        minLength: 10,
-        maxLength: 10,
-        unique: true,
+        type: String,
+        enum: {
+          values: [Gender.FEMALE, Gender.MALE],
+          message: '{VALUE} is not supported',
+        },
+      },
+      date_of_birth: { required: false, type: Date },
+      password: {
+        required: false,
+        type: String,
+        validate: {
+          validator: function (v) {
+            return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
+              v,
+            );
+          },
+          message: (props) => `${props.value} does not meet password criteria!`,
+        },
+      },
+      marital_status: {
+        type: String,
+        enum: {
+          values: [
+            MaritalStatus.DIVORCED,
+            MaritalStatus.SINGLE,
+            MaritalStatus.MARRIED,
+            MaritalStatus.WIDOW,
+            MaritalStatus.WIDOWER,
+          ],
+        },
+      },
+      contact: {
+        email: {
+          required: true,
+          type: String,
+          trim: true,
+          lowercase: true,
+          unique: true,
+          validate: {
+            validator: function (v) {
+              return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: (props) => `${props.value} is not a valid email!`,
+          },
+        },
+        phone: {
+          country_code: { type: String, required: false },
+          number: {
+            type: String,
+            required: false,
+            minLength: 10,
+            maxLength: 10,
+            unique: true,
+          },
+        },
+        address1: { type: String },
+        address2: { type: String },
+        state: { type: String },
+        country: { type: String },
+        zip_code: { type: String },
+      },
+      basic_health_info: {
+        height: { type: Number },
+        weight: {
+          type: Number,
+        },
+      },
+      health_risk_factors: {
+        is_smoker: { type: Boolean, default: false },
+        is_over_weight: { type: Boolean, default: false },
+        has_recent_injuries: { type: Boolean, default: false },
       },
     }),
   )
-  phone?: string;
-
-  @Prop({ required: false, type: Date })
-  date_of_birth?: Date;
-
-  @Prop({
-    required: false,
-    type: String,
-    validate: {
-      validator: function (v) {
-        return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
-          v,
-        );
-      },
-      message: (props) => `${props.value} does not meet password criteria!`,
-    },
-  })
-  password: string;
+  profile: Profile;
 
   @Prop({
     required: true,
@@ -122,5 +144,14 @@ export class User {
     },
   })
   reg_medium: RegMedium;
+
+  @Prop([{ type: EmergencyContactSchema, required: false }])
+  emergency_contacts?: EmergencyContact[];
+
+  @Prop([{ type: ConditionsSchema, required: false }])
+  pre_existing_conditions?: Condition[];
+
+  @Prop([{ type: DependantSchema, required: false }])
+  dependants?: Dependant[];
 }
 export const UserSchema = SchemaFactory.createForClass(User);
