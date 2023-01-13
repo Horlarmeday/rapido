@@ -4,6 +4,7 @@ import { Logger, LoggerService } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import * as morgan from 'morgan';
+import * as cors from 'cors';
 import { ValidateInputPipe } from './core/pipes/validation.pipes';
 import { ResponseInterceptor } from './core/interceptors/response.interceptors';
 
@@ -13,6 +14,7 @@ async function bootstrap() {
   const logger: LoggerService = new Logger();
 
   app.use(helmet());
+  app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(morgan('dev'));
   app.setGlobalPrefix('api');
