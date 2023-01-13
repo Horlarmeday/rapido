@@ -12,6 +12,8 @@ import { TokensModule } from '../tokens/tokens.module';
 import { MailService } from '../../core/emails/mail.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 
 dotenv.config();
 
@@ -36,6 +38,8 @@ dotenv.config();
     MailService,
     GeneralHelpers,
     GoogleAuth,
+    GoogleStrategy,
+    FileUploadHelper,
   ],
 })
 export class AuthModule {}

@@ -7,6 +7,7 @@ import * as morgan from 'morgan';
 import * as cors from 'cors';
 import { ValidateInputPipe } from './core/pipes/validation.pipes';
 import { ResponseInterceptor } from './core/interceptors/response.interceptors';
+import { MongoExceptions } from './core/exceptions/mongo.exceptions';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,11 +17,17 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json({ limit: '50mb' }));
   app.use(morgan('dev'));
   app.setGlobalPrefix('api');
   // handle all user input validation globally
-  app.useGlobalPipes(new ValidateInputPipe());
+  app.useGlobalPipes(
+    new ValidateInputPipe({
+      forbidUnknownValues: false,
+    }),
+  );
   app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new MongoExceptions());
   await app.listen(port, () => {
     logger.log(`Server running on port ${port}`);
   });
