@@ -7,3 +7,4 @@ export const JWT = 'jwt';
 export const SUCCESS = 'success';
 export const FAILED = 'failed';
 export const APPROVED = 'approved';
+export const UPLOAD_TO_S3 = 'Upload to S3';
