@@ -6,7 +6,6 @@ import {
   InternalServerErrorException,
   HttpException,
 } from '@nestjs/common';
-import { MongooseError } from 'mongoose';
 
 @Catch()
 export class MongoExceptions implements ExceptionFilter {
@@ -32,8 +31,7 @@ export class MongoExceptions implements ExceptionFilter {
         errorMessage: message,
       });
     };
-    console.log(exception?.stack);
-    return responseMessage(exception.name, exception?.message);
+    return responseMessage(exception.name, exception.message);
   }
   // catch(exception: MongooseError, host: ArgumentsHost) {
   //   const ctx = host.switchToHttp();

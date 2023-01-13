@@ -6,9 +6,6 @@ import { Token, TokenSchema } from './entities/token.entity';
 import { UsersService } from '../users/users.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { TokensController } from './tokens.controller';
-import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../../core/emails/mail.service';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 
