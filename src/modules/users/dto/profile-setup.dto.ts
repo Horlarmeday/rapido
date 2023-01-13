@@ -1,18 +1,10 @@
-import {
-  BasicHealthInfo,
-  Gender,
-  HealthRiskFactors,
-  MaritalStatus,
-} from '../types/profile.types';
+import { Gender, MaritalStatus } from '../types/profile.types';
 import {
   IsArray,
   IsBoolean,
-  IsDate,
   IsEnum,
   IsNotEmpty,
-  IsNotEmptyObject,
   IsNumber,
-  IsObject,
   IsOptional,
   IsString,
   ValidateNested,
@@ -31,15 +23,24 @@ export class ProfileSetupDto {
   @IsEnum(MaritalStatus)
   marital_status: MaritalStatus;
 
-  @IsObject()
-  @IsNotEmptyObject()
-  @Type(() => BasicHealthInfo)
-  basic_health_info: BasicHealthInfo;
+  @IsNotEmpty({
+    each: true,
+  })
+  @IsNumber({}, { each: true })
+  basic_health_info: Map<number, number>;
+  //
+  // @IsNotEmpty()
+  // @IsNumber()
+  // height: number;
+  //
+  // @IsNotEmpty()
+  // @IsNumber()
+  // weight: number;
 
-  @IsObject()
-  @IsNotEmptyObject()
-  @Type(() => HealthRiskFactors)
-  health_risk_factors: HealthRiskFactors;
+  @IsBoolean({
+    each: true,
+  })
+  health_risk_factors: Map<boolean, boolean>;
 
   @IsString()
   @IsNotEmpty()
@@ -57,18 +58,18 @@ export class ProfileSetupDto {
   @IsNotEmpty()
   zip_code: string;
 
-  @IsOptional()
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Condition)
-  pre_existing_conditions?: Condition[];
+  pre_existing_conditions: Condition[];
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => EmergencyContact)
   emergency_contacts: EmergencyContact[];
 
-  @IsOptional()
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Dependant)
-  dependants?: Dependant[];
+  dependants: Dependant[];
 }

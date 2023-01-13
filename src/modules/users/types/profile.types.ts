@@ -3,17 +3,6 @@ export enum Gender {
   FEMALE = 'Female',
 }
 
-export class BasicHealthInfo {
-  height: number;
-  weight: number;
-}
-
-export class HealthRiskFactors {
-  is_smoker: boolean | string;
-  is_over_weight: boolean | string;
-  has_recent_injuries: boolean | string;
-}
-
 export enum MaritalStatus {
   MARRIED = 'Married',
   SINGLE = 'Single',
@@ -33,11 +22,6 @@ export enum Relationship {
   AUNTY = 'Aunty',
 }
 
-export class Phone {
-  country_code: string;
-  number: string;
-}
-
 export type Profile = {
   first_name: string;
   last_name: string;
@@ -46,14 +30,24 @@ export type Profile = {
   gender?: Gender;
   contact: {
     email: string;
-    phone: Phone;
-    address1: string;
-    address2?: string;
-    state: string;
-    country: string;
-    zip_code: string;
+    phone: {
+      country_code: string;
+      number: string;
+    };
+    address: {
+      address1: string;
+      address2?: string;
+      state: string;
+      country: string;
+      zip_code: string;
+    };
   };
   marital_status?: MaritalStatus;
-  basic_health_info: BasicHealthInfo;
-  health_risk_factors: HealthRiskFactors;
+  basic_health_info: {
+    height: number;
+    weight: number;
+  };
+  health_risk_factors: {
+    is_smoker: boolean;
+  };
 };

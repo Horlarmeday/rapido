@@ -85,7 +85,6 @@ export class UsersService {
     files: Express.Multer.File[],
   ) {
     const uploadedFiles = await this.uploadFiles(profileSetupDto, files);
-    console.log(uploadedFiles);
     const {
       address1,
       address2,
@@ -127,11 +126,11 @@ export class UsersService {
     const { pre_existing_conditions } = profileSetupDto;
     if (!pre_existing_conditions?.length) return;
     return files.map(async (file, i) => {
-      const uploadedFile = this.fileUpload.uploadToS3(
+      const uploadedFile = await this.fileUpload.uploadToS3(
         file.buffer,
         file.originalname,
       );
-      return (pre_existing_conditions[i].file = await uploadedFile);
+      return (pre_existing_conditions[i].file = uploadedFile);
     });
   }
 }
