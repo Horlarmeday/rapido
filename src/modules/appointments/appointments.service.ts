@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -45,5 +45,8 @@ export class AppointmentsService {
         patient: currentUser.sub,
       });
     }
+    throw new InternalServerErrorException(
+      'Error occurred creating appointment',
+    );
   }
 }
