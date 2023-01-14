@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv';
 import { AuthModule } from './modules/auth/auth.module';
 import { TokensModule } from './modules/tokens/tokens.module';
 import { MailModule } from './core/emails/mail.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ dotenv.config();
     MailModule,
     TokensModule,
     MongooseModule.forRoot(<string>process.env.MONGO_URL),
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
