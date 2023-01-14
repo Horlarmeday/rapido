@@ -33,7 +33,7 @@ export class AppointmentsService {
         `;${specialist.profile.contact.email}`,
       ),
       start_time: createAppointmentDto.start_time,
-      topic: `Scheduled Appointment Between ${specialist.profile.firstname} and ${currentUser.first_name}`,
+      topic: `Scheduled Appointment Between ${specialist.profile.first_name} and ${currentUser.first_name}`,
     });
 
     if (response.status === SUCCESS) {
