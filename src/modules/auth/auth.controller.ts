@@ -17,11 +17,13 @@ import { GoogleOauthGuard } from './guards/google-auth.guard';
 import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(DoesUserExist)
   @Post('signup')
   async register(@Body() createUserDto: CreateUserDto) {
     const result = await this.authService.register(createUserDto);

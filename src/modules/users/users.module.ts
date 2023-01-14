@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
-import { UsersService } from "./users.service";
-import { UsersController } from "./users.controller";
-import { MongooseModule } from "@nestjs/mongoose";
-import { RegMedium, User, UserSchema } from "./entities/user.entity";
-import * as bcrypt from "bcrypt";
+import { Module } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { RegMedium, User, UserSchema } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 
 @Module({
   imports: [
@@ -13,17 +14,22 @@ import * as bcrypt from "bcrypt";
         useFactory: () => {
           const schema = UserSchema;
           schema.pre<User>('save', function (next) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             const user = this;
             if (user.reg_medium === RegMedium.LOCAL) {
-              if (user.password) {
+              if (user.profile.password) {
                 bcrypt.genSalt(10, function (err, salt) {
                   if (err) return next(err);
 
-                  bcrypt.hash(user?.password, salt, (err, hash) => {
-                    if (err) return next(err);
-                    user.password = hash;
-                    next();
-                  });
+                  bcrypt.hash(
+                    <string | Buffer>user.profile?.password,
+                    salt,
+                    (err, hash) => {
+                      if (err) return next(err);
+                      user.profile.password = hash;
+                      next();
+                    },
+                  );
                 });
               }
             }
@@ -35,7 +41,7 @@ import * as bcrypt from "bcrypt";
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, FileUploadHelper],
   exports: [MongooseModule],
 })
 export class UsersModule {}
