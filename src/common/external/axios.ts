@@ -3,7 +3,7 @@ import { BadRequestException, Logger } from '@nestjs/common';
 import { SUCCESS } from '../../core/constants';
 
 type AxiosConfig = {
-  headers: { Authorization?: string; 'Content-Type': string };
+  headers: { Authorization?: string; 'content-type': string };
   auth?: any;
 };
 
