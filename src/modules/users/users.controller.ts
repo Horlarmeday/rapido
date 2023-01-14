@@ -14,7 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
-import { Types } from "mongoose";
+import { Types } from 'mongoose';
 
 @Controller('users')
 export class UsersController {
