@@ -5,8 +5,10 @@ import { Document, HydratedDocument, Model, Types } from 'mongoose';
  * @param model
  * @param fields
  */
-export const create = async (model: Model<HydratedDocument<any>>, fields) =>
-  model.create({ ...fields });
+export const create = async (
+  model: Model<HydratedDocument<any>>,
+  fields: object,
+) => model.create({ ...fields });
 
 /**
  * Find one document that matches filter
