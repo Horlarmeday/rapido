@@ -1,10 +1,13 @@
-import { Gender, MaritalStatus } from '../types/profile.types';
+import {
+  BasicHealthInfo,
+  Gender,
+  HealthRiskFactors,
+  MaritalStatus,
+} from '../types/profile.types';
 import {
   IsArray,
-  IsBoolean,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
@@ -26,21 +29,13 @@ export class ProfileSetupDto {
   @IsNotEmpty({
     each: true,
   })
-  @IsNumber({}, { each: true })
-  basic_health_info: Map<number, number>;
-  //
-  // @IsNotEmpty()
-  // @IsNumber()
-  // height: number;
-  //
-  // @IsNotEmpty()
-  // @IsNumber()
-  // weight: number;
+  @ValidateNested({ each: true })
+  @Type(() => BasicHealthInfo)
+  basic_health_info: BasicHealthInfo;
 
-  @IsBoolean({
-    each: true,
-  })
-  health_risk_factors: Map<boolean, boolean>;
+  @ValidateNested({ each: true })
+  @Type(() => HealthRiskFactors)
+  health_risk_factors: HealthRiskFactors;
 
   @IsString()
   @IsNotEmpty()
@@ -68,8 +63,8 @@ export class ProfileSetupDto {
   @Type(() => EmergencyContact)
   emergency_contacts: EmergencyContact[];
 
-  @IsArray()
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => Dependant)
-  dependants: Dependant[];
+  dependants?: Dependant[];
 }
