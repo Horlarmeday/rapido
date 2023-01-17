@@ -30,7 +30,7 @@ export class TokensController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('phone/verify')
+  @Post('phone/verify')
   async phoneVerify(@Body() body, @Request() req) {
     const { token } = body;
     await this.tokensService.verifyPhoneToken(req.user.sub, token);

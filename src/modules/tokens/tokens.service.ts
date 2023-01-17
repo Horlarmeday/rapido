@@ -34,7 +34,7 @@ export class TokensService {
     );
     if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
-    if (moment(foundToken.expires_in).isSameOrBefore(moment())) {
+    if (moment(foundToken.expires_in).isSameOrAfter(moment())) {
       // update user to verified
       await this.usersService.updateOne(userId, {
         is_email_verified: true,
@@ -58,7 +58,7 @@ export class TokensService {
     );
     if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
-    if (moment(userToken.expires_in).isSameOrBefore(moment())) {
+    if (moment(userToken.expires_in).isSameOrAfter(moment())) {
       // update user to verified
       await this.usersService.updateOne(userId, {
         is_phone_verified: true,
@@ -82,7 +82,7 @@ export class TokensService {
     );
     if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
-    if (moment(userToken.expires_in).isSameOrBefore(moment())) {
+    if (moment(userToken.expires_in).isSameOrAfter(moment())) {
       // delete the token
       await this.removeToken(userToken._id);
       return true;
@@ -105,7 +105,7 @@ export class TokensService {
     token: string,
     tokenType: TokenType,
   ) {
-    return findOne(this.tokenModel, { userId, token, type: tokenType });
+    return await findOne(this.tokenModel, { userId, token, type: tokenType });
   }
 
   async findTokenByUserId(userId: Types.ObjectId, tokenType: TokenType) {
