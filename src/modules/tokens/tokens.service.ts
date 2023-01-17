@@ -27,7 +27,11 @@ export class TokensService {
   }
 
   async verifyEmailToken(userId: Types.ObjectId, token: string) {
-    const foundToken = await this.findEmailTokenByUserId(userId, token);
+    const foundToken = await this.findTokenByUserIdAndType(
+      userId,
+      token,
+      TokenType.EMAIL,
+    );
     if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
     if (moment(foundToken.expires_in).isSameOrBefore(moment())) {
@@ -46,8 +50,12 @@ export class TokensService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async verifyPhoneToken(userId, token) {
-    const userToken = await this.findEmailTokenByUserId(userId, token);
+  async verifyPhoneToken(userId: Types.ObjectId, token: string) {
+    const userToken = await this.findTokenByUserIdAndType(
+      userId,
+      token,
+      TokenType.PHONE,
+    );
     if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
     if (moment(userToken.expires_in).isSameOrBefore(moment())) {
@@ -66,6 +74,24 @@ export class TokensService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
+  async verifyOTP(userId: Types.ObjectId, token: string) {
+    const userToken = await this.findTokenByUserIdAndType(
+      userId,
+      token,
+      TokenType.OTP,
+    );
+    if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
+
+    if (moment(userToken.expires_in).isSameOrBefore(moment())) {
+      // delete the token
+      await this.removeToken(userToken._id);
+      return true;
+    }
+    //delete expired code
+    await this.removeToken(userToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+  }
+
   async removeToken(tokenId: Types.ObjectId) {
     return deleteOne(this.tokenModel, { _id: tokenId });
   }
@@ -74,8 +100,12 @@ export class TokensService {
     return findOne(this.tokenModel, { token });
   }
 
-  async findEmailTokenByUserId(userId: Types.ObjectId, token: string) {
-    return findOne(this.tokenModel, { userId, token, type: TokenType.EMAIL });
+  async findTokenByUserIdAndType(
+    userId: Types.ObjectId,
+    token: string,
+    tokenType: TokenType,
+  ) {
+    return findOne(this.tokenModel, { userId, token, type: tokenType });
   }
 
   async findTokenByUserId(userId: Types.ObjectId, tokenType: TokenType) {
@@ -92,6 +122,13 @@ export class TokensService {
           expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
         };
       case TokenType.PHONE:
+        return {
+          userId,
+          token: this.generalHelpers.generateRandomNumbers(4),
+          type,
+          expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
+        };
+      case TokenType.OTP:
         return {
           userId,
           token: this.generalHelpers.generateRandomNumbers(4),

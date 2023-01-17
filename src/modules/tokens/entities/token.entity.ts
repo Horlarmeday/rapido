@@ -7,6 +7,7 @@ export enum TokenType {
   EMAIL = 'EMAIL',
   PHONE = 'PHONE',
   FORGOT_PASSWORD = 'FORGOT_PASSWORD',
+  OTP = 'OTP',
 }
 
 @Schema()
@@ -20,7 +21,12 @@ export class Token {
   @Prop({
     required: true,
     enum: {
-      values: [TokenType.EMAIL, TokenType.PHONE, TokenType.FORGOT_PASSWORD],
+      values: [
+        TokenType.EMAIL,
+        TokenType.PHONE,
+        TokenType.FORGOT_PASSWORD,
+        TokenType.OTP,
+      ],
     },
   })
   type: TokenType;
