@@ -16,8 +16,10 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Types } from 'mongoose';
 import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { forgotPasswordEmail } from '../../core/emails/mails/forgotPasswordEmail';
-import { passwordResetEmail } from '../../core/emails/mails/passwordReset';
+import { passwordResetEmail } from '../../core/emails/mails/passwordResetEmail';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
+import { UserSettingsService } from '../user-settings/user-settings.service';
+import { otpEmail } from '../../core/emails/mails/otpEmail';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +30,7 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly generalHelpers: GeneralHelpers,
     private readonly googleAuth: GoogleAuth,
+    private readonly userSettingService: UserSettingsService,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -63,6 +66,18 @@ export class AuthService {
   }
 
   async login(user: IJwtPayload) {
+    const setting = await this.userSettingService.findOne(user.sub);
+    if (setting.defaults.twoFA_auth) {
+      // create OTP
+      const otp = await this.tokensService.create(TokenType.OTP, user.sub);
+      // send OTP to user email
+      this.generalHelpers.generateEmailAndSend({
+        email: user.email,
+        subject: Messages.LOGIN_VERIFICATION,
+        emailBody: otpEmail(user.first_name, otp.token),
+      });
+      return null;
+    }
     const token = await this.generateToken(user);
     return { user, token };
   }
@@ -192,6 +207,15 @@ export class AuthService {
       emailBody: passwordResetEmail(user.profile.first_name),
     });
     return true;
+  }
+
+  async verifyOTP(user: IJwtPayload, token: string) {
+    const verified = await this.tokensService.verifyOTP(user.sub, token);
+    if (verified) {
+      const token = await this.generateToken(user);
+      return { user, token };
+    }
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
   private static excludeFields(user: UserDocument) {

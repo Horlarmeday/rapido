@@ -18,6 +18,8 @@ import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OtpVerifyDto } from './dto/otp-verify.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,7 +37,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async loginWithEmail(@Request() req) {
     const result = await this.authService.login(req.user);
-    return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
+    return sendSuccessResponse(
+      result ? Messages.USER_AUTHENTICATED : Messages.OTP_SENT,
+      result,
+    );
   }
 
   @Get('google')
@@ -82,5 +87,13 @@ export class AuthController {
   async googleLogin(@Body() token: string) {
     const result = await this.authService.googleAltLogin(token);
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('otp/verify')
+  async otpVerify(@Body() otpVerifyDto: OtpVerifyDto, @Request() req) {
+    const { token } = otpVerifyDto;
+    await this.authService.verifyOTP(req.user, token);
+    return sendSuccessResponse(Messages.PHONE_VERIFIED, null);
   }
 }

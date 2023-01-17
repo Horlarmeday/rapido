@@ -14,6 +14,7 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
+import { UserSettingsModule } from '../user-settings/user-settings.module';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ dotenv.config();
     }),
     UsersModule,
     TokensModule,
+    UserSettingsModule,
   ],
   controllers: [AuthController],
   providers: [
