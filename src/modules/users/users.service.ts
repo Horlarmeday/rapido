@@ -85,6 +85,7 @@ export class UsersService {
     files: Express.Multer.File[],
   ) {
     const uploadedFiles = await this.uploadFiles(profileSetupDto, files);
+    const { profile } = await this.findById(userId);
     const {
       address1,
       address2,
@@ -100,8 +101,10 @@ export class UsersService {
       { _id: userId },
       {
         profile: {
+          ...profile,
           ...profileSetupDto,
           contact: {
+            ...profile.contact,
             address1,
             address2,
             country,
