@@ -1,4 +1,4 @@
-import { Document, HydratedDocument, Model, Types } from 'mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
 
 /**
  * Insert data into a document
@@ -18,7 +18,7 @@ export const create = async (
 export const findOne = async (
   model: Model<HydratedDocument<any>>,
   query: any,
-) => model.findOne({ ...query });
+) => model.findOne({ ...query }).exec();
 
 /**
  * Find document that matches ID

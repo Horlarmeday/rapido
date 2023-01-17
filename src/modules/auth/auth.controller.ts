@@ -18,7 +18,6 @@ import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
 
 @Controller('auth')
@@ -89,11 +88,11 @@ export class AuthController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('otp/verify')
-  async otpVerify(@Body() otpVerifyDto: OtpVerifyDto, @Request() req) {
-    const { token } = otpVerifyDto;
-    await this.authService.verifyOTP(req.user, token);
-    return sendSuccessResponse(Messages.PHONE_VERIFIED, null);
+  @HttpCode(HttpStatus.OK)
+  @Post('otp/verify')
+  async otpVerify(@Body() otpVerifyDto: OtpVerifyDto) {
+    const { token, email } = otpVerifyDto;
+    const result = await this.authService.verifyOTP(email, token);
+    return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
   }
 }

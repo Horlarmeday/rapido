@@ -37,6 +37,7 @@ export class AuthService {
     //TODO: Wrap in transactions
     const user = await this.usersService.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
+    await this.userSettingService.create(user._id);
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
@@ -209,11 +210,12 @@ export class AuthService {
     return true;
   }
 
-  async verifyOTP(user: IJwtPayload, token: string) {
-    const verified = await this.tokensService.verifyOTP(user.sub, token);
+  async verifyOTP(email: string, token: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    const verified = await this.tokensService.verifyOTP(user._id, token);
     if (verified) {
-      const token = await this.generateToken(user);
-      return { user, token };
+      const payload = AuthService.formatJwtPayload(user);
+      return await this.generateToken(payload);
     }
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
