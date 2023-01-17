@@ -6,6 +6,7 @@ import { Appointment, AppointmentSchema } from './entities/appointment.entity';
 import { Zoom } from '../../common/external/zoom/zoom';
 import { UsersModule } from '../users/users.module';
 import { UsersService } from '../users/users.service';
+import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { UsersService } from '../users/users.service';
     UsersModule,
   ],
   controllers: [AppointmentsController],
-  providers: [AppointmentsService, Zoom, UsersService],
+  providers: [AppointmentsService, Zoom, UsersService, FileUploadHelper],
 })
 export class AppointmentsModule {}
