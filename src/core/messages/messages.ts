@@ -23,4 +23,6 @@ export enum Messages {
   PHONE_VERIFICATION_SENT = 'Phone verification sent',
   PASSWORD_RESET_SENT = 'Password reset sent',
   PASSWORD_RESET = 'Password Reset Successfully',
+  LOGIN_VERIFICATION = 'Rapid Capsules Login Verification',
+  OTP_SENT = 'OTP has been sent to your email, kindly verify',
 }

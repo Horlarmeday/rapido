@@ -10,7 +10,7 @@ export class Zoom {
 
   constructor() {
     this.apiKey = <string>process.env.ZOOM_API_KEY;
-    this.secretKey = <string>process.env.ZOOM_SECRET_KEY;
+    this.secretKey = <string>process.env.ZOOM_SECRET_KEY || '2345678';
     this.token = sign(
       { iss: this.apiKey, exp: new Date().getTime() + 5000 },
       this.secretKey,
