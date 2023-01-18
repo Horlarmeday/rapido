@@ -111,5 +111,9 @@
   },
   "lint-staged": {
     "*.(t|j)s": "eslint --cache --fix"
+  },
+  "engines": {
+    "node": "16.16.0",
+    "yarn": "1.22.19"
   }
 }
