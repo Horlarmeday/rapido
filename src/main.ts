@@ -4,18 +4,18 @@ import { Logger, LoggerService } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import * as morgan from 'morgan';
-import * as cors from 'cors';
 import { ValidateInputPipe } from './core/pipes/validation.pipes';
 import { ResponseInterceptor } from './core/interceptors/response.interceptors';
 import { MongoExceptions } from './core/exceptions/mongo.exceptions';
+import * as fs from 'fs';
+import * as v8 from 'v8';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   const port = <number>(<unknown>process.env.PORT);
   const logger: LoggerService = new Logger();
 
   app.use(helmet());
-  app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(morgan('dev'));
@@ -25,6 +25,10 @@ async function bootstrap() {
     new ValidateInputPipe({
       forbidUnknownValues: false,
     }),
+  );
+  await fs.promises.writeFile(
+    `${Date.now()}.heapsnapshot`,
+    v8.getHeapSnapshot(),
   );
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new MongoExceptions());

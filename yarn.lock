@@ -2273,11 +2273,6 @@ acorn@^8.4.1, acorn@^8.5.0, acorn@^8.7.0, acorn@^8.7.1, acorn@^8.8.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.1.tgz#0a3f9cbecc4ec3bea6f0a80b66ae8dd2da250b73"
   integrity sha512-7zFpHzhnqYKrkYdUjF1HI1bzd0VygEGX8lFk4k5zVMqHEoES+P+7TKI+EvLO9WVMJ8eekdO0aDEK044xTXwPPA==
 
-agenda-nest@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/agenda-nest/-/agenda-nest-1.2.0.tgz#39256d8b2128fb324f97f88b712b744f0c9212e5"
-  integrity sha512-ndurpvqR+86i0HU2rgrik6aEO1cVi3Eq2FOoqVapwgu2xmJBnDgb3+V6pwkufxRkyDyvEg2IjWzVoOS4Mrfd2g==
-
 agenda@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/agenda/-/agenda-5.0.0.tgz#1b22b8c7710e5d973498f354713665bfd5e51c33"
@@ -3166,7 +3161,7 @@ core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
   integrity sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==
 
-cors@2.8.5, cors@^2.8.5:
+cors@2.8.5:
   version "2.8.5"
   resolved "https://registry.yarnpkg.com/cors/-/cors-2.8.5.tgz#eac11da51592dd86b9f06f6e7ac293b3df875d29"
   integrity sha512-KIHbLJqu73RGr/hnbrO9uBeixNGuvSQjul/jdFvS/KFSIH1hWVd1ng7zOHx+YrEfInLG7q4n6GHQ9cDtxv/P6g==
