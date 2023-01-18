@@ -66,7 +66,7 @@ export class UsersService {
           'profile.contact.email': email || '',
         },
         {
-          'profile.contact.number': phone || '',
+          'profile.contact.phone.number': phone || '',
         },
       ],
     });
