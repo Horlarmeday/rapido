@@ -19,6 +19,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
+import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,7 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @UseGuards(IsEmailVerified)
   @HttpCode(HttpStatus.OK)
   async loginWithEmail(@Request() req) {
     const result = await this.authService.login(req.user);

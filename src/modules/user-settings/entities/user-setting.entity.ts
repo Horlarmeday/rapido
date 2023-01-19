@@ -17,7 +17,7 @@ export class UserSetting {
 
   @Prop(
     raw({
-      twoFA_auth: { type: Boolean, required: true, default: false },
+      twoFA_auth: { type: Boolean, required: true, default: true },
       marketing: { type: Boolean, required: true, default: false },
       receive_email_notifications: {
         type: Boolean,

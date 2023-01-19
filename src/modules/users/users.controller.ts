@@ -13,7 +13,6 @@ import {
 import { UsersService } from './users.service';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
-import { Types } from 'mongoose';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfileSetupDto } from './dto/profile-setup.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
@@ -21,11 +20,18 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-  @Get(':id')
-  async findOne(@Param('id') id: Types.ObjectId) {
-    const result = await this.usersService.findById(id);
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async findCurrentUser(@Request() req) {
+    const result = await this.usersService.getProfile(req.user.sub);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
+
+  // @Get(':id')
+  // async findOne(@Param('id') id: Types.ObjectId) {
+  //   const result = await this.usersService.findById(id);
+  //   return sendSuccessResponse(Messages.RETRIEVED, result);
+  // }
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const result = await this.usersService.removeOne(id);

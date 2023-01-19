@@ -18,7 +18,12 @@ export const create = async (
 export const findOne = async (
   model: Model<HydratedDocument<any>>,
   query: any,
-) => model.findOne({ ...query }).exec();
+  selectFields?: any,
+) =>
+  model
+    .findOne({ ...query })
+    .select(selectFields)
+    .exec();
 
 /**
  * Find document that matches ID

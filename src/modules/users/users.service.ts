@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
@@ -13,6 +13,7 @@ import {
 import { SocialMediaUserType } from '../auth/types/social-media.type';
 import { ProfileSetupDto } from './dto/profile-setup.dto';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
+import { Messages } from '../../core/messages/messages';
 
 @Injectable()
 export class UsersService {
@@ -135,5 +136,15 @@ export class UsersService {
       );
       return (pre_existing_conditions[i].file = uploadedFile);
     });
+  }
+
+  async getProfile(userId: Types.ObjectId) {
+    const user = await findOne(
+      this.userModel,
+      { _id: userId },
+      '-profile.password',
+    );
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    return user;
   }
 }

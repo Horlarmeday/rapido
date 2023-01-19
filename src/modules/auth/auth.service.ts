@@ -34,6 +34,7 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
+    console.log(createUserDto);
     //TODO: Wrap in transactions
     const user = await this.usersService.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
