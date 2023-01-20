@@ -14,12 +14,20 @@ import { SocialMediaUserType } from '../auth/types/social-media.type';
 import { ProfileSetupDto } from './dto/profile-setup.dto';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 import { Messages } from '../../core/messages/messages';
+import { TokenType } from '../tokens/entities/token.entity';
+import { TokensService } from '../tokens/tokens.service';
+import { verificationEmail } from '../../core/emails/mails/verificationEmail';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { UserSettingsService } from '../user-settings/user-settings.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly fileUpload: FileUploadHelper,
+    private readonly generalHelpers: GeneralHelpers,
+    private tokensService: TokensService,
+    private userSettingsService: UserSettingsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
@@ -52,6 +60,24 @@ export class UsersService {
       email_verified_at: socialMediaUserType.email_verified_at,
     });
   }
+
+  async register(createUserDto: CreateUserDto) {
+    //TODO: Wrap in transactions
+    const user = await this.create(createUserDto);
+    const token = await this.tokensService.create(TokenType.EMAIL, user._id);
+    await this.userSettingsService.create(user._id);
+    this.generalHelpers.generateEmailAndSend({
+      email: user.profile.contact.email,
+      subject: Messages.EMAIL_VERIFICATION,
+      emailBody: verificationEmail(
+        user.profile.first_name,
+        token.token,
+        user._id,
+      ),
+    });
+    return UsersService.excludeFields(user);
+  }
+
   async findById(id: Types.ObjectId): Promise<UserDocument> {
     return await findById(this.userModel, id);
   }
@@ -72,6 +98,7 @@ export class UsersService {
       ],
     });
   }
+
   async removeOne(id: string) {
     return await deleteOne(this.userModel, { _id: id });
   }
@@ -146,5 +173,11 @@ export class UsersService {
     );
     if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
     return user;
+  }
+
+  private static excludeFields(user: UserDocument) {
+    const serializedUser = user.toJSON() as Partial<User>;
+    delete serializedUser.profile?.password;
+    return serializedUser;
   }
 }

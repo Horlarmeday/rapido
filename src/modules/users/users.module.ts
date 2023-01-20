@@ -5,9 +5,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { RegMedium, User, UserSchema } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
+import { TokensModule } from '../tokens/tokens.module';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { MailService } from '../../core/emails/mail.service';
+import { UserSettingsModule } from '../user-settings/user-settings.module';
 
 @Module({
   imports: [
+    TokensModule,
+    UserSettingsModule,
     MongooseModule.forFeatureAsync([
       {
         name: User.name,
@@ -41,7 +47,7 @@ import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UsersController],
-  providers: [UsersService, FileUploadHelper],
-  exports: [MongooseModule],
+  providers: [UsersService, FileUploadHelper, GeneralHelpers, MailService],
+  exports: [MongooseModule, UsersService],
 })
 export class UsersModule {}
