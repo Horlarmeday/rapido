@@ -7,7 +7,6 @@ import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv';
 import { AuthModule } from './modules/auth/auth.module';
 import { TokensModule } from './modules/tokens/tokens.module';
-import { MailModule } from './core/emails/mail.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 
@@ -18,7 +17,6 @@ dotenv.config();
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     UsersModule,
     AuthModule,
-    MailModule,
     TokensModule,
     MongooseModule.forRoot(<string>process.env.MONGO_URL),
     AppointmentsModule,

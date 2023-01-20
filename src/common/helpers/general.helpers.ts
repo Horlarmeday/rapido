@@ -1,16 +1,17 @@
 import { uuid } from 'uuidv4';
 import { Messages } from '../../core/messages/messages';
-import { MailService } from '../../core/emails/mail.service';
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Logger } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 
 type GenerateEmailAndSendType = {
   email: string;
   subject: Messages;
   emailBody: any;
 };
-@Injectable()
+
+const logger = new Logger();
+
 export class GeneralHelpers {
-  constructor(private mailService: MailService) {}
   generateRandomNumbers(length: number) {
     return Math.floor(
       Math.pow(10, length - 1) + Math.random() * 9 * Math.pow(10, length - 1),
@@ -53,6 +54,44 @@ export class GeneralHelpers {
     emailBody,
   }: GenerateEmailAndSendType) {
     // Send email
-    this.mailService.sendMail(email, subject, emailBody);
+    this.sendMail(email, subject, emailBody);
+  }
+
+  nodeMailerTransport() {
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: 587,
+      secure: false, // upgrade later with STARTTLS
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+  }
+
+  sendMail(email, subject, emailBody) {
+    const message = {
+      from: `'Rapid Capsules' <${process.env.EMAIL_SENDER}>`,
+      to: `${email}`,
+      subject,
+      html: emailBody,
+    };
+    const transport = this.nodeMailerTransport();
+    try {
+      transport.verify(function (error, success) {
+        if (error) {
+          logger.error(`Error: ${error}`);
+        } else {
+          transport.sendMail(message, (error, info) => {
+            if (error) {
+              logger.error(`Error: ${error}`);
+            }
+            logger.log(`Email sent to ${email}!`);
+          });
+        }
+      });
+    } catch (e) {
+      throw new BadGatewayException(e);
+    }
   }
 }

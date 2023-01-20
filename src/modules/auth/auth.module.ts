@@ -9,7 +9,6 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import * as dotenv from 'dotenv';
 import { TokensModule } from '../tokens/tokens.module';
-import { MailService } from '../../core/emails/mail.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
@@ -37,7 +36,6 @@ dotenv.config();
     UsersService,
     LocalStrategy,
     JwtStrategy,
-    MailService,
     GeneralHelpers,
     GoogleAuth,
     GoogleStrategy,

@@ -7,7 +7,6 @@ import * as bcrypt from 'bcrypt';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 import { TokensModule } from '../tokens/tokens.module';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
-import { MailService } from '../../core/emails/mail.service';
 import { UserSettingsModule } from '../user-settings/user-settings.module';
 
 @Module({
@@ -47,7 +46,7 @@ import { UserSettingsModule } from '../user-settings/user-settings.module';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UsersController],
-  providers: [UsersService, FileUploadHelper, GeneralHelpers, MailService],
+  providers: [UsersService, FileUploadHelper, GeneralHelpers],
   exports: [MongooseModule, UsersService],
 })
 export class UsersModule {}

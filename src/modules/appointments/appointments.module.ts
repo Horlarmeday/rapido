@@ -7,7 +7,6 @@ import { Zoom } from '../../common/external/zoom/zoom';
 import { UsersModule } from '../users/users.module';
 import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
-import { MailService } from '../../core/emails/mail.service';
 
 @Module({
   imports: [
@@ -17,12 +16,6 @@ import { MailService } from '../../core/emails/mail.service';
     ]),
   ],
   controllers: [AppointmentsController],
-  providers: [
-    AppointmentsService,
-    Zoom,
-    FileUploadHelper,
-    GeneralHelpers,
-    MailService,
-  ],
+  providers: [AppointmentsService, Zoom, FileUploadHelper, GeneralHelpers],
 })
 export class AppointmentsModule {}

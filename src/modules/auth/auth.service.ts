@@ -8,7 +8,6 @@ import { Messages } from '../../core/messages/messages';
 import { SocialMediaUserType } from './types/social-media.type';
 import { TokensService } from '../tokens/tokens.service';
 import { TokenType } from '../tokens/entities/token.entity';
-import { MailService } from '../../core/emails/mail.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -27,7 +26,6 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private readonly tokensService: TokensService,
-    private readonly mailService: MailService,
     private readonly generalHelpers: GeneralHelpers,
     private readonly googleAuth: GoogleAuth,
     private readonly userSettingService: UserSettingsService,
