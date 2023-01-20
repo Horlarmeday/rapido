@@ -1,8 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { RegMedium, User, UserDocument } from '../users/entities/user.entity';
+import { RegMedium, UserDocument } from '../users/entities/user.entity';
 import { IJwtPayload } from './types/jwt-payload.type';
 import { JwtService } from '@nestjs/jwt';
 import { Messages } from '../../core/messages/messages';
@@ -20,6 +19,7 @@ import { passwordResetEmail } from '../../core/emails/mails/passwordResetEmail';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
+import * as moment from 'moment';
 
 @Injectable()
 export class AuthService {
@@ -32,24 +32,6 @@ export class AuthService {
     private readonly googleAuth: GoogleAuth,
     private readonly userSettingService: UserSettingsService,
   ) {}
-
-  async register(createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    //TODO: Wrap in transactions
-    const user = await this.usersService.create(createUserDto);
-    const token = await this.tokensService.create(TokenType.EMAIL, user._id);
-    await this.userSettingService.create(user._id);
-    this.generalHelpers.generateEmailAndSend({
-      email: user.profile.contact.email,
-      subject: Messages.EMAIL_VERIFICATION,
-      emailBody: verificationEmail(
-        user.profile.first_name,
-        token.token,
-        user._id,
-      ),
-    });
-    return AuthService.excludeFields(user);
-  }
 
   async validateUserByEmail(
     email: string,
@@ -220,11 +202,66 @@ export class AuthService {
     }
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
+  async verifyEmailToken(userId: Types.ObjectId, token: string) {
+    const foundToken = await this.tokensService.findTokenByUserIdAndType(
+      userId,
+      token,
+      TokenType.EMAIL,
+    );
+    if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
-  private static excludeFields(user: UserDocument) {
-    const serializedUser = user.toJSON() as Partial<User>;
-    delete serializedUser.profile?.password;
-    return serializedUser;
+    if (moment(foundToken.expires_in).isSameOrAfter(moment())) {
+      // update user to verified
+      await this.usersService.updateOne(userId, {
+        is_email_verified: true,
+        email_verified_at: Date.now(),
+      });
+
+      // delete the token
+      await this.tokensService.removeToken(foundToken._id);
+      return true;
+    }
+    //delete expired code
+    await this.tokensService.removeToken(foundToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+  }
+
+  async verifyPhoneToken(userId: Types.ObjectId, token: string) {
+    const userToken = await this.tokensService.findTokenByUserIdAndType(
+      userId,
+      token,
+      TokenType.PHONE,
+    );
+    if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
+
+    if (moment(userToken.expires_in).isSameOrAfter(moment())) {
+      // update user to verified
+      await this.usersService.updateOne(userId, {
+        is_phone_verified: true,
+        phone_verified_at: Date.now(),
+      });
+
+      // delete the token
+      await this.tokensService.removeToken(userToken._id);
+      return true;
+    }
+    //delete expired code
+    await this.tokensService.removeToken(userToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+  }
+
+  async resendEmailToken(user: IJwtPayload) {
+    const token = await this.tokensService.create(TokenType.EMAIL, user.sub);
+    this.generalHelpers.generateEmailAndSend({
+      email: user.email,
+      subject: Messages.EMAIL_VERIFICATION,
+      emailBody: verificationEmail(user.first_name, token.token, user.sub),
+    });
+  }
+
+  async resendSMSToken(user: IJwtPayload) {
+    const token = await this.tokensService.create(TokenType.PHONE, user.sub);
+    // Todo: send sms to user phone
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {

@@ -7,9 +7,9 @@ import {
   Get,
   HttpStatus,
   HttpCode,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -17,21 +17,13 @@ import { GoogleOauthGuard } from './guards/google-auth.guard';
 import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
 import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @UseGuards(DoesUserExist)
-  @Post('signup')
-  async register(@Body() createUserDto: CreateUserDto) {
-    const result = await this.authService.register(createUserDto);
-    return sendSuccessResponse(Messages.ACCOUNT_CREATED, result);
-  }
-
   @Post('login')
   @UseGuards(LocalAuthGuard)
   @UseGuards(IsEmailVerified)
@@ -96,5 +88,35 @@ export class AuthController {
     const { token, email } = otpVerifyDto;
     const result = await this.authService.verifyOTP(email, token);
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
+  }
+
+  @Get('email/:userId/verify/:token')
+  async emailVerify(@Param() params) {
+    const { userId, token } = params;
+    await this.authService.verifyEmailToken(userId, token);
+    return sendSuccessResponse(Messages.EMAIL_VERIFIED, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('phone/verify')
+  async phoneVerify(@Body() body, @Request() req) {
+    const { token } = body;
+    await this.authService.verifyPhoneToken(req.user.sub, token);
+    return sendSuccessResponse(Messages.PHONE_VERIFIED, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-email-token')
+  async resendEmailToken(@Request() req) {
+    await this.authService.resendEmailToken(req.user);
+    return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-phone-token')
+  async resendPhoneToken(@Request() req) {
+    await this.authService.resendSMSToken(req.user);
+    // Todo: Send token SMS to phone
+    return sendSuccessResponse(Messages.PHONE_VERIFICATION_SENT, null);
   }
 }
