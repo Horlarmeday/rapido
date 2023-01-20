@@ -41,9 +41,10 @@ export class UsersController {
     const result = await this.usersService.removeOne(req.user.sub);
     return sendSuccessResponse(Messages.DELETED, result);
   }
+
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
   @Patch('profile-setup')
-  @UseGuards(JwtAuthGuard)
   async profileSetup(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() profileSetupDto: ProfileSetupDto,
