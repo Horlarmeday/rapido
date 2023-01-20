@@ -8,7 +8,7 @@ export enum Messages {
   NOT_FOUND = 'Data not found',
   NO_USER_FOUND = 'No user found',
   UNAUTHORIZED = 'You are not authorized to access this resource',
-  USER_EXISTS = 'Account already exists, please login',
+  USER_EXISTS = 'Account already exists',
   USER_AUTHENTICATED = 'User authenticated',
   NO_GOOGLE_USER = 'No Google user found',
   NO_APPLE_USER = 'No Apple user found',

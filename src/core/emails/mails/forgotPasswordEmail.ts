@@ -16,7 +16,7 @@ export const forgotPasswordEmail = (
         button: {
           color: '#22BC66', // Optional action button color
           text: 'Reset Password',
-          link: `${process.env.BASE_URL}/api/verifications/reset/?token=${token}&userId=${userId}`,
+          link: `${process.env.BASE_URL}/api/auth/reset/?token=${token}&userId=${userId}`,
         },
       },
       outro:

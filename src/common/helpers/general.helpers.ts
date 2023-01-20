@@ -1,9 +1,7 @@
 import { uuid } from 'uuidv4';
-import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { Messages } from '../../core/messages/messages';
 import { MailService } from '../../core/emails/mail.service';
 import { Injectable } from '@nestjs/common';
-import { IJwtPayload } from '../../modules/auth/types/jwt-payload.type';
 
 type GenerateEmailAndSendType = {
   email: string;
