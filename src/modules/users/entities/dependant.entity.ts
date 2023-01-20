@@ -17,7 +17,6 @@ export class Dependant {
         required: false,
         minLength: 10,
         maxLength: 10,
-        unique: true,
       },
     }),
   )
@@ -39,7 +38,6 @@ export class Dependant {
     type: String,
     trim: true,
     lowercase: true,
-    unique: true,
     validate: {
       validator: function (v) {
         return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);

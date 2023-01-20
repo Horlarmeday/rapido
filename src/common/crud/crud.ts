@@ -14,6 +14,7 @@ export const create = async (
  * Find one document that matches filter
  * @param model
  * @param query
+ * @param selectFields
  */
 export const findOne = async (
   model: Model<HydratedDocument<any>>,

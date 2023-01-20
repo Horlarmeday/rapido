@@ -17,7 +17,6 @@ export class EmergencyContact {
         required: false,
         minLength: 10,
         maxLength: 10,
-        unique: true,
       },
     }),
   )
