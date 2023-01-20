@@ -105,10 +105,10 @@ export class AuthController {
     return sendSuccessResponse(Messages.PHONE_VERIFIED, null);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('resend-email-token')
-  async resendEmailToken(@Request() req) {
-    await this.authService.resendEmailToken(req.user);
+  async resendEmailToken(@Body() body) {
+    const { email } = body;
+    await this.authService.resendEmailToken(email);
     return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
   }
 

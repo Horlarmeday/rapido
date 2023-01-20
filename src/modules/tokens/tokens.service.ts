@@ -10,7 +10,6 @@ import { create, deleteOne, findOne } from '../../common/crud/crud';
 
 @Injectable()
 export class TokensService {
-  private EXPIRY_HOURS = 4;
   constructor(
     @InjectModel(Token.name) private tokenModel: Model<TokenDocument>,
     private generalHelpers: GeneralHelpers,
@@ -63,34 +62,36 @@ export class TokensService {
   }
 
   private createToken(type: TokenType, userId: Types.ObjectId) {
+    const EXPIRY_HOURS = 4;
+
     switch (type) {
       case TokenType.EMAIL:
         return {
           userId,
           token: crypto.randomBytes(32).toString('hex'),
           type,
-          expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
+          expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };
       case TokenType.PHONE:
         return {
           userId,
           token: this.generalHelpers.generateRandomNumbers(4),
           type,
-          expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
+          expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };
       case TokenType.OTP:
         return {
           userId,
           token: this.generalHelpers.generateRandomNumbers(4),
           type,
-          expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
+          expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };
       case TokenType.FORGOT_PASSWORD:
         return {
           userId,
           token: crypto.randomBytes(32).toString('hex'),
           type,
-          expires_in: moment().add(this.EXPIRY_HOURS, 'hour').toDate(),
+          expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };
     }
   }

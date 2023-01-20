@@ -31,7 +31,7 @@ export class MongoExceptions implements ExceptionFilter {
         errorMessage: message,
       });
     };
-    console.error(exception.stack);
+    console.log(exception.stack);
     return responseMessage(exception.name, exception.message);
   }
   // catch(exception: MongooseError, host: ArgumentsHost) {

@@ -8,7 +8,6 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
   imports: [
     MongooseModule.forFeature([{ name: Token.name, schema: TokenSchema }]),
   ],
-  controllers: [],
   providers: [TokensService, GeneralHelpers],
   exports: [TokensService],
 })

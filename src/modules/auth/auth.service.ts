@@ -248,12 +248,18 @@ export class AuthService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async resendEmailToken(user: IJwtPayload) {
-    const token = await this.tokensService.create(TokenType.EMAIL, user.sub);
+  async resendEmailToken(email: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     this.generalHelpers.generateEmailAndSend({
-      email: user.email,
+      email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
-      emailBody: verificationEmail(user.first_name, token.token, user.sub),
+      emailBody: verificationEmail(
+        user.profile.first_name,
+        token.token,
+        user._id,
+      ),
     });
   }
 

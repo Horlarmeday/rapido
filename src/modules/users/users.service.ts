@@ -155,6 +155,7 @@ export class UsersService {
   ) {
     if (!files) return;
     const { pre_existing_conditions } = profileSetupDto;
+    if (!files.length) return;
     if (!pre_existing_conditions?.length) return;
     return files.map(async (file, i) => {
       const uploadedFile = await this.fileUpload.uploadToS3(
