@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Token, TokenDocument, TokenType } from './entities/token.entity';
 import { Messages } from '../../core/messages/messages';
-import { UsersService } from '../users/users.service';
 import * as crypto from 'crypto';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import * as moment from 'moment';
@@ -14,7 +13,6 @@ export class TokensService {
   private EXPIRY_HOURS = 4;
   constructor(
     @InjectModel(Token.name) private tokenModel: Model<TokenDocument>,
-    private usersService: UsersService,
     private generalHelpers: GeneralHelpers,
   ) {}
 
@@ -24,54 +22,6 @@ export class TokensService {
   ): Promise<TokenDocument> {
     const token = await this.createToken(tokenType, userId);
     return await create(this.tokenModel, token);
-  }
-
-  async verifyEmailToken(userId: Types.ObjectId, token: string) {
-    const foundToken = await this.findTokenByUserIdAndType(
-      userId,
-      token,
-      TokenType.EMAIL,
-    );
-    if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
-
-    if (moment(foundToken.expires_in).isSameOrAfter(moment())) {
-      // update user to verified
-      await this.usersService.updateOne(userId, {
-        is_email_verified: true,
-        email_verified_at: Date.now(),
-      });
-
-      // delete the token
-      await this.removeToken(foundToken._id);
-      return true;
-    }
-    //delete expired code
-    await this.removeToken(foundToken._id);
-    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
-  }
-
-  async verifyPhoneToken(userId: Types.ObjectId, token: string) {
-    const userToken = await this.findTokenByUserIdAndType(
-      userId,
-      token,
-      TokenType.PHONE,
-    );
-    if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
-
-    if (moment(userToken.expires_in).isSameOrAfter(moment())) {
-      // update user to verified
-      await this.usersService.updateOne(userId, {
-        is_phone_verified: true,
-        phone_verified_at: Date.now(),
-      });
-
-      // delete the token
-      await this.removeToken(userToken._id);
-      return true;
-    }
-    //delete expired code
-    await this.removeToken(userToken._id);
-    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
   async verifyOTP(userId: Types.ObjectId, token: string) {
