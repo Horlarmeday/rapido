@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
@@ -19,15 +24,18 @@ import { TokensService } from '../tokens/tokens.service';
 import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
+import { TaskScheduler } from '../../core/worker/task.scheduler';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly fileUpload: FileUploadHelper,
     private readonly generalHelpers: GeneralHelpers,
     private tokensService: TokensService,
     private userSettingsService: UserSettingsService,
+    private taskCron: TaskScheduler,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
@@ -112,7 +120,6 @@ export class UsersService {
     profileSetupDto: ProfileSetupDto,
     files: Express.Multer.File[],
   ) {
-    const uploadedFiles = await this.uploadFiles(profileSetupDto, files);
     const { profile } = await this.findById(userId);
     const {
       address1,
@@ -124,7 +131,8 @@ export class UsersService {
       pre_existing_conditions,
       dependants,
     } = profileSetupDto;
-    return await updateOne(
+
+    const user = await updateOne(
       this.userModel,
       { _id: userId },
       {
@@ -142,28 +150,24 @@ export class UsersService {
         },
         emergency_contacts,
         dependants,
-        pre_existing_conditions: uploadedFiles?.length
-          ? uploadedFiles
-          : pre_existing_conditions,
+        pre_existing_conditions,
       },
     );
+    await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
+    return user;
   }
 
-  async uploadFiles(
-    profileSetupDto: ProfileSetupDto,
+  private async hasFilesAndUpload(
     files: Express.Multer.File[],
+    pre_existing_conditions: string | any[],
+    userId: Types.ObjectId,
   ) {
-    if (!files) return;
-    const { pre_existing_conditions } = profileSetupDto;
     if (!files.length) return;
     if (!pre_existing_conditions?.length) return;
-    return files.map(async (file, i) => {
-      const uploadedFile = await this.fileUpload.uploadToS3(
-        file.buffer,
-        file.originalname,
-      );
-      return (pre_existing_conditions[i].file = uploadedFile);
-    });
+    await this.taskCron.addCron(
+      this.uploadToS3(files, userId),
+      `${userId}-uploadS3`,
+    );
   }
 
   async getProfile(userId: Types.ObjectId) {
@@ -180,5 +184,26 @@ export class UsersService {
     const serializedUser = user.toJSON() as Partial<User>;
     delete serializedUser.profile?.password;
     return serializedUser;
+  }
+
+  async uploadToS3(files, userId) {
+    try {
+      this.logger.log('Uploading to S3 bucket');
+      const promises = await Promise.all(
+        files.map((file) => {
+          return this.fileUpload.uploadToS3(file.buffer, file.originalname);
+        }),
+      );
+      this.logger.log(`Finished updating to S3: ${promises}`);
+      const user = await this.findById(userId);
+      user.pre_existing_conditions?.map((condition, index) => {
+        condition.file = promises[index];
+      });
+      await user.save();
+      this.logger.log(`Updated user profile`);
+    } catch (e) {
+      this.logger.error(`Error occurred, ${e}`);
+      throw new InternalServerErrorException('Error occurred', e);
+    }
   }
 }

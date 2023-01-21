@@ -8,6 +8,8 @@ import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 import { TokensModule } from '../tokens/tokens.module';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsModule } from '../user-settings/user-settings.module';
+import { TaskScheduler } from '../../core/worker/task.scheduler';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -46,7 +48,13 @@ import { UserSettingsModule } from '../user-settings/user-settings.module';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UsersController],
-  providers: [UsersService, FileUploadHelper, GeneralHelpers],
+  providers: [
+    UsersService,
+    FileUploadHelper,
+    GeneralHelpers,
+    TaskScheduler,
+    SchedulerRegistry,
+  ],
   exports: [MongooseModule, UsersService],
 })
 export class UsersModule {}
