@@ -8,7 +8,9 @@ import {
   HttpStatus,
   HttpCode,
   Param,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -30,8 +32,8 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @UseGuards(IsEmailVerified)
   @HttpCode(HttpStatus.OK)
-  async loginWithEmail(@Request() req) {
-    const result = await this.authService.login(req.user);
+  async loginWithEmail(@Request() req, @Res() response: Response) {
+    const result = await this.authService.login(response, req.user);
     return sendSuccessResponse(
       result ? Messages.USER_AUTHENTICATED : Messages.OTP_SENT,
       result,

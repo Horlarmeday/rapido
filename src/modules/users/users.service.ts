@@ -189,6 +189,7 @@ export class UsersService {
   private static excludeFields(user: UserDocument) {
     const serializedUser = user.toJSON() as Partial<User>;
     delete serializedUser.profile?.password;
+    delete serializedUser.profile?.twoFA_secret;
     return serializedUser;
   }
 

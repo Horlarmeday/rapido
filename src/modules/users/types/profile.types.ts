@@ -56,4 +56,5 @@ export type Profile = {
   marital_status?: MaritalStatus;
   basic_health_info: BasicHealthInfo;
   health_risk_factors: HealthRiskFactors;
+  twoFA_secret?: string;
 };

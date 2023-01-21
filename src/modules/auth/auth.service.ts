@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Response } from 'express';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { RegMedium, UserDocument } from '../users/entities/user.entity';
@@ -22,6 +23,10 @@ import * as moment from 'moment';
 import { Twilio } from '../../common/external/twilio/twilio';
 import { APPROVED } from '../../core/constants';
 import { PhoneTokenDto } from './dto/phone-token.dto';
+import { TwoFAMedium } from '../user-settings/entities/user-setting.entity';
+import { authenticator } from 'otplib';
+import { toFileStream } from 'qrcode';
+import { Profile } from '../users/types/profile.types';
 
 @Injectable()
 export class AuthService {
@@ -51,18 +56,14 @@ export class AuthService {
     return null;
   }
 
-  async login(user: IJwtPayload) {
+  async login(response: Response, user: IJwtPayload) {
     const setting = await this.userSettingService.findOne(user.sub);
-    if (setting.defaults.twoFA_auth) {
-      // create OTP
-      const otp = await this.tokensService.create(TokenType.OTP, user.sub);
-      // send OTP to user email
-      this.generalHelpers.generateEmailAndSend({
-        email: user.email,
-        subject: Messages.LOGIN_VERIFICATION,
-        emailBody: otpEmail(user.first_name, otp.token),
-      });
-      return null;
+    if (setting.defaults?.twoFA_auth) {
+      return await this.twoFactorAuthAuthentication(
+        setting.defaults.twoFA_medium,
+        user.sub,
+        response,
+      );
     }
     const token = await this.generateToken(user);
     return { user, token };
@@ -268,8 +269,7 @@ export class AuthService {
     if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
 
     const phoneNumber = `${user.profile.contact.phone.country_code}${phone}`;
-    const response = await this.twilio.sendPhoneVerificationCode(phoneNumber);
-    return response;
+    return await this.twilio.sendPhoneVerificationCode(phoneNumber);
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {
@@ -295,5 +295,62 @@ export class AuthService {
     payload: IJwtPayload | { sub: string; email: string },
   ) {
     return await this.jwtService.signAsync(payload);
+  }
+
+  private async twoFactorAuthAuthentication(
+    twoFaMedium: TwoFAMedium | undefined,
+    userId: Types.ObjectId,
+    response: Response,
+  ) {
+    const { profile, _id } = await this.usersService.findById(userId);
+    switch (twoFaMedium) {
+      case TwoFAMedium.EMAIL:
+        return await this.sendEmail2FA(profile, _id);
+      case TwoFAMedium.SMS:
+        const phoneNumber = `${profile.contact.phone.country_code}${profile.contact.phone.number}`;
+        await this.twilio.sendPhoneVerificationCode(phoneNumber);
+        return null;
+      case TwoFAMedium.AUTH_APPS:
+        const { otpAuthUrl } = await this.generateTwoFactorAuthSecret(
+          profile,
+          _id,
+        );
+        return this.pipeQrCodeStream(response, otpAuthUrl);
+      default:
+        return await this.sendEmail2FA(profile, _id);
+    }
+  }
+
+  private async generateTwoFactorAuthSecret(
+    profile: Profile,
+    userId: Types.ObjectId,
+  ) {
+    const secret = authenticator.generateSecret();
+    const otpAuthUrl = authenticator.keyuri(
+      profile.contact.email,
+      <string>process.env.TWO_FA_APP_NAME,
+      secret,
+    );
+
+    await this.usersService.updateOne(userId, { twoFA_secret: secret });
+    return {
+      secret,
+      otpAuthUrl,
+    };
+  }
+
+  async pipeQrCodeStream(stream: Response, otpAuthUrl: string) {
+    return toFileStream(stream, otpAuthUrl);
+  }
+
+  async sendEmail2FA(profile, userId) {
+    const otp = await this.tokensService.create(TokenType.OTP, userId);
+    // send OTP to user email
+    this.generalHelpers.generateEmailAndSend({
+      email: profile.contact.email,
+      subject: Messages.LOGIN_VERIFICATION,
+      emailBody: otpEmail(profile.first_name, otp.token),
+    });
+    return null;
   }
 }

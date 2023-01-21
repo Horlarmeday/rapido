@@ -101,6 +101,7 @@ export class User {
         is_over_weight: { type: Boolean, default: false },
         has_recent_injuries: { type: Boolean, default: false },
       },
+      twoFA_secret: { type: String, required: false },
     }),
   )
   profile: Profile;

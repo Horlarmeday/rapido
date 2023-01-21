@@ -24,7 +24,7 @@ export enum Messages {
   PASSWORD_RESET_SENT = 'Password reset sent',
   PASSWORD_RESET = 'Password Reset Successfully',
   LOGIN_VERIFICATION = 'Rapid Capsules Login Verification',
-  OTP_SENT = 'OTP has been sent to your email, kindly verify',
+  OTP_SENT = 'OTP has been sent to you, kindly verify',
   LOGIN_VERIFIED = 'Login verified',
   EMAIL_NOT_VERIFIED = 'Email not verified, please check your inbox for email verification link',
 }
