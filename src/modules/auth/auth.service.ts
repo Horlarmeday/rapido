@@ -19,6 +19,9 @@ import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import * as moment from 'moment';
+import { Twilio } from '../../common/external/twilio/twilio';
+import { APPROVED } from '../../core/constants';
+import { PhoneTokenDto } from './dto/phone-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +32,7 @@ export class AuthService {
     private readonly generalHelpers: GeneralHelpers,
     private readonly googleAuth: GoogleAuth,
     private readonly userSettingService: UserSettingsService,
+    private readonly twilio: Twilio,
   ) {}
 
   async validateUserByEmail(
@@ -224,27 +228,22 @@ export class AuthService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async verifyPhoneToken(userId: Types.ObjectId, token: string) {
-    const userToken = await this.tokensService.findTokenByUserIdAndType(
-      userId,
-      token,
-      TokenType.PHONE,
-    );
-    if (!userToken) throw new BadRequestException(Messages.INVALID_TOKEN);
+  async verifyPhone(phone: string, code: string) {
+    const user = await this.usersService.findOneByPhone(phone);
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
 
-    if (moment(userToken.expires_in).isSameOrAfter(moment())) {
+    const response = await this.twilio.verifyPhoneVerification(
+      `${user.profile.contact.phone.country_code}${phone}`,
+      code,
+    );
+    if (response.data.status === APPROVED) {
       // update user to verified
-      await this.usersService.updateOne(userId, {
+      await this.usersService.updateOne(user._id, {
         is_phone_verified: true,
         phone_verified_at: Date.now(),
       });
-
-      // delete the token
-      await this.tokensService.removeToken(userToken._id);
-      return true;
+      return;
     }
-    //delete expired code
-    await this.tokensService.removeToken(userToken._id);
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
@@ -263,9 +262,14 @@ export class AuthService {
     });
   }
 
-  async resendSMSToken(user: IJwtPayload) {
-    const token = await this.tokensService.create(TokenType.PHONE, user.sub);
-    // Todo: send sms to user phone
+  async resendSMSToken(phoneTokenDto: PhoneTokenDto) {
+    const { phone } = phoneTokenDto;
+    const user = await this.usersService.findOneByPhone(phone);
+    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+
+    const phoneNumber = `${user.profile.contact.phone.country_code}${phone}`;
+    const response = await this.twilio.sendPhoneVerificationCode(phoneNumber);
+    return response;
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {

@@ -19,7 +19,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
 import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PhoneVerifyDto } from './dto/phone-verify.dto';
+import { EmailTokenDto } from './dto/email-token.dto';
+import { PhoneTokenDto } from './dto/phone-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -76,6 +78,7 @@ export class AuthController {
     return sendSuccessResponse(Messages.PASSWORD_RESET, null);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('google/alt-login')
   async googleLogin(@Body() token: string) {
     const result = await this.authService.googleAltLogin(token);
@@ -97,26 +100,26 @@ export class AuthController {
     return sendSuccessResponse(Messages.EMAIL_VERIFIED, null);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('phone/verify')
-  async phoneVerify(@Body() body, @Request() req) {
-    const { token } = body;
-    await this.authService.verifyPhoneToken(req.user.sub, token);
+  async phoneVerify(@Body() phoneVerify: PhoneVerifyDto) {
+    const { code, phone } = phoneVerify;
+    await this.authService.verifyPhone(phone, code);
     return sendSuccessResponse(Messages.PHONE_VERIFIED, null);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('resend-email-token')
-  async resendEmailToken(@Body() body) {
-    const { email } = body;
+  async resendEmailToken(@Body() emailToken: EmailTokenDto) {
+    const { email } = emailToken;
     await this.authService.resendEmailToken(email);
     return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('resend-phone-token')
-  async resendPhoneToken(@Request() req) {
-    await this.authService.resendSMSToken(req.user);
-    // Todo: Send token SMS to phone
+  async resendPhoneToken(@Body() phoneToken: PhoneTokenDto) {
+    await this.authService.resendSMSToken(phoneToken);
     return sendSuccessResponse(Messages.PHONE_VERIFICATION_SENT, null);
   }
 }

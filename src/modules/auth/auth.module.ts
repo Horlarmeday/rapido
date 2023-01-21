@@ -12,6 +12,7 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { UserSettingsModule } from '../user-settings/user-settings.module';
+import { Twilio } from '../../common/external/twilio/twilio';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ dotenv.config();
     GeneralHelpers,
     GoogleAuth,
     GoogleStrategy,
+    Twilio,
   ],
 })
 export class AuthModule {}
