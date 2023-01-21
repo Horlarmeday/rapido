@@ -16,7 +16,7 @@ export class FileUploadHelper {
       }).promise();
       return location.Location;
     } catch (e) {
-      throw new InternalServerErrorException(e);
+      throw new InternalServerErrorException('Error uploading to S3', e);
     }
   }
 }
