@@ -94,6 +94,12 @@ export class UsersService {
     return await findOne(this.userModel, { 'profile.contact.email': email });
   }
 
+  async findOneByPhone(phone: string): Promise<UserDocument> {
+    return await findOne(this.userModel, {
+      'profile.contact.phone.number': phone,
+    });
+  }
+
   async findOneByEmailOrPhone(email: string, phone: string): Promise<User> {
     return await findOne(this.userModel, {
       $or: [
