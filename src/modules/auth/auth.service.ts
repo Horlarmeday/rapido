@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { Response } from 'express';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  Response,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { RegMedium, UserDocument } from '../users/entities/user.entity';
@@ -18,7 +22,6 @@ import { forgotPasswordEmail } from '../../core/emails/mails/forgotPasswordEmail
 import { passwordResetEmail } from '../../core/emails/mails/passwordResetEmail';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
 import { UserSettingsService } from '../user-settings/user-settings.service';
-import { otpEmail } from '../../core/emails/mails/otpEmail';
 import * as moment from 'moment';
 import { Twilio } from '../../common/external/twilio/twilio';
 import { APPROVED } from '../../core/constants';
@@ -27,6 +30,8 @@ import { TwoFAMedium } from '../user-settings/entities/user-setting.entity';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { Profile } from '../users/types/profile.types';
+import { TwoFACodeDto } from './dto/twoFA-code.dto';
+import { otpEmail } from '../../core/emails/mails/otpEmail';
 
 @Injectable()
 export class AuthService {
@@ -45,28 +50,28 @@ export class AuthService {
     pass: string,
   ): Promise<IJwtPayload | null> {
     const user = await this.usersService.findOneByEmail(email);
-    if (user && user.reg_medium !== RegMedium.LOCAL)
+    if (user && user.reg_medium !== RegMedium.LOCAL) {
       throw new BadRequestException(Messages.SOCIAL_MEDIA_LOGIN);
-
+    }
     if (
       user &&
-      (await AuthService.comparePassword(pass, user.profile.password))
-    )
+      (await this.comparePassword(pass, <string>user.profile.password))
+    ) {
       return AuthService.formatJwtPayload(user);
+    }
     return null;
   }
 
-  async login(response: Response, user: IJwtPayload) {
+  async login(user: IJwtPayload) {
     const setting = await this.userSettingService.findOne(user.sub);
     if (setting.defaults?.twoFA_auth) {
       return await this.twoFactorAuthAuthentication(
         setting.defaults.twoFA_medium,
         user.sub,
-        response,
       );
     }
     const token = await this.generateToken(user);
-    return { user, token };
+    return { message: Messages.USER_AUTHENTICATED, result: token };
   }
 
   async googleLogin(req) {
@@ -147,7 +152,7 @@ export class AuthService {
     const user = await this.usersService.findOneByEmail(
       forgotPasswordDto.email,
     );
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const existingToken = await this.tokensService.findTokenByUserId(
       user._id,
@@ -181,7 +186,7 @@ export class AuthService {
     const user = await this.usersService.findById(
       <Types.ObjectId>(<unknown>userId),
     );
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     user.profile.password = password;
     await user.save();
@@ -198,6 +203,8 @@ export class AuthService {
 
   async verifyOTP(email: string, token: string) {
     const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
     const verified = await this.tokensService.verifyOTP(user._id, token);
     if (verified) {
       const payload = AuthService.formatJwtPayload(user);
@@ -205,7 +212,23 @@ export class AuthService {
     }
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
-  async verifyEmailToken(userId: Types.ObjectId, token: string) {
+
+  async verify2FACode(email: string, twoFACodeDto: TwoFACodeDto) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
+    const verified = await this.isTwoFactorAuthCodeValid(
+      twoFACodeDto,
+      user.profile,
+    );
+    if (verified) {
+      const payload = AuthService.formatJwtPayload(user);
+      return await this.generateToken(payload);
+    }
+    throw new BadRequestException(Messages.INVALID_AUTH_CODE);
+  }
+
+  async verifyEmail(userId: Types.ObjectId, token: string) {
     const foundToken = await this.tokensService.findTokenByUserIdAndType(
       userId,
       token,
@@ -230,8 +253,10 @@ export class AuthService {
   }
 
   async verifyPhone(phone: string, code: string) {
-    const user = await this.usersService.findOneByPhone(phone);
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    const user = await this.usersService.findOneByPhone(
+      this.removeLeadingZero(phone),
+    );
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const response = await this.twilio.verifyPhoneVerification(
       `${user.profile.contact.phone.country_code}${phone}`,
@@ -250,7 +275,8 @@ export class AuthService {
 
   async resendEmailToken(email: string) {
     const user = await this.usersService.findOneByEmail(email);
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
@@ -265,11 +291,54 @@ export class AuthService {
 
   async resendSMSToken(phoneTokenDto: PhoneTokenDto) {
     const { phone } = phoneTokenDto;
-    const user = await this.usersService.findOneByPhone(phone);
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    const user = await this.usersService.findOneByPhone(
+      this.removeLeadingZero(phone),
+    );
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const phoneNumber = `${user.profile.contact.phone.country_code}${phone}`;
     return await this.twilio.sendPhoneVerificationCode(phoneNumber);
+  }
+
+  async generateTwoFactorAuthSecret(userId: Types.ObjectId) {
+    const { profile } = await this.usersService.findById(userId);
+    const secret = authenticator.generateSecret();
+    const otpAuthUrl = authenticator.keyuri(
+      profile.contact.email,
+      <string>process.env.TWO_FA_APP_NAME,
+      secret,
+    );
+    console.log(secret);
+
+    await this.usersService.updateOne(userId, {
+      'profile.twoFA_secret': secret,
+    });
+    return {
+      secret,
+      otpAuthUrl,
+    };
+  }
+
+  async pipeQrCodeStream(stream: Response, otpAuthUrl: string) {
+    return toFileStream(stream, otpAuthUrl);
+  }
+
+  async turnOn2FAAuthentication(
+    twoFACodeDto: TwoFACodeDto,
+    userId: Types.ObjectId,
+  ) {
+    const user = await this.usersService.findById(userId);
+    const isCodeValid = await this.isTwoFactorAuthCodeValid(
+      twoFACodeDto,
+      user.profile,
+    );
+
+    if (!isCodeValid) throw new BadRequestException(Messages.INVALID_AUTH_CODE);
+
+    await this.userSettingService.updateSetting(
+      { 'defaults.twoFA_medium': TwoFAMedium.AUTH_APPS },
+      userId,
+    );
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {
@@ -284,11 +353,8 @@ export class AuthService {
     };
   }
 
-  private static async comparePassword(
-    enteredPassword: string,
-    dbPassword: string | undefined,
-  ) {
-    return bcrypt.compare(enteredPassword, <string>dbPassword);
+  private async comparePassword(enteredPassword: string, dbPassword: string) {
+    return bcrypt.compare(enteredPassword, dbPassword);
   }
 
   private async generateToken(
@@ -300,50 +366,21 @@ export class AuthService {
   private async twoFactorAuthAuthentication(
     twoFaMedium: TwoFAMedium | undefined,
     userId: Types.ObjectId,
-    response: Response,
   ) {
     const { profile, _id } = await this.usersService.findById(userId);
     switch (twoFaMedium) {
       case TwoFAMedium.EMAIL:
-        return await this.sendEmail2FA(profile, _id);
+        return await this.send2FAEmailOTP(profile, _id);
       case TwoFAMedium.SMS:
-        const phoneNumber = `${profile.contact.phone.country_code}${profile.contact.phone.number}`;
-        await this.twilio.sendPhoneVerificationCode(phoneNumber);
-        return null;
+        return await this.send2FAPhoneOTP(profile);
       case TwoFAMedium.AUTH_APPS:
-        const { otpAuthUrl } = await this.generateTwoFactorAuthSecret(
-          profile,
-          _id,
-        );
-        return this.pipeQrCodeStream(response, otpAuthUrl);
+        return { message: Messages.TWOFA_OTP_SENT, result: null };
       default:
-        return await this.sendEmail2FA(profile, _id);
+        return await this.send2FAEmailOTP(profile, _id);
     }
   }
 
-  private async generateTwoFactorAuthSecret(
-    profile: Profile,
-    userId: Types.ObjectId,
-  ) {
-    const secret = authenticator.generateSecret();
-    const otpAuthUrl = authenticator.keyuri(
-      profile.contact.email,
-      <string>process.env.TWO_FA_APP_NAME,
-      secret,
-    );
-
-    await this.usersService.updateOne(userId, { twoFA_secret: secret });
-    return {
-      secret,
-      otpAuthUrl,
-    };
-  }
-
-  async pipeQrCodeStream(stream: Response, otpAuthUrl: string) {
-    return toFileStream(stream, otpAuthUrl);
-  }
-
-  async sendEmail2FA(profile, userId) {
+  private async send2FAEmailOTP(profile, userId) {
     const otp = await this.tokensService.create(TokenType.OTP, userId);
     // send OTP to user email
     this.generalHelpers.generateEmailAndSend({
@@ -351,6 +388,27 @@ export class AuthService {
       subject: Messages.LOGIN_VERIFICATION,
       emailBody: otpEmail(profile.first_name, otp.token),
     });
-    return null;
+    return { message: Messages.EMAIL_OTP_SENT, result: null };
+  }
+
+  private async send2FAPhoneOTP(profile: Profile) {
+    const phoneNumber = `${profile.contact.phone.country_code}${profile.contact.phone.number}`;
+    await this.twilio.sendPhoneVerificationCode(phoneNumber);
+    return { message: Messages.PHONE_OTP_SENT, result: null };
+  }
+
+  private async isTwoFactorAuthCodeValid(
+    twoFACodeDto: TwoFACodeDto,
+    profile: Profile,
+  ) {
+    return authenticator.verify({
+      token: twoFACodeDto.code,
+      secret: <string>profile.twoFA_secret,
+    });
+  }
+
+  private removeLeadingZero(phone: string) {
+    if (phone.startsWith('0')) return phone.slice(1);
+    return phone;
   }
 }

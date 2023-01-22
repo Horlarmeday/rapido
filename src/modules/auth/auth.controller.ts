@@ -8,9 +8,8 @@ import {
   HttpStatus,
   HttpCode,
   Param,
-  Res,
+  Response,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -24,6 +23,8 @@ import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
 import { PhoneVerifyDto } from './dto/phone-verify.dto';
 import { EmailTokenDto } from './dto/email-token.dto';
 import { PhoneTokenDto } from './dto/phone-token.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TwoFACodeDto } from './dto/twoFA-code.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,12 +33,9 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @UseGuards(IsEmailVerified)
   @HttpCode(HttpStatus.OK)
-  async loginWithEmail(@Request() req, @Res() response: Response) {
-    const result = await this.authService.login(response, req.user);
-    return sendSuccessResponse(
-      result ? Messages.USER_AUTHENTICATED : Messages.OTP_SENT,
-      result,
-    );
+  async loginWithEmail(@Request() req) {
+    const { message, result } = await this.authService.login(req.user);
+    return sendSuccessResponse(message, result);
   }
 
   @Get('google')
@@ -89,7 +87,7 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('otp/verify')
-  async otpVerify(@Body() otpVerifyDto: OtpVerifyDto) {
+  async verifyEmailOTP(@Body() otpVerifyDto: OtpVerifyDto) {
     const { token, email } = otpVerifyDto;
     const result = await this.authService.verifyOTP(email, token);
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
@@ -98,7 +96,7 @@ export class AuthController {
   @Get('email/:userId/verify/:token')
   async emailVerify(@Param() params) {
     const { userId, token } = params;
-    await this.authService.verifyEmailToken(userId, token);
+    await this.authService.verifyEmail(userId, token);
     return sendSuccessResponse(Messages.EMAIL_VERIFIED, null);
   }
 
@@ -123,5 +121,36 @@ export class AuthController {
   async resendPhoneToken(@Body() phoneToken: PhoneTokenDto) {
     await this.authService.resendSMSToken(phoneToken);
     return sendSuccessResponse(Messages.PHONE_VERIFICATION_SENT, null);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/generate')
+  async generate2FA(@Request() req, @Response() res) {
+    const { otpAuthUrl } = await this.authService.generateTwoFactorAuthSecret(
+      req.user.sub,
+    );
+    return this.authService.pipeQrCodeStream(res, otpAuthUrl);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/turn-on')
+  async turnOn2FAAuthentication(
+    @Body() twoFACodeDto: TwoFACodeDto,
+    @Request() req,
+  ) {
+    await this.authService.turnOn2FAAuthentication(twoFACodeDto, req.user.sub);
+    return sendSuccessResponse(Messages.TWO_FA_TURNED_ON, null);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('2fa/verify')
+  async verify2FACode(@Body() twoFACodeDto: TwoFACodeDto, @Body() body) {
+    const result = await this.authService.verify2FACode(
+      body.email,
+      twoFACodeDto,
+    );
+    return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
   }
 }
