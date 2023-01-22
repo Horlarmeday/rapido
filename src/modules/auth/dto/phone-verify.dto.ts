@@ -9,5 +9,7 @@ export class PhoneVerifyDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(10)
+  @MaxLength(11)
   phone: string;
 }

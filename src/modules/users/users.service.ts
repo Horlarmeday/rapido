@@ -1,8 +1,8 @@
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -117,8 +117,8 @@ export class UsersService {
     return await deleteOne(this.userModel, { _id: id });
   }
 
-  async updateOne(userId: Types.ObjectId, fieldsToUpdate: any) {
-    return this.userModel.updateOne({ _id: userId }, { $set: fieldsToUpdate });
+  async updateOne(userId: Types.ObjectId, fieldsToUpdate: object) {
+    return await updateOne(this.userModel, { _id: userId }, fieldsToUpdate);
   }
 
   async profileSetup(
@@ -182,7 +182,7 @@ export class UsersService {
       { _id: userId },
       '-profile.password',
     );
-    if (!user) throw new BadRequestException(Messages.NO_USER_FOUND);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
     return user;
   }
 
