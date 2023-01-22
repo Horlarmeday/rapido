@@ -20,6 +20,7 @@ export enum Messages {
   EMAIL_VERIFIED = 'Email Verified',
   PHONE_VERIFIED = 'Phone Verified',
   INVALID_EXPIRED_TOKEN = 'Invalid or expired token, get a valid token',
+  INVALID_EXPIRED_CODE = 'Invalid or expired code',
   EMAIL_VERIFICATION_SENT = 'Email verification sent',
   PHONE_VERIFICATION_SENT = 'Phone verification sent',
   PASSWORD_RESET_SENT = 'Password reset sent',

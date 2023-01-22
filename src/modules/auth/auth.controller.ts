@@ -18,7 +18,7 @@ import { GoogleOauthGuard } from './guards/google-auth.guard';
 import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { OtpVerifyDto } from './dto/otp-verify.dto';
+import { EmailOtpVerifyDto } from './dto/email-otp-verify.dto';
 import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
 import { PhoneVerifyDto } from './dto/phone-verify.dto';
 import { EmailTokenDto } from './dto/email-token.dto';
@@ -86,10 +86,18 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('otp/verify')
-  async verifyEmailOTP(@Body() otpVerifyDto: OtpVerifyDto) {
+  @Post('otp/email/verify')
+  async verifyEmailOTP(@Body() otpVerifyDto: EmailOtpVerifyDto) {
     const { token, email } = otpVerifyDto;
-    const result = await this.authService.verifyOTP(email, token);
+    const result = await this.authService.verifyEmailOTP(email, token);
+    return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('otp/phone/verify')
+  async verifyPhoneOTP(@Body() phoneVerifyDto: PhoneVerifyDto) {
+    const { code, phone } = phoneVerifyDto;
+    const result = await this.authService.verifyPhoneOTP(phone, code);
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
   }
 

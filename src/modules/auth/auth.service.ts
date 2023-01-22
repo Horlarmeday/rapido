@@ -201,7 +201,7 @@ export class AuthService {
     return true;
   }
 
-  async verifyOTP(email: string, token: string) {
+  async verifyEmailOTP(email: string, token: string) {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
@@ -211,6 +211,23 @@ export class AuthService {
       return await this.generateToken(payload);
     }
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+  }
+
+  async verifyPhoneOTP(phone: string, code: string) {
+    const user = await this.usersService.findOneByPhone(
+      this.removeLeadingZero(phone),
+    );
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
+    const response = await this.twilio.verifyPhoneVerification(
+      `${user.profile.contact.phone.country_code}${phone}`,
+      code,
+    );
+    if (response.data.status === APPROVED) {
+      const payload = AuthService.formatJwtPayload(user);
+      return await this.generateToken(payload);
+    }
+    throw new BadRequestException(Messages.INVALID_EXPIRED_CODE);
   }
 
   async verify2FACode(email: string, twoFACodeDto: TwoFACodeDto) {
