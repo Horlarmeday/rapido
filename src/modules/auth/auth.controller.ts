@@ -86,7 +86,7 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('otp/email/verify')
+  @Post('otp/verify')
   async verifyEmailOTP(@Body() otpVerifyDto: EmailOtpVerifyDto) {
     const { token, email } = otpVerifyDto;
     const result = await this.authService.verifyEmailOTP(email, token);
