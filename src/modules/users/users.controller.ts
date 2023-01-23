@@ -44,7 +44,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
-  @Patch('profile-setup')
+  @Patch()
   async profileSetup(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() profileSetupDto: ProfileSetupDto,
