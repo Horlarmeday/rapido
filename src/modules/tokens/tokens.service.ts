@@ -63,6 +63,7 @@ export class TokensService {
 
   private createToken(type: TokenType, userId: Types.ObjectId) {
     const EXPIRY_HOURS = 4;
+    const TOKEN_LENGTH = 6;
 
     switch (type) {
       case TokenType.EMAIL:
@@ -75,14 +76,14 @@ export class TokensService {
       case TokenType.PHONE:
         return {
           userId,
-          token: this.generalHelpers.generateRandomNumbers(4),
+          token: this.generalHelpers.generateRandomNumbers(TOKEN_LENGTH),
           type,
           expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };
       case TokenType.OTP:
         return {
           userId,
-          token: this.generalHelpers.generateRandomNumbers(4),
+          token: this.generalHelpers.generateRandomNumbers(TOKEN_LENGTH),
           type,
           expires_in: moment().add(EXPIRY_HOURS, 'hour').toDate(),
         };

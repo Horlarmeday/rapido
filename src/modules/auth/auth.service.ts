@@ -32,6 +32,7 @@ import { toFileStream } from 'qrcode';
 import { Profile } from '../users/types/profile.types';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
+import { EmailTokenDto } from './dto/email-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -356,6 +357,13 @@ export class AuthService {
       { 'defaults.twoFA_medium': TwoFAMedium.AUTH_APPS },
       userId,
     );
+  }
+
+  async resendEmailOTP(emailTokenDto: EmailTokenDto) {
+    const user = await this.usersService.findOneByEmail(emailTokenDto.email);
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
+    await this.send2FAEmailOTP(user.profile, user._id);
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {

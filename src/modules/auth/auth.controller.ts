@@ -132,6 +132,13 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('resend-email-otp')
+  async resendEmailOtp(@Body() emailTokenDto: EmailTokenDto) {
+    await this.authService.resendEmailOTP(emailTokenDto);
+    return sendSuccessResponse(Messages.EMAIL_OTP_SENT, null);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   async generate2FA(@Request() req, @Response() res) {
