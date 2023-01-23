@@ -3,7 +3,6 @@ import {
   IsLowercase,
   IsNotEmpty,
   IsString,
-  IsStrongPassword,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -42,7 +41,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsStrongPassword({ minLength: 6, minNumbers: 1, minLowercase: 1 })
+  // @IsStrongPassword({ minLength: 6, minNumbers: 1, minLowercase: 1 })
   readonly password: string;
 
   @IsString()

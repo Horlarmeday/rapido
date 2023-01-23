@@ -39,14 +39,14 @@ export class User {
       password: {
         required: false,
         type: String,
-        validate: {
-          validator: function (v) {
-            return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
-              v,
-            );
-          },
-          message: (props) => `${props.value} does not meet password criteria!`,
-        },
+        // validate: {
+        //   validator: function (v) {
+        //     return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/.test(
+        //       v,
+        //     );
+        //   },
+        //   message: (props) => `${props.value} does not meet password criteria!`,
+        // },
       },
       marital_status: {
         type: String,

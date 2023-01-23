@@ -1,10 +1,10 @@
-import { IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { Match } from '../../../core/decorators/match.decorators';
 
 export class ResetPasswordDto {
   @IsString()
   @IsNotEmpty()
-  @IsStrongPassword({ minLength: 6, minNumbers: 1, minLowercase: 1 })
+  // @IsStrongPassword({ minLength: 6, minNumbers: 1, minLowercase: 1 })
   password: string;
 
   @IsString()
