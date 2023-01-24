@@ -69,7 +69,7 @@ export class GeneralHelpers {
     });
   }
 
-  sendMail(email, subject, emailBody) {
+  sendMail(email: string, subject: Messages, emailBody: any) {
     const message = {
       from: `'Rapid Capsules' <${process.env.EMAIL_SENDER}>`,
       to: `${email}`,

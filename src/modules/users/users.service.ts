@@ -39,17 +39,20 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
+    const { country_code, phone, terms, marketing, email } = createUserDto;
     return await create(this.userModel, {
       profile: {
         ...createUserDto,
         contact: {
           phone: {
-            country_code: createUserDto?.country_code,
-            number: createUserDto?.phone,
+            country_code,
+            number: phone,
           },
-          email: createUserDto.email,
+          email,
         },
       },
+      terms,
+      marketing,
     });
   }
 

@@ -7,6 +7,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Match } from '../../../core/decorators/match.decorators';
+import { Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -51,4 +52,10 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   readonly date_of_birth: Date;
+
+  @Type(() => Boolean)
+  readonly terms: boolean;
+
+  @Type(() => Boolean)
+  readonly marketing: boolean;
 }
