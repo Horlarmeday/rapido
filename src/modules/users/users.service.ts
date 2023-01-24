@@ -81,7 +81,7 @@ export class UsersService {
         firstname: user.profile.first_name,
         token: token.token,
         userId: user._id,
-        baseUrl: '',
+        baseUrl: originUrl,
       }),
     });
     return UsersService.excludeFields(user);
