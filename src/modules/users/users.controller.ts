@@ -25,8 +25,11 @@ export class UsersController {
 
   @UseGuards(DoesUserExist)
   @Post()
-  async register(@Body() createUserDto: CreateUserDto) {
-    const result = await this.usersService.register(createUserDto);
+  async register(@Body() createUserDto: CreateUserDto, @Request() req) {
+    const result = await this.usersService.register(
+      createUserDto,
+      req.get('origin'),
+    );
     return sendSuccessResponse(Messages.ACCOUNT_CREATED, result);
   }
   @UseGuards(JwtAuthGuard)

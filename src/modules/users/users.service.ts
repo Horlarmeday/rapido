@@ -69,7 +69,7 @@ export class UsersService {
     });
   }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto, originUrl: string) {
     //TODO: Wrap in transactions
     const user = await this.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
@@ -77,11 +77,12 @@ export class UsersService {
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
-      emailBody: verificationEmail(
-        user.profile.first_name,
-        token.token,
-        user._id,
-      ),
+      emailBody: verificationEmail({
+        firstname: user.profile.first_name,
+        token: token.token,
+        userId: user._id,
+        baseUrl: '',
+      }),
     });
     return UsersService.excludeFields(user);
   }

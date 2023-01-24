@@ -66,8 +66,11 @@ export class AuthController {
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(forgotPasswordDto);
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+    @Request() req,
+  ) {
+    await this.authService.forgotPassword(forgotPasswordDto, req.get('origin'));
     return sendSuccessResponse(Messages.PASSWORD_RESET_SENT, null);
   }
 
@@ -118,9 +121,9 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('resend-email-token')
-  async resendEmailToken(@Body() emailToken: EmailTokenDto) {
+  async resendEmailToken(@Body() emailToken: EmailTokenDto, @Request() req) {
     const { email } = emailToken;
-    await this.authService.resendEmailToken(email);
+    await this.authService.resendEmailToken(email, req.get('origin'));
     return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
   }
 

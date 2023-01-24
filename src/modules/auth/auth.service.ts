@@ -149,7 +149,10 @@ export class AuthService {
     return { payload, token };
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+    originUrl: string,
+  ) {
     const user = await this.usersService.findOneByEmail(
       forgotPasswordDto.email,
     );
@@ -169,11 +172,12 @@ export class AuthService {
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.FORGOT_PASSWORD,
-      emailBody: forgotPasswordEmail(
-        user.profile.first_name,
-        token.token,
-        user._id,
-      ),
+      emailBody: forgotPasswordEmail({
+        firstname: user.profile.first_name,
+        token: token.token,
+        userId: user._id,
+        baseUrl: originUrl,
+      }),
     });
   }
 
@@ -291,7 +295,7 @@ export class AuthService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async resendEmailToken(email: string) {
+  async resendEmailToken(email: string, originUrl: string) {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
@@ -299,11 +303,12 @@ export class AuthService {
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
-      emailBody: verificationEmail(
-        user.profile.first_name,
-        token.token,
-        user._id,
-      ),
+      emailBody: verificationEmail({
+        firstname: user.profile.first_name,
+        token: token.token,
+        userId: user._id,
+        baseUrl: originUrl,
+      }),
     });
   }
 

@@ -1,11 +1,19 @@
 import { mailGenerator } from '../mailgen';
 import { Types } from 'mongoose';
 
-export const verificationEmail = (
-  firstname: string,
-  token: string,
-  userId: Types.ObjectId,
-) => {
+type VerificationEmailType = {
+  firstname: string;
+  token: string;
+  userId: Types.ObjectId;
+  baseUrl: string;
+};
+
+export const verificationEmail = ({
+  firstname,
+  token,
+  userId,
+  baseUrl = <string>process.env.BASE_URL,
+}: VerificationEmailType) => {
   const email = {
     body: {
       name: firstname,
@@ -16,7 +24,7 @@ export const verificationEmail = (
         button: {
           color: '#22BC66', // Optional action button color
           text: 'Confirm your account',
-          link: `${process.env.BASE_URL}/email-verification?token=${token}&userId=${userId}`,
+          link: `${baseUrl}/email-verification?token=${token}&userId=${userId}`,
         },
       },
       outro:

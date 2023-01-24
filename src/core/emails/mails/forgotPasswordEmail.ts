@@ -1,11 +1,20 @@
 import { mailGenerator } from '../mailgen';
 import { Types } from 'mongoose';
+import * as process from 'process';
 
-export const forgotPasswordEmail = (
-  firstname: string,
-  token: string,
-  userId: Types.ObjectId,
-) => {
+type ForgotPasswordEmailType = {
+  firstname: string;
+  token: string;
+  userId: Types.ObjectId;
+  baseUrl: string;
+};
+
+export const forgotPasswordEmail = ({
+  firstname,
+  token,
+  userId,
+  baseUrl = <string>process.env.BASE_URL,
+}: ForgotPasswordEmailType) => {
   const email = {
     body: {
       name: firstname,
@@ -16,7 +25,7 @@ export const forgotPasswordEmail = (
         button: {
           color: '#22BC66', // Optional action button color
           text: 'Reset Password',
-          link: `${process.env.BASE_URL}/forgot-password?token=${token}&userId=${userId}`,
+          link: `${baseUrl}/forgot-password?token=${token}&userId=${userId}`,
         },
       },
       outro:
