@@ -102,6 +102,7 @@ export class User {
         has_recent_injuries: { type: Boolean, default: false },
       },
       twoFA_secret: { type: String, required: false },
+      profile_photo: { type: String, required: false },
     }),
   )
   profile: Profile;

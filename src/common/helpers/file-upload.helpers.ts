@@ -12,7 +12,7 @@ export class FileUploadHelper {
       const location = await S3.upload({
         Bucket: <string>process.env.AWS_BUCKET_NAME,
         Body: fileBuffer,
-        Key: `${filename}-${Date.now()}`,
+        Key: `${Date.now()}-${filename}`,
       }).promise();
       return location.Location;
     } catch (e) {

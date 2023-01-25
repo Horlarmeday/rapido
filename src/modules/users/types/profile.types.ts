@@ -57,4 +57,5 @@ export type Profile = {
   basic_health_info: BasicHealthInfo;
   health_risk_factors: HealthRiskFactors;
   twoFA_secret?: string;
+  profile_photo?: string;
 };

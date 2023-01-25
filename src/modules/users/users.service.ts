@@ -169,14 +169,24 @@ export class UsersService {
 
   private async hasFilesAndUpload(
     files: Express.Multer.File[],
-    pre_existing_conditions: string | any[],
+    pre_existing_conditions: any[],
     userId: Types.ObjectId,
   ) {
     if (!files.length) return;
     if (!pre_existing_conditions?.length) return;
+    const profilePhoto = files.find(
+      ({ fieldname }) => fieldname === 'profile_photo',
+    ) as Express.Multer.File;
+    const otherFiles = files.filter(
+      ({ fieldname }) => fieldname !== 'profile_photo',
+    );
     await this.taskCron.addCron(
-      this.uploadToS3(files, userId),
-      `${userId}-uploadS3`,
+      this.uploadProfileFiles(otherFiles, userId),
+      `${userId}-uploadFiles`,
+    );
+    await this.taskCron.addCron(
+      this.uploadProfilePhoto(userId, profilePhoto),
+      `${userId}-uploadProfilePhoto`,
     );
   }
 
@@ -197,15 +207,18 @@ export class UsersService {
     return serializedUser;
   }
 
-  async uploadToS3(files, userId) {
+  private async uploadProfileFiles(
+    files: Express.Multer.File[],
+    userId: Types.ObjectId,
+  ) {
     try {
-      this.logger.log('Uploading to S3 bucket');
+      this.logger.log('Uploading files to S3 bucket');
       const promises = await Promise.all(
         files.map((file) => {
           return this.fileUpload.uploadToS3(file.buffer, file.originalname);
         }),
       );
-      this.logger.log(`Finished updating to S3: ${promises}`);
+      this.logger.log(`Finished uploading files to S3: ${promises}`);
       const user = await this.findById(userId);
       user.pre_existing_conditions?.map((condition, index) => {
         condition.file = promises[index];
@@ -213,8 +226,28 @@ export class UsersService {
       await user.save();
       this.logger.log(`Updated user profile`);
     } catch (e) {
-      this.logger.error(`Error occurred, ${e}`);
+      this.logger.error(`Error uploading files occurred, ${e}`);
       throw new InternalServerErrorException('Error occurred', e);
+    }
+  }
+
+  private async uploadProfilePhoto(
+    userId: Types.ObjectId,
+    file: Express.Multer.File,
+  ) {
+    try {
+      this.logger.log('Uploading profile photo to S3 bucket');
+      const promises = await Promise.all([
+        this.fileUpload.uploadToS3(file.buffer, file.originalname),
+      ]);
+      this.logger.log(`Finished uploading profile photo to S3: ${promises}`);
+      const user = await this.findById(userId);
+      user.profile.profile_photo = promises[0];
+      await user.save();
+      this.logger.log(`Updated user profile photo`);
+    } catch (e) {
+      this.logger.error(`Error occurred uploading profile photo, ${e}`);
+      throw new InternalServerErrorException('Error', e);
     }
   }
 }
