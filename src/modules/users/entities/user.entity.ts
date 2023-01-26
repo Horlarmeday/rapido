@@ -67,12 +67,12 @@ export class User {
           trim: true,
           lowercase: true,
           unique: true,
-          validate: {
-            validator: function (v) {
-              return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
-            },
-            message: (props) => `${props.value} is not a valid email!`,
-          },
+          // validate: {
+          //   validator: function (v) {
+          //     return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+          //   },
+          //   message: (props) => `${props.value} is not a valid email!`,
+          // },
         },
         phone: {
           country_code: { type: String, required: false },

@@ -29,20 +29,18 @@ export class AppointmentsService {
     );
 
     const response = await this.zoom.createMeeting({
-      alternative_hosts: currentUser.email.concat(
-        `;${specialist.profile.contact.email}`,
-      ),
       start_time: createAppointmentDto.start_time,
       topic: `Scheduled Appointment Between ${specialist.profile.first_name} and ${currentUser.first_name}`,
     });
 
     if (response.status === SUCCESS) {
-      const { join_url, start_url } = response.data;
+      const { join_url, start_url, id } = response.data;
       return await create(this.AppointmentModel, {
         ...createAppointmentDto,
         join_url,
         start_url,
         patient: currentUser.sub,
+        zoom_meeting_id: id,
       });
     }
     throw new InternalServerErrorException(

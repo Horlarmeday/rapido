@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsEnum,
   IsLowercase,
   IsNotEmpty,
   IsString,
@@ -8,6 +9,7 @@ import {
 } from 'class-validator';
 import { Match } from '../../../core/decorators/match.decorators';
 import { Type } from 'class-transformer';
+import { UserType } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -58,4 +60,7 @@ export class CreateUserDto {
 
   @Type(() => Boolean)
   readonly marketing: boolean;
+
+  @IsEnum(UserType)
+  readonly user_type: UserType;
 }

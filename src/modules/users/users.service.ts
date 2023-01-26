@@ -39,7 +39,8 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const { country_code, phone, terms, marketing, email } = createUserDto;
+    const { country_code, phone, terms, marketing, email, user_type } =
+      createUserDto;
     return await create(this.userModel, {
       profile: {
         ...createUserDto,
@@ -53,6 +54,7 @@ export class UsersService {
       },
       terms,
       marketing,
+      user_type,
     });
   }
 

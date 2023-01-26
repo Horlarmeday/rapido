@@ -21,9 +21,7 @@ export class IsEmailVerified implements CanActivate {
 
   async validateRequest(request) {
     const user = await this.usersService.findOneByEmail(request.body.email);
-    if (!user.is_email_verified) {
-      throw new BadRequestException(Messages.EMAIL_NOT_VERIFIED);
-    }
-    return true;
+    if (user && user?.is_email_verified) return true;
+    throw new BadRequestException(Messages.EMAIL_NOT_VERIFIED);
   }
 }

@@ -15,14 +15,16 @@ export const post = async (
   const logger = new Logger();
   try {
     const response = await axios.post(url, data, { headers, auth });
+    console.log(response.data);
     return {
       status: SUCCESS,
       data: response.data,
     };
   } catch (e) {
+    logger.error(e);
     logger.error(`An error occurred ${e?.response?.data?.message}`);
-    logger.error(`An error occurred ${e?.message}`);
-    throw new BadRequestException(e.message);
+    logger.error(`An error happened ${e?.message}`);
+    throw new BadRequestException(e?.message);
   }
 };
 
