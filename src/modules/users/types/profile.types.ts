@@ -23,14 +23,14 @@ export enum Relationship {
 }
 
 export class BasicHealthInfo {
-  height: number;
-  weight: number;
+  height?: number;
+  weight?: number;
 }
 
 export class HealthRiskFactors {
-  is_smoker: boolean | string;
-  is_over_weight: boolean | string;
-  has_recent_injuries: boolean | string;
+  is_smoker?: boolean | string;
+  is_over_weight?: boolean | string;
+  has_recent_injuries?: boolean | string;
 }
 
 export class Phone {

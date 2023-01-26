@@ -25,6 +25,7 @@ import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
+import { Condition } from './entities/pre-existing-condition.entity';
 
 @Injectable()
 export class UsersService {
@@ -140,6 +141,7 @@ export class UsersService {
       emergency_contacts,
       pre_existing_conditions,
       dependants,
+      profile_photo,
     } = profileSetupDto;
 
     const user = await updateOne(
@@ -163,39 +165,32 @@ export class UsersService {
         pre_existing_conditions,
       },
     );
+    await this.taskCron.addCron(
+      this.uploadProfilePhoto(userId, profile_photo),
+      `${userId}-uploadProfilePhoto`,
+    );
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
   }
 
   private async hasFilesAndUpload(
     files: Express.Multer.File[],
-    pre_existing_conditions: any[],
+    pre_existing_conditions: Condition[],
     userId: Types.ObjectId,
   ) {
     if (!files.length) return;
     if (!pre_existing_conditions?.length) return;
-    const profilePhoto = files.find(
-      ({ fieldname }) => fieldname === 'profile_photo',
-    ) as Express.Multer.File;
-    const otherFiles = files.filter(
-      ({ fieldname }) => fieldname !== 'profile_photo',
-    );
     await this.taskCron.addCron(
-      this.uploadProfileFiles(otherFiles, userId),
+      this.uploadProfileFiles(files, userId),
       `${userId}-uploadFiles`,
-    );
-    await this.taskCron.addCron(
-      this.uploadProfilePhoto(userId, profilePhoto),
-      `${userId}-uploadProfilePhoto`,
     );
   }
 
   async getProfile(userId: Types.ObjectId) {
-    const user = await findOne(
-      this.userModel,
-      { _id: userId },
+    const user = await findOne(this.userModel, { _id: userId }, [
       '-profile.password',
-    );
+      '-profile.twoFA_secret',
+    ]);
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
     return user;
   }
@@ -231,14 +226,12 @@ export class UsersService {
     }
   }
 
-  private async uploadProfilePhoto(
-    userId: Types.ObjectId,
-    file: Express.Multer.File,
-  ) {
+  private async uploadProfilePhoto(userId: Types.ObjectId, base64: string) {
     try {
+      const buffer = Buffer.from(base64, 'base64');
       this.logger.log('Uploading profile photo to S3 bucket');
       const promises = await Promise.all([
-        this.fileUpload.uploadToS3(file.buffer, file.originalname),
+        this.fileUpload.uploadToS3(buffer, `${userId}-profilePhoto.jpg`),
       ]);
       this.logger.log(`Finished uploading profile photo to S3: ${promises}`);
       const user = await this.findById(userId);

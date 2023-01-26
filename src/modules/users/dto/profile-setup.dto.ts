@@ -6,6 +6,7 @@ import {
 } from '../types/profile.types';
 import {
   IsArray,
+  IsBase64,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -26,23 +27,21 @@ export class ProfileSetupDto {
   @IsEnum(MaritalStatus)
   marital_status: MaritalStatus;
 
-  @IsNotEmpty({
-    each: true,
-  })
   @ValidateNested({ each: true })
   @Type(() => BasicHealthInfo)
-  basic_health_info: BasicHealthInfo;
+  basic_health_info?: BasicHealthInfo;
 
   @ValidateNested({ each: true })
   @Type(() => HealthRiskFactors)
-  health_risk_factors: HealthRiskFactors;
+  health_risk_factors?: HealthRiskFactors;
 
   @IsString()
   @IsNotEmpty()
   address1: string;
 
   @IsOptional()
-  address2: string;
+  address2?: string;
+
   @IsString()
   @IsNotEmpty()
   state: string;
@@ -53,7 +52,6 @@ export class ProfileSetupDto {
   @IsNotEmpty()
   zip_code: string;
 
-  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Condition)
   pre_existing_conditions: Condition[];
@@ -67,4 +65,8 @@ export class ProfileSetupDto {
   @ValidateNested({ each: true })
   @Type(() => Dependant)
   dependants?: Dependant[];
+
+  @IsBase64()
+  @IsNotEmpty()
+  profile_photo: string;
 }

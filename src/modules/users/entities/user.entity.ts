@@ -7,6 +7,7 @@ import {
   EmergencyContactSchema,
 } from './emergency-contact.entity';
 import { Dependant, DependantSchema } from './dependant.entity';
+import * as moment from 'moment';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -21,7 +22,10 @@ export enum RegMedium {
   LOCAL = 'LOCAL',
 }
 
-@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
+@Schema({
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  toJSON: { getters: true },
+})
 export class User {
   @Prop(
     raw({
@@ -35,7 +39,11 @@ export class User {
           message: '{VALUE} is not supported',
         },
       },
-      date_of_birth: { required: false, type: Date },
+      date_of_birth: {
+        required: false,
+        type: Date,
+        get: (v) => moment(v).format('YYYY-MM-DD'),
+      },
       password: {
         required: false,
         type: String,
