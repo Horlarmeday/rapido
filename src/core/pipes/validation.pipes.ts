@@ -9,6 +9,7 @@ import {
 @Injectable()
 export class ValidateInputPipe extends ValidationPipe {
   async transform(value, metadata: ArgumentMetadata) {
+    console.log(value);
     try {
       return await super.transform(value, metadata);
     } catch (e) {

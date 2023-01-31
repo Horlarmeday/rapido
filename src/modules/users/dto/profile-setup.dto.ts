@@ -1,56 +1,14 @@
-import {
-  BasicHealthInfo,
-  Gender,
-  HealthRiskFactors,
-  MaritalStatus,
-} from '../types/profile.types';
-import {
-  IsArray,
-  IsBase64,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { Profile } from '../types/profile.types';
+import { IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Condition } from '../entities/pre-existing-condition.entity';
 import { Type } from 'class-transformer';
 import { EmergencyContact } from '../entities/emergency-contact.entity';
 import { Dependant } from '../entities/dependant.entity';
 
 export class ProfileSetupDto {
-  @IsNotEmpty()
-  @IsEnum(Gender)
-  gender: Gender;
-
-  @IsNotEmpty()
-  @IsEnum(MaritalStatus)
-  marital_status: MaritalStatus;
-
   @ValidateNested({ each: true })
-  @Type(() => BasicHealthInfo)
-  basic_health_info?: BasicHealthInfo;
-
-  @ValidateNested({ each: true })
-  @Type(() => HealthRiskFactors)
-  health_risk_factors?: HealthRiskFactors;
-
-  @IsString()
-  @IsNotEmpty()
-  address1: string;
-
-  @IsOptional()
-  address2?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  state: string;
-  @IsString()
-  @IsNotEmpty()
-  country: string;
-  @IsString()
-  @IsNotEmpty()
-  zip_code: string;
+  @Type(() => Profile)
+  readonly profile: Profile;
 
   @ValidateNested({ each: true })
   @Type(() => Condition)
@@ -65,8 +23,4 @@ export class ProfileSetupDto {
   @ValidateNested({ each: true })
   @Type(() => Dependant)
   dependants?: Dependant[];
-
-  @IsBase64()
-  @IsNotEmpty()
-  profile_photo: string;
 }

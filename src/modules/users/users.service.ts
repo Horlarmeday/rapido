@@ -133,15 +133,14 @@ export class UsersService {
   ) {
     const { profile } = await this.findById(userId);
     const {
-      address1,
-      address2,
-      country,
-      zip_code,
-      state,
+      profile: {
+        contact: { address1, address2, country, zip_code, state },
+        profile_photo,
+        basic_health_info,
+      },
       emergency_contacts,
       pre_existing_conditions,
       dependants,
-      profile_photo,
     } = profileSetupDto;
 
     const user = await updateOne(
@@ -151,6 +150,7 @@ export class UsersService {
         profile: {
           ...profile,
           ...profileSetupDto,
+          basic_health_info,
           contact: {
             ...profile.contact,
             address1,
@@ -167,7 +167,7 @@ export class UsersService {
     );
     await this.taskCron.addCron(
       this.uploadProfilePhoto(userId, profile_photo),
-      `${userId}-uploadProfilePhoto`,
+      `${Date.now()}-${userId}-uploadProfilePhoto`,
     );
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
@@ -182,7 +182,7 @@ export class UsersService {
     if (!pre_existing_conditions?.length) return;
     await this.taskCron.addCron(
       this.uploadProfileFiles(files, userId),
-      `${userId}-uploadFiles`,
+      `${Date.now()}-${userId}-uploadFiles`,
     );
   }
 

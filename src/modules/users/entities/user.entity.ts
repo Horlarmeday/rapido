@@ -99,14 +99,18 @@ export class User {
         zip_code: { type: String },
       },
       basic_health_info: {
-        height: { type: Number },
+        height: {
+          value: { type: Number },
+          unit: { type: String },
+        },
         weight: {
-          type: Number,
+          value: { type: Number },
+          unit: { type: String },
         },
       },
       health_risk_factors: {
         is_smoker: { type: Boolean, default: false },
-        is_over_weight: { type: Boolean, default: false },
+        weight_status: { type: String },
         has_recent_injuries: { type: Boolean, default: false },
       },
       twoFA_secret: { type: String, required: false },

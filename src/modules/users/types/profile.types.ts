@@ -23,13 +23,19 @@ export enum Relationship {
 }
 
 export class BasicHealthInfo {
-  height?: number;
-  weight?: number;
+  height: {
+    value: number;
+    unit: string;
+  };
+  weight: {
+    value: number;
+    unit: string;
+  };
 }
 
 export class HealthRiskFactors {
   is_smoker?: boolean | string;
-  is_over_weight?: boolean | string;
+  weight_status?: string;
   has_recent_injuries?: boolean | string;
 }
 
@@ -38,7 +44,7 @@ export class Phone {
   number: string;
 }
 
-export type Profile = {
+export class Profile {
   first_name: string;
   last_name: string;
   password?: string;
@@ -57,5 +63,5 @@ export type Profile = {
   basic_health_info: BasicHealthInfo;
   health_risk_factors: HealthRiskFactors;
   twoFA_secret?: string;
-  profile_photo?: string;
-};
+  profile_photo: string;
+}
