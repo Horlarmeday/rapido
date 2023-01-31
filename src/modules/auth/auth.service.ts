@@ -51,13 +51,14 @@ export class AuthService {
     pass: string,
   ): Promise<IJwtPayload | null> {
     const user = await this.usersService.findOneByEmail(email);
-    if (user && user.reg_medium !== RegMedium.LOCAL) {
+    if (user && user?.reg_medium !== RegMedium.LOCAL) {
       throw new BadRequestException(Messages.SOCIAL_MEDIA_LOGIN);
     }
-    if (
-      user &&
-      (await this.comparePassword(pass, <string>user.profile.password))
-    ) {
+    const isValidPassword = await this.comparePassword(
+      pass,
+      user?.profile?.password,
+    );
+    if (user && isValidPassword) {
       return AuthService.formatJwtPayload(user);
     }
     return null;
@@ -383,8 +384,11 @@ export class AuthService {
     };
   }
 
-  private async comparePassword(enteredPassword: string, dbPassword: string) {
-    return bcrypt.compare(enteredPassword, dbPassword);
+  private async comparePassword(
+    enteredPassword: string,
+    dbPassword: string | undefined,
+  ) {
+    return await bcrypt.compare(enteredPassword, <string>dbPassword);
   }
 
   private async generateToken(

@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 import {
   create,
   deleteOne,
@@ -40,10 +41,12 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const { country_code, phone, terms, marketing, email } = createUserDto;
+    const { country_code, phone, terms, marketing, email, password } =
+      createUserDto;
     return await create(this.userModel, {
       profile: {
         ...createUserDto,
+        password: await this.hashPassword(password),
         contact: {
           phone: {
             country_code,
@@ -55,6 +58,11 @@ export class UsersService {
       terms,
       marketing,
     });
+  }
+
+  async hashPassword(password: string) {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
   }
 
   async createSocialMediaUser(
