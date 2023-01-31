@@ -137,6 +137,9 @@ export class UsersService {
         contact: { address1, address2, country, zip_code, state },
         profile_photo,
         basic_health_info,
+        health_risk_factors,
+        gender,
+        marital_status,
       },
       emergency_contacts,
       pre_existing_conditions,
@@ -149,8 +152,10 @@ export class UsersService {
       {
         profile: {
           ...profile,
-          ...profileSetupDto,
           basic_health_info,
+          health_risk_factors,
+          marital_status,
+          gender,
           contact: {
             ...profile.contact,
             address1,
