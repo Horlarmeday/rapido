@@ -24,7 +24,7 @@ export class EmergencyContact {
 
   @Prop({
     type: String,
-    required: true,
+    required: false,
   })
   address1: string;
 
@@ -35,13 +35,13 @@ export class EmergencyContact {
 
   @Prop({
     type: String,
-    required: true,
+    required: false,
   })
   zip_code: string;
 
   @Prop({
     type: String,
-    required: true,
+    required: false,
     enum: {
       values: [
         Relationship.AUNTY,
@@ -52,6 +52,9 @@ export class EmergencyContact {
         Relationship.SISTER,
         Relationship.WIFE,
         Relationship.UNCLE,
+        Relationship.SON,
+        Relationship.DAUGHTER,
+        Relationship.FRIEND,
       ],
       message: '{VALUE} is not supported',
     },

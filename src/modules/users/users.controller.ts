@@ -53,6 +53,7 @@ export class UsersController {
     @Body() profileSetupDto: ProfileSetupDto,
     @Request() req,
   ) {
+    console.log('FILES =>', files);
     const result = await this.usersService.profileSetup(
       req.user.sub,
       profileSetupDto,

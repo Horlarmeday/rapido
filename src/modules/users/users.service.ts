@@ -182,10 +182,10 @@ export class UsersService {
 
   private async hasFilesAndUpload(
     files: Express.Multer.File[],
-    pre_existing_conditions: Condition[],
+    pre_existing_conditions: Condition[] | undefined,
     userId: Types.ObjectId,
   ) {
-    if (!files.length) return;
+    if (!files?.length) return;
     if (!pre_existing_conditions?.length) return;
     await this.taskCron.addCron(
       this.uploadProfileFiles(files, userId),

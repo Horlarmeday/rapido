@@ -20,6 +20,9 @@ export enum Relationship {
   MOTHER = 'Mother',
   UNCLE = 'Uncle',
   AUNTY = 'Aunty',
+  SON = 'Son',
+  DAUGHTER = 'Daughter',
+  FRIEND = 'Friend',
 }
 
 export class BasicHealthInfo {

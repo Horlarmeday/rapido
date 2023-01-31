@@ -34,22 +34,22 @@ export class Dependant {
   bmi: Record<number, number>;
 
   @Prop({
-    required: true,
+    required: false,
     type: String,
     trim: true,
     lowercase: true,
-    validate: {
-      validator: function (v) {
-        return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid email!`,
-    },
+    // validate: {
+    //   validator: function (v) {
+    //     return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+    //   },
+    //   message: (props) => `${props.value} is not a valid email!`,
+    // },
   })
-  email: string;
+  email?: string;
 
   @Prop({
     type: Date,
-    required: true,
+    required: false,
   })
   date_of_birth: Date;
 
@@ -85,6 +85,9 @@ export class Dependant {
         Relationship.SISTER,
         Relationship.WIFE,
         Relationship.UNCLE,
+        Relationship.SON,
+        Relationship.DAUGHTER,
+        Relationship.FRIEND,
       ],
       message: '{VALUE} is not supported',
     },

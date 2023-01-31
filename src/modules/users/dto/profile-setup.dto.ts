@@ -10,9 +10,10 @@ export class ProfileSetupDto {
   @Type(() => Profile)
   readonly profile: Profile;
 
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => Condition)
-  pre_existing_conditions: Condition[];
+  pre_existing_conditions?: Condition[];
 
   @IsArray()
   @ValidateNested({ each: true })
