@@ -109,9 +109,9 @@ export class User {
         },
       },
       health_risk_factors: {
-        is_smoker: { type: Boolean, default: false },
+        is_smoker: { type: String },
         weight_status: { type: String },
-        has_recent_injuries: { type: Boolean, default: false },
+        has_recent_injuries: { type: String },
       },
       twoFA_secret: { type: String, required: false },
       profile_photo: { type: String, required: false },
