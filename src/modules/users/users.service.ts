@@ -165,10 +165,12 @@ export class UsersService {
         pre_existing_conditions,
       },
     );
-    await this.taskCron.addCron(
-      this.uploadProfilePhoto(userId, profile_photo),
-      `${Date.now()}-${userId}-uploadProfilePhoto`,
-    );
+    if (profile_photo) {
+      await this.taskCron.addCron(
+        this.uploadProfilePhoto(userId, profile_photo),
+        `${Date.now()}-${userId}-uploadProfilePhoto`,
+      );
+    }
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
   }
