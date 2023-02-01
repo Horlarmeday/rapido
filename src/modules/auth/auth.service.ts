@@ -194,7 +194,8 @@ export class AuthService {
     );
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
-    user.profile.password = password;
+    const salt = await bcrypt.genSalt(10);
+    user.profile.password = await bcrypt.hash(password, salt);
     await user.save();
 
     await this.tokensService.removeToken(passwordResetToken._id);
