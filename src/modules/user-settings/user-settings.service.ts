@@ -17,8 +17,18 @@ export class UserSettingsService {
   async create(userId: Types.ObjectId) {
     return await create(this.userSettingModel, { userId });
   }
-  async updateSetting(fieldsToUpdate: object, userId: Types.ObjectId) {
-    return await updateOne(this.userSettingModel, { userId }, fieldsToUpdate);
+  async updateSetting(fieldsToUpdate: any, userId: Types.ObjectId) {
+    const settings = await this.findOne(userId);
+    return await updateOne(
+      this.userSettingModel,
+      { userId },
+      {
+        defaults: {
+          ...settings.defaults,
+          ...fieldsToUpdate.defaults,
+        },
+      },
+    );
   }
 
   async findOne(id: Types.ObjectId): Promise<UserSettingsDocument> {
