@@ -1,12 +1,14 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { Gender, MaritalStatus, Profile } from '../types/profile.types';
-import { Condition, ConditionsSchema } from './pre-existing-condition.entity';
 import {
-  EmergencyContact,
-  EmergencyContactSchema,
-} from './emergency-contact.entity';
-import { Dependant, DependantSchema } from './dependant.entity';
+  Gender,
+  MaritalStatus,
+  Profile,
+  Relationship,
+} from '../types/profile.types';
+import { Condition } from './pre-existing-condition.entity';
+import { EmergencyContact } from './emergency-contact.entity';
+import { Dependant } from './dependant.entity';
 import * as moment from 'moment';
 
 export type UserDocument = HydratedDocument<User>;
@@ -159,13 +161,125 @@ export class User {
   })
   reg_medium: RegMedium;
 
-  @Prop([{ type: EmergencyContactSchema, required: false }])
+  @Prop(
+    raw([
+      {
+        first_name: { type: String, required: true },
+        last_name: { type: String, required: true },
+        phone: {
+          country_code: { type: String, required: false },
+          number: {
+            type: String,
+            required: false,
+            minLength: 10,
+            maxLength: 10,
+          },
+        },
+        address1: { type: String },
+        address2: { type: String },
+        relationship: {
+          type: String,
+          enum: {
+            values: [
+              Relationship.AUNTY,
+              Relationship.BROTHER,
+              Relationship.FATHER,
+              Relationship.HUSBAND,
+              Relationship.MOTHER,
+              Relationship.SISTER,
+              Relationship.WIFE,
+              Relationship.UNCLE,
+              Relationship.SON,
+              Relationship.DAUGHTER,
+              Relationship.FRIEND,
+            ],
+            message: '{VALUE} is not supported',
+          },
+        },
+        zip_code: { type: String },
+        state: { type: String },
+        country: { type: String },
+      },
+    ]),
+  )
   emergency_contacts?: EmergencyContact[];
 
-  @Prop([{ type: ConditionsSchema, required: false }])
+  @Prop(
+    raw([
+      {
+        name: { type: String, required: true },
+        description: { type: String, required: true },
+        start_date: { type: Date },
+        end_date: { type: Date },
+        is_condition_exists: { type: Boolean, default: false },
+        file: { type: String },
+      },
+    ]),
+  )
   pre_existing_conditions?: Condition[];
 
-  @Prop([{ type: DependantSchema, required: false }])
+  @Prop(
+    raw([
+      {
+        first_name: { type: String, required: true },
+        last_name: { type: String, required: true },
+        contact: {
+          phone: {
+            country_code: { type: String, required: false },
+            number: {
+              type: String,
+              required: false,
+              minLength: 10,
+              maxLength: 10,
+            },
+          },
+          email: { type: String },
+          address1: { type: String },
+          address2: { type: String },
+          state: { type: String },
+          country: { type: String },
+          zip_code: { type: String },
+        },
+        basic_health_info: {
+          height: {
+            value: { type: Number },
+            unit: { type: String },
+          },
+          weight: {
+            value: { type: Number },
+            unit: { type: String },
+          },
+        },
+        date_of_birth: { type: Date },
+        gender: {
+          type: String,
+          enum: {
+            values: [Gender.FEMALE, Gender.MALE],
+            message: '{VALUE} is not supported',
+          },
+        },
+        relationship: {
+          type: String,
+          enum: {
+            values: [
+              Relationship.AUNTY,
+              Relationship.BROTHER,
+              Relationship.FATHER,
+              Relationship.HUSBAND,
+              Relationship.MOTHER,
+              Relationship.SISTER,
+              Relationship.WIFE,
+              Relationship.UNCLE,
+              Relationship.SON,
+              Relationship.DAUGHTER,
+              Relationship.FRIEND,
+            ],
+            message: '{VALUE} is not supported',
+          },
+        },
+      },
+    ]),
+  )
   dependants?: Dependant[];
 }
 export const UserSchema = SchemaFactory.createForClass(User);

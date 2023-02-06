@@ -1,7 +1,7 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Phone, Relationship } from '../types/profile.types';
 
-@Schema({ versionKey: false })
+@Schema({ versionKey: false, _id: false })
 export class EmergencyContact {
   @Prop({ type: String, required: true })
   first_name: string;

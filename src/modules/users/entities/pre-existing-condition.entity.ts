@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema({ versionKey: false })
+@Schema({ versionKey: false, _id: false })
 export class Condition {
-  @Prop({ type: String, required: true })
+  @Prop({ type: [String], required: true })
   name: string;
 
   @Prop({ type: String, required: true })
