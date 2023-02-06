@@ -175,7 +175,10 @@ export class UsersService {
         },
         emergency_contacts,
         dependants,
-        pre_existing_conditions,
+        pre_existing_conditions: pre_existing_conditions?.map((a) => {
+          if (a.file) delete a?.file;
+          return a;
+        }),
       },
     );
     if (profile_photo) {
