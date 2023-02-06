@@ -54,6 +54,7 @@ export class UsersController {
     @Request() req,
   ) {
     console.log('FILES =>', files);
+    console.log('PROFILE_SETUP =>', profileSetupDto);
     const result = await this.usersService.profileSetup(
       req.user.sub,
       profileSetupDto,
