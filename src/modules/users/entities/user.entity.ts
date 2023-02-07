@@ -209,8 +209,8 @@ export class User {
       {
         name: { type: String, required: true },
         description: { type: String, required: true },
-        start_date: { type: Date },
-        end_date: { type: Date },
+        start_date: { type: Date, get: (v) => moment(v).format('YYYY-MM-DD') },
+        end_date: { type: Date, get: (v) => moment(v).format('YYYY-MM-DD') },
         is_condition_exists: { type: Boolean, default: false },
         file: { type: String },
       },
@@ -250,7 +250,10 @@ export class User {
             unit: { type: String },
           },
         },
-        date_of_birth: { type: Date },
+        date_of_birth: {
+          type: Date,
+          get: (v) => moment(v).format('YYYY-MM-DD'),
+        },
         gender: {
           type: String,
           enum: {
