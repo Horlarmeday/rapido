@@ -83,7 +83,8 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('google/alt-login')
-  async googleLogin(@Body() token: string) {
+  async googleLogin(@Body() body) {
+    const { token } = body;
     const result = await this.authService.googleAltLogin(token);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
