@@ -21,10 +21,11 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { EmailOtpVerifyDto } from './dto/email-otp-verify.dto';
 import { IsEmailVerified } from '../../core/guards/isEmailVerified.guards';
 import { PhoneVerifyDto } from './dto/phone-verify.dto';
-import { EmailTokenDto } from './dto/email-token.dto';
+import { EmailVerificationTokenDto } from './dto/email-verification-token.dto';
 import { PhoneTokenDto } from './dto/phone-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
+import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -122,9 +123,12 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('resend-email-token')
-  async resendEmailToken(@Body() emailToken: EmailTokenDto, @Request() req) {
-    const { email } = emailToken;
-    await this.authService.resendEmailToken(email, req.get('origin'));
+  async resendEmailToken(
+    @Body() emailVerificationTokenDto: EmailVerificationTokenDto,
+    @Request() req,
+  ) {
+    const { userId } = emailVerificationTokenDto;
+    await this.authService.resendEmailToken(userId, req.get('origin'));
     return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
   }
 
@@ -137,8 +141,8 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('resend-email-otp')
-  async resendEmailOtp(@Body() emailTokenDto: EmailTokenDto) {
-    await this.authService.resendEmailOTP(emailTokenDto);
+  async resendEmailOtp(@Body() resendEmailOtpDto: ResendEmailOtpDto) {
+    await this.authService.resendEmailOTP(resendEmailOtpDto);
     return sendSuccessResponse(Messages.EMAIL_OTP_SENT, null);
   }
 

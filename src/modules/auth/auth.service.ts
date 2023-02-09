@@ -32,7 +32,7 @@ import { toFileStream } from 'qrcode';
 import { Profile } from '../users/types/profile.types';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
-import { EmailTokenDto } from './dto/email-token.dto';
+import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -253,6 +253,10 @@ export class AuthService {
   }
 
   async verifyEmail(userId: Types.ObjectId, token: string) {
+    const user = await this.usersService.findById(userId);
+    if (user && user?.is_email_verified)
+      throw new BadRequestException(Messages.EMAIL_ALREADY_VERIFIED);
+
     const foundToken = await this.tokensService.findTokenByUserIdAndType(
       userId,
       token,
@@ -297,8 +301,8 @@ export class AuthService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async resendEmailToken(email: string, originUrl: string) {
-    const user = await this.usersService.findOneByEmail(email);
+  async resendEmailToken(userId: Types.ObjectId, originUrl: string) {
+    const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
@@ -366,8 +370,10 @@ export class AuthService {
     );
   }
 
-  async resendEmailOTP(emailTokenDto: EmailTokenDto) {
-    const user = await this.usersService.findOneByEmail(emailTokenDto.email);
+  async resendEmailOTP(resendEmailOtpDto: ResendEmailOtpDto) {
+    const user = await this.usersService.findOneByEmail(
+      resendEmailOtpDto.email,
+    );
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     await this.send2FAEmailOTP(user.profile, user._id);

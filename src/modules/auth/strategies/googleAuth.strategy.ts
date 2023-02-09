@@ -1,9 +1,9 @@
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GoogleAuth {
-  private client;
+  private client: OAuth2Client;
   constructor() {
     this.client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
@@ -12,16 +12,17 @@ export class GoogleAuth {
   }
 
   async validate(token) {
-    const ticket = await this.client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    this.client.setCredentials({ access_token: token });
+    const userinfo = await this.client.request({
+      url: 'https://www.googleapis.com/oauth2/v3/userinfo',
     });
-    const { email, family_name, given_name, picture } = ticket.getPayload();
+    const { email, family_name, given_name, picture } =
+      userinfo.data as TokenPayload;
     return {
-      email,
-      first_name: given_name,
-      last_name: family_name,
-      photo: picture,
+      email: <string>email,
+      first_name: <string>given_name,
+      last_name: <string>family_name,
+      profile_photo: picture,
     };
   }
 }
