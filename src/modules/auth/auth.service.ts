@@ -146,8 +146,7 @@ export class AuthService {
       user = await this.usersService.createSocialMediaUser(loggedInUser);
     }
     const payload = AuthService.formatJwtPayload(user);
-    const token = await this.generateToken(payload);
-    return { payload, token };
+    return await this.generateToken(payload);
   }
 
   async forgotPassword(

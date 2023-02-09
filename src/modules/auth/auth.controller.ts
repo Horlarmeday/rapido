@@ -62,7 +62,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async redirect(@Body() payload): Promise<any> {
     const result = await this.authService.appleLogin(payload);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
   @Post('forgot-password')
@@ -87,7 +87,7 @@ export class AuthController {
   async googleLogin(@Body() body) {
     const { token } = body;
     const result = await this.authService.googleAltLogin(token);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
   @HttpCode(HttpStatus.OK)
