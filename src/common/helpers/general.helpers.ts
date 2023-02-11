@@ -5,8 +5,9 @@ import * as nodemailer from 'nodemailer';
 
 type GenerateEmailAndSendType = {
   email: string;
-  subject: Messages;
+  subject: Messages | string;
   emailBody: any;
+  attachments?: any[];
 };
 
 const logger = new Logger();
@@ -52,9 +53,10 @@ export class GeneralHelpers {
     email,
     subject,
     emailBody,
+    attachments,
   }: GenerateEmailAndSendType) {
     // Send email
-    this.sendMail(email, subject, emailBody);
+    this.sendMail(email, subject, emailBody, attachments);
   }
 
   nodeMailerTransport() {
@@ -69,12 +71,18 @@ export class GeneralHelpers {
     });
   }
 
-  sendMail(email: string, subject: Messages, emailBody: any) {
+  sendMail(
+    email: string,
+    subject: Messages | string,
+    emailBody: any,
+    attachments: any[] = [],
+  ) {
     const message = {
       from: `'Rapid Capsules' <${process.env.EMAIL_SENDER}>`,
-      to: `${email}`,
+      to: email,
       subject,
       html: emailBody,
+      attachments,
     };
     const transport = this.nodeMailerTransport();
     try {
