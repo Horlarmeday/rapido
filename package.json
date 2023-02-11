@@ -43,6 +43,7 @@
     "dotenv": "^16.0.3",
     "google-auth-library": "^8.7.0",
     "helmet": "^6.0.1",
+    "ical-generator": "^3.6.1",
     "mailgen": "^2.0.27",
     "moment": "^2.29.4",
     "mongoose": "^6.8.1",
