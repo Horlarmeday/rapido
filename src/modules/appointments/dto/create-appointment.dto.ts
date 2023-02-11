@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 import { Type } from 'class-transformer';
 
@@ -7,7 +7,7 @@ export class CreateAppointmentDto {
   @IsString()
   category: string;
 
-  @IsDate()
+  @Type(() => Date)
   @IsNotEmpty()
   start_time: Date;
 

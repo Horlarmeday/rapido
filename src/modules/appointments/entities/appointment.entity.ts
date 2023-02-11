@@ -28,5 +28,8 @@ export class Appointment {
 
   @Prop({ type: String, required: true })
   start_url: string;
+
+  @Prop({ type: String, required: true })
+  meeting_id: string;
 }
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);
