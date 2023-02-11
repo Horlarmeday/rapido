@@ -26,7 +26,7 @@ export enum RegMedium {
 
 @Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
-  toJSON: { getters: true },
+  toJSON: { getters: true, virtuals: true },
 })
 export class User {
   @Prop(
@@ -284,5 +284,11 @@ export class User {
     ]),
   )
   dependants?: Dependant[];
+  full_name: string;
 }
-export const UserSchema = SchemaFactory.createForClass(User);
+const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.virtual('full_name').get(function (this: UserDocument) {
+  return `${this.profile.first_name} ${this.profile.last_name}`;
+});
+
+export { UserSchema };
