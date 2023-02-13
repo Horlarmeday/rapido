@@ -28,16 +28,15 @@ export class GeneralHelpers {
       .toUpperCase();
   }
 
-  paginate(data: any, page: number, limit: number) {
-    const { count: total, rows: docs } = data;
+  paginate(data: any, page: number | undefined, limit: number, total: number) {
     const currentPage = page || 1;
     const pages = Math.ceil(total / limit);
     const perPage = limit;
 
-    return { total, docs, pages, perPage, currentPage };
+    return { total, docs: data, pages, perPage, currentPage };
   }
 
-  getPagination(page: number, size: number) {
+  calcLimitAndOffset(page: number, size: number | undefined) {
     const limit = size || 10;
     const offset = page ? (page - 1) * limit : 0;
 

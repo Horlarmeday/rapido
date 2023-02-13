@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -18,6 +19,7 @@ import { ProfileSetupDto } from './dto/profile-setup.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 import { CreateUserDto } from './dto/create-user.dto';
+import { QueryDto } from '../../common/helpers/url-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -53,13 +55,18 @@ export class UsersController {
     @Body() profileSetupDto: ProfileSetupDto,
     @Request() req,
   ) {
-    console.log('FILES =>', files);
-    console.log('PROFILE_SETUP =>', profileSetupDto);
     const result = await this.usersService.profileSetup(
       req.user.sub,
       profileSetupDto,
       files,
     );
     return sendSuccessResponse(Messages.UPDATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getUsers(@Query() queryDto: QueryDto) {
+    const result = await this.usersService.getUsers(queryDto);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 }

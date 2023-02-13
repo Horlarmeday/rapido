@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,7 +13,7 @@ import ical, {
   ICalCalendarMethod,
   ICalEventStatus,
 } from 'ical-generator';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   Appointment,
   AppointmentDocument,
@@ -24,10 +25,18 @@ import * as moment from 'moment';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { appointmentScheduleEmail } from '../../core/emails/mails/appointmentScheduleEmail';
 import { SUCCESS } from '../../core/constants';
-import { create } from 'src/common/crud/crud';
+import {
+  countDocuments,
+  create,
+  find,
+  findAndCountAll,
+  findById,
+} from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
 import { ICalendarType } from './types/apointment.types';
+import { Messages } from '../../core/messages/messages';
+import { QueryDto } from '../../common/helpers/url-query.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -161,5 +170,43 @@ export class AppointmentsService {
       rsvp: true,
       type: ICalAttendeeType.INDIVIDUAL,
     }));
+  }
+
+  async getPatientAppointments(userId: Types.ObjectId) {
+    return await find(this.AppointmentModel, { patient: userId });
+  }
+
+  async getSpecialistAppointments(userId: Types.ObjectId) {
+    return await find(this.AppointmentModel, { specialist: userId });
+  }
+
+  async getAllAppointments(query: QueryDto) {
+    const { currentPage, pageLimit } = query;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const appointments = await findAndCountAll(
+      this.AppointmentModel,
+      {},
+      limit,
+      offset,
+    );
+
+    return this.generalHelpers.paginate(
+      appointments,
+      +currentPage,
+      limit,
+      await countDocuments(this.AppointmentModel),
+    );
+  }
+
+  async getOneAppointment(appointmentId: string) {
+    const appointment = await findById(
+      this.AppointmentModel,
+      <Types.ObjectId>(<unknown>appointmentId),
+    );
+    if (!appointment) throw new NotFoundException(Messages.NOT_FOUND);
+    return appointment;
   }
 }

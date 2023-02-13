@@ -10,8 +10,10 @@ import { User, UserDocument } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import {
+  countDocuments,
   create,
   deleteOne,
+  findAndCountAll,
   findById,
   findOne,
   updateOne,
@@ -27,6 +29,7 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { Condition } from './entities/pre-existing-condition.entity';
+import { QueryDto } from '../../common/helpers/url-query.dto';
 
 @Injectable()
 export class UsersService {
@@ -190,6 +193,26 @@ export class UsersService {
     }
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
+  }
+
+  async getUsers(query: QueryDto) {
+    const { currentPage, pageLimit, filterBy } = query;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const users = await findAndCountAll(
+      this.userModel,
+      { ...(filterBy && { user_type: filterBy }) },
+      limit,
+      offset,
+    );
+    return this.generalHelpers.paginate(
+      users,
+      +currentPage,
+      limit,
+      await countDocuments(this.userModel, { user_type: filterBy }),
+    );
   }
 
   private async hasFilesAndUpload(
