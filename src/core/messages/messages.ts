@@ -33,4 +33,5 @@ export enum Messages {
   EMAIL_NOT_VERIFIED = 'Email not verified, please check your inbox for email verification link',
   TWO_FA_TURNED_ON = 'Two Factor Authentication turned on',
   EMAIL_ALREADY_VERIFIED = 'Email is verified already, please login',
+  ERROR_OCCURRED_TRANSFER = 'Error occurred transferring funds',
 }
