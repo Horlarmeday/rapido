@@ -19,7 +19,8 @@ export class UserSettingsController {
 
   @Get()
   async findOne(@Request() req) {
-    return this.userSettingsService.findOne(req.user.sub);
+    const result = await this.userSettingsService.findOne(req.user.sub);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
   @Patch()

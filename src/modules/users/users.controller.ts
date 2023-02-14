@@ -69,4 +69,11 @@ export class UsersController {
     const result = await this.usersService.getUsers(queryDto);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch()
+  async updateUser(@Query() queryDto: QueryDto) {
+    const result = await this.usersService.getUsers(queryDto);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
 }

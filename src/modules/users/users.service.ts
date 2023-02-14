@@ -30,6 +30,7 @@ import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { Condition } from './entities/pre-existing-condition.entity';
 import { QueryDto } from '../../common/helpers/url-query.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -193,6 +194,21 @@ export class UsersService {
     }
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
+  }
+
+  async updateUserProfile(
+    updateUserProfileDto: UpdateUserProfileDto,
+    userId: Types.ObjectId,
+  ) {
+    const user = await this.findById(userId);
+    return await updateOne(
+      this.userModel,
+      { _id: userId },
+      {
+        ...user,
+        ...updateUserProfileDto,
+      },
+    );
   }
 
   async getUsers(query: QueryDto) {
