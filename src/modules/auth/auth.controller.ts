@@ -8,7 +8,6 @@ import {
   HttpStatus,
   HttpCode,
   Param,
-  Response,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
@@ -158,11 +157,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
-  async generate2FA(@Request() req, @Response() res) {
+  async generate2FA(@Request() req) {
     const { otpAuthUrl } = await this.authService.generateTwoFactorAuthSecret(
       req.user.sub,
     );
-    return this.authService.pipeQrCodeStream(res, otpAuthUrl);
+    return sendSuccessResponse(
+      Messages.RETRIEVED,
+      await this.authService.pipeQrCodeStream(otpAuthUrl),
+    );
   }
 
   @HttpCode(HttpStatus.OK)

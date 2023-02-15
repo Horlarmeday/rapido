@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  Response,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -31,7 +30,7 @@ import {
   UserSettingsDocument,
 } from '../user-settings/entities/user-setting.entity';
 import { authenticator } from 'otplib';
-import { toFileStream } from 'qrcode';
+import { toDataURL } from 'qrcode';
 import { Profile } from '../users/types/profile.types';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
@@ -348,8 +347,8 @@ export class AuthService {
     };
   }
 
-  async pipeQrCodeStream(stream: Response, otpAuthUrl: string) {
-    return toFileStream(stream, otpAuthUrl);
+  async pipeQrCodeStream(otpAuthUrl: string) {
+    return toDataURL(otpAuthUrl);
   }
 
   async turnOn2FAAuthentication(
