@@ -36,6 +36,7 @@ import { Profile } from '../users/types/profile.types';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
+import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -222,14 +223,12 @@ export class AuthService {
     throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
-  async verifyPhoneOTP(phone: string, code: string) {
-    const user = await this.usersService.findOneByPhone(
-      this.removeLeadingZero(phone),
-    );
+  async verifyPhoneOTP(email: string, code: string) {
+    const user = await this.usersService.findOneByEmail(email);
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const response = await this.twilio.verifyPhoneVerification(
-      `${user.profile.contact.phone.country_code}${phone}`,
+      `${user.profile.contact?.phone?.country_code}${user.profile.contact?.phone?.number}`,
       code,
     );
     if (response.data.status === APPROVED) {
@@ -339,7 +338,6 @@ export class AuthService {
       <string>process.env.TWO_FA_APP_NAME,
       secret,
     );
-    console.log(secret);
 
     await this.usersService.updateOne(userId, {
       'profile.twoFA_secret': secret,
@@ -379,6 +377,15 @@ export class AuthService {
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     await this.send2FAEmailOTP(user.profile, user._id, null);
+  }
+
+  async resendPhoneOTP(resendPhoneOtpDto: ResendPhoneOtpDto) {
+    const user = await this.usersService.findOneByEmail(
+      resendPhoneOtpDto.email,
+    );
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
+    await this.send2FAPhoneOTP(user.profile, null);
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {
@@ -442,7 +449,7 @@ export class AuthService {
 
   private async send2FAPhoneOTP(
     profile: Profile,
-    setting: UserSettingsDocument,
+    setting: UserSettingsDocument | null,
   ) {
     const phoneNumber = `${profile.contact.phone.country_code}${profile.contact.phone.number}`;
     await this.twilio.sendPhoneVerificationCode(phoneNumber);

@@ -26,6 +26,8 @@ import { PhoneTokenDto } from './dto/phone-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
+import { PhoneOtpVerifyDto } from './dto/phone-otp-verify.dto';
+import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -100,9 +102,9 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('otp/phone/verify')
-  async verifyPhoneOTP(@Body() phoneVerifyDto: PhoneVerifyDto) {
-    const { code, phone } = phoneVerifyDto;
-    const result = await this.authService.verifyPhoneOTP(phone, code);
+  async verifyPhoneOTP(@Body() phoneOtpVerifyDto: PhoneOtpVerifyDto) {
+    const { code, email } = phoneOtpVerifyDto;
+    const result = await this.authService.verifyPhoneOTP(email, code);
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
   }
 
@@ -144,6 +146,13 @@ export class AuthController {
   async resendEmailOtp(@Body() resendEmailOtpDto: ResendEmailOtpDto) {
     await this.authService.resendEmailOTP(resendEmailOtpDto);
     return sendSuccessResponse(Messages.EMAIL_OTP_SENT, null);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('resend-phone-otp')
+  async resendPhoneOtp(@Body() resendPhoneOtpDto: ResendPhoneOtpDto) {
+    await this.authService.resendPhoneOTP(resendPhoneOtpDto);
+    return sendSuccessResponse(Messages.PHONE_OTP_SENT, null);
   }
 
   @HttpCode(HttpStatus.OK)
