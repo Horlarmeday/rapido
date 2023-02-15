@@ -222,6 +222,7 @@ export class UsersService {
       { ...(filterBy && { user_type: filterBy }) },
       limit,
       offset,
+      ['-profile.password', '-profile.twoFA_secret'],
     );
     return this.generalHelpers.paginate(
       users,

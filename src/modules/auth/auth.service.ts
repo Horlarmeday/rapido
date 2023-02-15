@@ -340,6 +340,7 @@ export class AuthService {
 
     await this.usersService.updateOne(userId, {
       'profile.twoFA_secret': secret,
+      is_auth_app_enabled: true,
     });
     return {
       secret,

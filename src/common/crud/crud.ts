@@ -95,15 +95,18 @@ export const updateOne = async (
  * @param query
  * @param limit
  * @param offset
+ * @param selectFields
  */
 export const findAndCountAll = async (
   model: Model<HydratedDocument<any>>,
   query: any,
   limit: number,
   offset: number,
+  selectFields?: any,
 ) =>
   model
     .find({ ...query })
+    .select(selectFields)
     .limit(limit)
     .skip(offset)
     .exec();
