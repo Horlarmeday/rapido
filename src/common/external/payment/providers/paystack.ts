@@ -21,7 +21,7 @@ export class Paystack implements IPaymentInterface {
   private readonly getTransactionsUrl = 'transaction';
   private readonly chargeAuthorizationUrl = 'transaction/charge_authorization/';
   private readonly resolveAccountUrl = '/bank/resolve';
-
+  private readonly initializeTransactionUrl = 'transaction/initialize';
   private logger = new Logger(Paystack.name);
 
   constructor() {
@@ -31,6 +31,24 @@ export class Paystack implements IPaymentInterface {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${this.secretKey}`,
     };
+  }
+
+  async initializeTransaction(
+    email: string,
+    amount: number,
+    reference: string,
+    metadata?: any,
+  ) {
+    const url = `${this.baseUrl}${this.initializeTransactionUrl}`;
+    const data = {
+      email,
+      amount: (+amount * 100).toString(),
+      reference,
+      metadata,
+    };
+    const response = await post(url, data, { headers: this.headers });
+    this.logger.log(`Initializing transaction for ${email}`);
+    return response;
   }
 
   getTransactions(
@@ -117,13 +135,13 @@ export class Paystack implements IPaymentInterface {
     this.logger.error(Messages.ERROR_OCCURRED_TRANSFER);
   }
 
-  async verifyTransaction(id: string) {
-    const url = `${this.baseUrl}${this.verifyTransactionUrl}${id}`;
+  async verifyTransaction(reference: string) {
+    const url = `${this.baseUrl}${this.verifyTransactionUrl}${reference}`;
     try {
       const { data } = await get(url, this.headers);
       return data;
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       return error;
     }
   }

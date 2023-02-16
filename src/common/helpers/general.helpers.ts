@@ -46,7 +46,7 @@ export class GeneralHelpers {
 
   genTxReference() {
     const currentDate = new Date().toISOString().slice(0, 11);
-    return `${currentDate}-${this.generateRandomCharacters(17)}`;
+    return `${currentDate}-${this.generateRandomCharacters(10)}`;
   }
 
   generateEmailAndSend({

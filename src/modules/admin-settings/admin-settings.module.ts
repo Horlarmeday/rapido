@@ -15,5 +15,6 @@ import {
   ],
   controllers: [AdminSettingsController],
   providers: [AdminSettingsService],
+  exports: [AdminSettingsService],
 })
 export class AdminSettingsModule {}

@@ -10,6 +10,8 @@ import { TokensModule } from './modules/tokens/tokens.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { UserSettingsModule } from './modules/user-settings/user-settings.module';
 import { AdminSettingsModule } from './modules/admin-settings/admin-settings.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 dotenv.config();
 
@@ -23,6 +25,8 @@ dotenv.config();
     AppointmentsModule,
     UserSettingsModule,
     AdminSettingsModule,
+    PaymentsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

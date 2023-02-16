@@ -34,4 +34,6 @@ export enum Messages {
   TWO_FA_TURNED_ON = 'Two Factor Authentication turned on',
   EMAIL_ALREADY_VERIFIED = 'Email is verified already, please login',
   ERROR_OCCURRED_TRANSFER = 'Error occurred transferring funds',
+  TRANSACTION_INITIALIZED = 'Transaction initialized',
+  TRANSACTION_VERIFIED = 'Transaction verified',
 }
