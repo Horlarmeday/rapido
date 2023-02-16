@@ -65,11 +65,25 @@ export class PaymentHandler implements IPaymentInterface {
     });
   }
 
-  async verifyTransaction(id: string) {
-    return this.paystack.verifyTransaction(id);
+  async verifyTransaction(reference: string) {
+    return this.paystack.verifyTransaction(reference);
   }
 
   async verifyTransfer(id: string) {
     return this.paystack.verifyTransfer(id);
+  }
+
+  async initializeTransaction(
+    email: string,
+    amount: number,
+    reference: string,
+    metadata?: any,
+  ) {
+    return this.paystack.initializeTransaction(
+      email,
+      amount,
+      reference,
+      metadata,
+    );
   }
 }

@@ -68,4 +68,19 @@ export interface IPaymentInterface {
    * @param bank_code
    */
   resolveAccount(acct_number: string, bank_code: string);
+
+  /**
+   * initialize a transaction
+   * @return mixed
+   * @param email
+   * @param amount
+   * @param reference
+   * @param metadata
+   */
+  initializeTransaction(
+    email: string,
+    amount: number,
+    reference: string,
+    metadata?: any,
+  );
 }
