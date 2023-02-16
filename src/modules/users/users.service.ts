@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './entities/user.entity';
+import { RegMedium, User, UserDocument } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import {
@@ -143,10 +143,10 @@ export class UsersService {
     profileSetupDto: ProfileSetupDto,
     files: Express.Multer.File[],
   ) {
-    const { profile } = await this.findById(userId);
+    const { profile, reg_medium } = await this.findById(userId);
     const {
       profile: {
-        contact: { address1, address2, country, zip_code, state },
+        contact: { address1, address2, country, zip_code, state, phone },
         profile_photo,
         basic_health_info,
         health_risk_factors,
@@ -170,6 +170,9 @@ export class UsersService {
           gender,
           contact: {
             ...profile.contact,
+            ...(reg_medium !== RegMedium.LOCAL && {
+              phone: { country_code: phone.country_code, number: phone.number },
+            }),
             address1,
             address2,
             country,
