@@ -12,7 +12,7 @@ import ical, {
   ICalCalendarMethod,
   ICalEventStatus,
 } from 'ical-generator';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   Appointment,
   AppointmentDocument,
@@ -28,6 +28,10 @@ import { create } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
 import { ICalendarType } from './types/apointment.types';
+import { PaymentHandler } from '../../common/external/payment/payment.handler';
+import { AdminSettingsService } from '../admin-settings/admin-settings.service';
+import { PaymentsService } from '../payments/payments.service';
+import { PaymentFor } from '../payments/entities/payment.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -39,6 +43,9 @@ export class AppointmentsService {
     private readonly usersService: UsersService,
     private readonly generalHelpers: GeneralHelpers,
     private readonly taskCron: TaskScheduler,
+    private readonly paymentHandler: PaymentHandler,
+    private readonly adminSettingsService: AdminSettingsService,
+    private readonly paymentService: PaymentsService,
   ) {}
   async create(
     createAppointmentDto: CreateAppointmentDto,
@@ -161,5 +168,32 @@ export class AppointmentsService {
       rsvp: true,
       type: ICalAttendeeType.INDIVIDUAL,
     }));
+  }
+
+  async initializeTransaction(userId: Types.ObjectId) {
+    const user = await this.usersService.findById(userId);
+    const reference = this.generalHelpers.genTxReference();
+    const {
+      defaults: { appointment_fee },
+    } = await this.adminSettingsService.findOne();
+    const metadata = {
+      name: user.full_name,
+      email: user.profile.contact.email,
+    };
+    const response = await this.paymentHandler.initializeTransaction(
+      user.profile.contact.email,
+      appointment_fee,
+      reference,
+      metadata,
+    );
+    if (response.status === SUCCESS) {
+      await this.paymentService.create(
+        userId,
+        reference,
+        appointment_fee,
+        PaymentFor.APPOINTMENT,
+      );
+    }
+    return response.data;
   }
 }

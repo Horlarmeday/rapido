@@ -3,7 +3,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 
 export type AppointmentDocument = HydratedDocument<Appointment>;
 
-@Schema()
+@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Appointment {
   @Prop({ type: String, required: true })
   category: string;

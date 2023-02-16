@@ -21,4 +21,12 @@ export class AppointmentsController {
     );
     return sendSuccessResponse(Messages.CREATED, result);
   }
+
+  @Post('initialize')
+  async initializeTransaction(@Request() req) {
+    const result = await this.appointmentsService.initializeTransaction(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.TRANSACTION_INITIALIZED, result);
+  }
 }
