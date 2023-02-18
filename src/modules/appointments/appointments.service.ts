@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import ical, {
@@ -23,15 +19,16 @@ import { IJwtPayload } from '../auth/types/jwt-payload.type';
 import * as moment from 'moment';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { appointmentScheduleEmail } from '../../core/emails/mails/appointmentScheduleEmail';
-import { SUCCESS } from '../../core/constants';
-import { create } from 'src/common/crud/crud';
+import { FAILED, PENDING, SUCCESS } from '../../core/constants';
+import { create, findById, updateOne } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
 import { ICalendarType } from './types/apointment.types';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { AdminSettingsService } from '../admin-settings/admin-settings.service';
 import { PaymentsService } from '../payments/payments.service';
-import { PaymentFor } from '../payments/entities/payment.entity';
+import { PaymentFor, Status } from '../payments/entities/payment.entity';
+import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
 
 @Injectable()
 export class AppointmentsService {
@@ -47,35 +44,56 @@ export class AppointmentsService {
     private readonly adminSettingsService: AdminSettingsService,
     private readonly paymentService: PaymentsService,
   ) {}
-  async create(
+  async createAppointment(
     createAppointmentDto: CreateAppointmentDto,
     currentUser: IJwtPayload,
   ) {
+    return await create(this.AppointmentModel, {
+      ...createAppointmentDto,
+      patient: currentUser.sub,
+    });
+  }
+
+  async findOneAppointment(appointmentId: Types.ObjectId) {
+    return await findById(this.AppointmentModel, appointmentId);
+  }
+
+  async updateAppointment(query: any, fieldsToUpdate: any) {
+    return await updateOne(
+      this.AppointmentModel,
+      { ...query },
+      { ...fieldsToUpdate },
+    );
+  }
+
+  async scheduleZoomMeeting(appointment: AppointmentDocument) {
     const [specialist, patient] = await Promise.all([
-      this.usersService.findById(createAppointmentDto.specialist),
-      this.usersService.findById(currentUser.sub),
+      this.usersService.findById(appointment.specialist),
+      this.usersService.findById(appointment.patient),
     ]);
     const topic = `Appointment Between ${specialist.profile.first_name} and ${patient.profile.first_name}`;
-
     const response = await this.zoom.createMeeting({
-      start_time: createAppointmentDto.start_time,
+      start_time: appointment.start_time,
       topic,
     });
 
     if (response.status === SUCCESS) {
       const { join_url, start_url, id } = response.data;
-      const appointment = await create(this.AppointmentModel, {
-        ...createAppointmentDto,
-        join_url,
-        start_url,
-        meeting_id: id,
-        patient: currentUser.sub,
-      });
+      await updateOne(
+        this.AppointmentModel,
+        { _id: appointment._id },
+        {
+          meeting_id: id,
+          join_url,
+          start_url,
+          payment_status: Status.SUCCESSFUL,
+        },
+      );
       await this.taskCron.addCron(
         this.sendScheduledAppointment({
           patient,
           specialist,
-          start_time: createAppointmentDto.start_time,
+          start_time: appointment.start_time,
           topic,
           link: { join_url, start_url },
         }),
@@ -84,10 +102,6 @@ export class AppointmentsService {
 
       return appointment;
     }
-
-    throw new InternalServerErrorException(
-      'Error occurred creating appointment',
-    );
   }
 
   generateICalendar({
@@ -170,7 +184,10 @@ export class AppointmentsService {
     }));
   }
 
-  async initializeTransaction(userId: Types.ObjectId) {
+  async initializeTransaction(
+    userId: Types.ObjectId,
+    initAppointmentTz: InitializeAppointmentTransaction,
+  ) {
     const user = await this.usersService.findById(userId);
     const reference = this.generalHelpers.genTxReference();
     const {
@@ -179,6 +196,8 @@ export class AppointmentsService {
     const metadata = {
       name: user.full_name,
       email: user.profile.contact.email,
+      appointment_id: initAppointmentTz.appointmentId,
+      payment_for: PaymentFor.APPOINTMENT,
     };
     const response = await this.paymentHandler.initializeTransaction(
       user.profile.contact.email,
@@ -195,5 +214,40 @@ export class AppointmentsService {
       );
     }
     return response.data;
+  }
+
+  async verifyTransaction(reference: string) {
+    const response = await this.paymentHandler.verifyTransaction(reference);
+    switch (response?.data?.status) {
+      case SUCCESS:
+        const appointmentId = response.data.metadata.appointment_id;
+        const appointment = await this.findOneAppointment(appointmentId);
+        await this.scheduleZoomMeeting(appointment);
+        await this.paymentService.updatePayment(reference, {
+          status: Status.SUCCESSFUL,
+          metadata: {
+            appointment_id: appointmentId,
+          },
+        });
+        return await this.findOneAppointment(appointmentId);
+      case FAILED:
+        const appointmentId1 = response.data.metadata.appointment_id;
+        await this.updateAppointment(
+          { _id: appointmentId1 },
+          {
+            payment_status: Status.FAILED,
+          },
+        );
+        await this.paymentService.updatePayment(reference, {
+          status: Status.FAILED,
+          metadata: {
+            appointment_id: appointmentId1,
+          },
+        });
+        return await this.findOneAppointment(appointmentId1);
+      case PENDING:
+        const appointmentId2 = response.data.metadata.appointment_id;
+        return await this.findOneAppointment(appointmentId2);
+    }
   }
 }
