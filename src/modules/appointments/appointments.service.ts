@@ -20,7 +20,6 @@ import * as moment from 'moment';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { appointmentScheduleEmail } from '../../core/emails/mails/appointmentScheduleEmail';
 import { FAILED, PENDING, SUCCESS } from '../../core/constants';
-import { SUCCESS } from '../../core/constants';
 import {
   countDocuments,
   create,
