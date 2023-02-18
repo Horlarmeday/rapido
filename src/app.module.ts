@@ -12,6 +12,7 @@ import { UserSettingsModule } from './modules/user-settings/user-settings.module
 import { AdminSettingsModule } from './modules/admin-settings/admin-settings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { RemindersModule } from './modules/reminders/reminders.module';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ dotenv.config();
     AdminSettingsModule,
     PaymentsModule,
     TransactionsModule,
+    RemindersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

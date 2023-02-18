@@ -23,10 +23,10 @@ export class Appointment {
   @Prop({ type: String, required: true })
   appointment_type: string;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   patient: Types.ObjectId;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   specialist: Types.ObjectId;
 
   @Prop({ type: String })
