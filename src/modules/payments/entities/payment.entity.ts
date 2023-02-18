@@ -4,7 +4,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export type PaymentDocument = HydratedDocument<Payment>;
 
 export enum Status {
-  SUCCESS = 'SUCCESS',
+  SUCCESSFUL = 'SUCCESSFUL',
   PENDING = 'PENDING',
   FAILED = 'FAILED',
 }
@@ -28,15 +28,24 @@ export class Payment {
 
   @Prop({
     type: String,
-    enum: { values: [Status.FAILED, Status.SUCCESS, Status.PENDING] },
+    enum: { values: [Status.FAILED, Status.SUCCESSFUL, Status.PENDING] },
     default: Status.PENDING,
   })
   status: Status;
 
-  @Prop({ type: String })
-  payment_for: string;
+  @Prop({
+    type: String,
+    enum: {
+      values: [
+        PaymentFor.TEST,
+        PaymentFor.APPOINTMENT,
+        PaymentFor.SUBSCRIPTION,
+      ],
+    },
+  })
+  payment_for: PaymentFor;
 
   @Prop({ type: mongoose.Schema.Types.Mixed })
-  meta: any;
+  metadata: any;
 }
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

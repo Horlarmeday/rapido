@@ -15,7 +15,7 @@ export class TransactionsService {
     switch (response.data.data.status) {
       case SUCCESS:
         return await this.paymentService.updatePayment(reference, {
-          status: Status.SUCCESS,
+          status: Status.SUCCESSFUL,
         });
       case FAILED:
         return await this.paymentService.updatePayment(reference, {

@@ -45,6 +45,7 @@ export class Paystack implements IPaymentInterface {
       amount: (+amount * 100).toString(),
       reference,
       metadata,
+      channels: ['card'],
     };
     const response = await post(url, data, { headers: this.headers });
     this.logger.log(`Initializing transaction for ${email}`);
