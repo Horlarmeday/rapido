@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import ical, {
@@ -20,10 +20,20 @@ import * as moment from 'moment';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { appointmentScheduleEmail } from '../../core/emails/mails/appointmentScheduleEmail';
 import { FAILED, PENDING, SUCCESS } from '../../core/constants';
-import { create, findById, updateOne } from 'src/common/crud/crud';
+import { SUCCESS } from '../../core/constants';
+import {
+  countDocuments,
+  create,
+  find,
+  findAndCountAll,
+  findById,
+  updateOne,
+} from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
 import { ICalendarType } from './types/apointment.types';
+import { Messages } from '../../core/messages/messages';
+import { QueryDto } from '../../common/helpers/url-query.dto';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { AdminSettingsService } from '../admin-settings/admin-settings.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -249,5 +259,43 @@ export class AppointmentsService {
         const appointmentId2 = response.data.metadata.appointment_id;
         return await this.findOneAppointment(appointmentId2);
     }
+  }
+
+  async getPatientAppointments(userId: Types.ObjectId) {
+    return await find(this.AppointmentModel, { patient: userId });
+  }
+
+  async getSpecialistAppointments(userId: Types.ObjectId) {
+    return await find(this.AppointmentModel, { specialist: userId });
+  }
+
+  async getAllAppointments(query: QueryDto) {
+    const { currentPage, pageLimit } = query;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const appointments = await findAndCountAll(
+      this.AppointmentModel,
+      {},
+      limit,
+      offset,
+    );
+
+    return this.generalHelpers.paginate(
+      appointments,
+      +currentPage,
+      limit,
+      await countDocuments(this.AppointmentModel),
+    );
+  }
+
+  async getOneAppointment(appointmentId: string) {
+    const appointment = await findById(
+      this.AppointmentModel,
+      <Types.ObjectId>(<unknown>appointmentId),
+    );
+    if (!appointment) throw new NotFoundException(Messages.NOT_FOUND);
+    return appointment;
   }
 }

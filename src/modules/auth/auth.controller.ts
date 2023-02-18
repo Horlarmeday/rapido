@@ -8,7 +8,6 @@ import {
   HttpStatus,
   HttpCode,
   Param,
-  Response,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
@@ -26,6 +25,8 @@ import { PhoneTokenDto } from './dto/phone-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
+import { PhoneOtpVerifyDto } from './dto/phone-otp-verify.dto';
+import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -100,9 +101,9 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('otp/phone/verify')
-  async verifyPhoneOTP(@Body() phoneVerifyDto: PhoneVerifyDto) {
-    const { code, phone } = phoneVerifyDto;
-    const result = await this.authService.verifyPhoneOTP(phone, code);
+  async verifyPhoneOTP(@Body() phoneOtpVerifyDto: PhoneOtpVerifyDto) {
+    const { code, email } = phoneOtpVerifyDto;
+    const result = await this.authService.verifyPhoneOTP(email, code);
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
   }
 
@@ -147,13 +148,23 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('resend-phone-otp')
+  async resendPhoneOtp(@Body() resendPhoneOtpDto: ResendPhoneOtpDto) {
+    await this.authService.resendPhoneOTP(resendPhoneOtpDto);
+    return sendSuccessResponse(Messages.PHONE_OTP_SENT, null);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
-  async generate2FA(@Request() req, @Response() res) {
+  async generate2FA(@Request() req) {
     const { otpAuthUrl } = await this.authService.generateTwoFactorAuthSecret(
       req.user.sub,
     );
-    return this.authService.pipeQrCodeStream(res, otpAuthUrl);
+    return sendSuccessResponse(
+      Messages.RETRIEVED,
+      await this.authService.pipeQrCodeStream(otpAuthUrl),
+    );
   }
 
   @HttpCode(HttpStatus.OK)

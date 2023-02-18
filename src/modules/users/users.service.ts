@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './entities/user.entity';
+import { RegMedium, User, UserDocument } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import {
+  countDocuments,
   create,
   deleteOne,
+  findAndCountAll,
   findById,
   findOne,
   updateOne,
@@ -27,6 +29,8 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { Condition } from './entities/pre-existing-condition.entity';
+import { QueryDto } from '../../common/helpers/url-query.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -139,10 +143,10 @@ export class UsersService {
     profileSetupDto: ProfileSetupDto,
     files: Express.Multer.File[],
   ) {
-    const { profile } = await this.findById(userId);
+    const { profile, reg_medium } = await this.findById(userId);
     const {
       profile: {
-        contact: { address1, address2, country, zip_code, state },
+        contact: { address1, address2, country, zip_code, state, phone },
         profile_photo,
         basic_health_info,
         health_risk_factors,
@@ -166,6 +170,9 @@ export class UsersService {
           gender,
           contact: {
             ...profile.contact,
+            ...(reg_medium !== RegMedium.LOCAL && {
+              phone: { country_code: phone.country_code, number: phone.number },
+            }),
             address1,
             address2,
             country,
@@ -190,6 +197,42 @@ export class UsersService {
     }
     await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
     return user;
+  }
+
+  async updateUserProfile(
+    updateUserProfileDto: UpdateUserProfileDto,
+    userId: Types.ObjectId,
+  ) {
+    const user = await this.findById(userId);
+    return await updateOne(
+      this.userModel,
+      { _id: userId },
+      {
+        ...user,
+        ...updateUserProfileDto,
+      },
+    );
+  }
+
+  async getUsers(query: QueryDto) {
+    const { currentPage, pageLimit, filterBy } = query;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const users = await findAndCountAll(
+      this.userModel,
+      { ...(filterBy && { user_type: filterBy }) },
+      limit,
+      offset,
+      ['-profile.password', '-profile.twoFA_secret'],
+    );
+    return this.generalHelpers.paginate(
+      users,
+      +currentPage,
+      limit,
+      await countDocuments(this.userModel, { user_type: filterBy }),
+    );
   }
 
   private async hasFilesAndUpload(

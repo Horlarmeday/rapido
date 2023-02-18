@@ -147,6 +147,9 @@ export class User {
   @Prop({ type: Boolean, default: false })
   is_phone_verified: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  is_auth_app_enabled: boolean;
+
   @Prop({ type: Date })
   phone_verified_at: Date;
 

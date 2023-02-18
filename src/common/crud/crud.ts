@@ -88,3 +88,30 @@ export const updateOne = async (
   query: object,
   fieldsToUpdate: object,
 ) => model.updateOne({ ...query }, { $set: fieldsToUpdate });
+
+/**
+ * Find all documents that matches filter and limits
+ * @param model
+ * @param query
+ * @param limit
+ * @param offset
+ * @param selectFields
+ */
+export const findAndCountAll = async (
+  model: Model<HydratedDocument<any>>,
+  query: any,
+  limit: number,
+  offset: number,
+  selectFields?: any,
+) =>
+  model
+    .find({ ...query })
+    .select(selectFields)
+    .limit(limit)
+    .skip(offset)
+    .exec();
+
+export const countDocuments = async (
+  model: Model<HydratedDocument<any>>,
+  filter = {},
+) => model.countDocuments({ ...filter }).exec();
