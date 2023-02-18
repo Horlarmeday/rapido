@@ -9,10 +9,16 @@ import { FileUploadHelper } from '../../common/helpers/file-upload.helpers';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { PaymentHandler } from '../../common/external/payment/payment.handler';
+import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
+import { Paystack } from '../../common/external/payment/providers/paystack';
+import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
   imports: [
     UsersModule,
+    AdminSettingsModule,
+    PaymentsModule,
     MongooseModule.forFeature([
       { name: Appointment.name, schema: AppointmentSchema },
     ]),
@@ -25,6 +31,8 @@ import { SchedulerRegistry } from '@nestjs/schedule';
     GeneralHelpers,
     TaskScheduler,
     SchedulerRegistry,
+    PaymentHandler,
+    Paystack,
   ],
 })
 export class AppointmentsModule {}

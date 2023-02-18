@@ -7,12 +7,16 @@ import {
   Get,
   Query,
   Param,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
+import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
+import { VerifyAppointmentTransaction } from './dto/verify-appointment-transaction';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -25,11 +29,34 @@ export class AppointmentsController {
     @Body() createAppointmentDto: CreateAppointmentDto,
     @Request() req,
   ) {
-    const result = await this.appointmentsService.create(
+    const result = await this.appointmentsService.createAppointment(
       createAppointmentDto,
       req.user,
     );
     return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('transactions/initialize')
+  async initializeTransaction(
+    @Request() req,
+    @Body() initAppointmentTz: InitializeAppointmentTransaction,
+  ) {
+    const result = await this.appointmentsService.initializeTransaction(
+      req.user.sub,
+      initAppointmentTz,
+    );
+    return sendSuccessResponse(Messages.TRANSACTION_INITIALIZED, result);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('transactions/verify')
+  async verifyTransaction(
+    @Body() verifyAppointmentTransaction: VerifyAppointmentTransaction,
+  ) {
+    const { reference } = verifyAppointmentTransaction;
+    const result = await this.appointmentsService.verifyTransaction(reference);
+    return sendSuccessResponse(Messages.TRANSACTION_VERIFIED, result);
   }
 
   @Get('patient')
