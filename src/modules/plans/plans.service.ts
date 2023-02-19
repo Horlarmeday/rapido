@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { create, find, updateOne } from 'src/common/crud/crud';
+import { create, find, findOne, updateOne } from 'src/common/crud/crud';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Plan, PlanDocument } from './entities/plan.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class PlansService {
@@ -23,5 +23,9 @@ export class PlansService {
       { _id: planId },
       { ...updatePlanDto },
     );
+  }
+
+  async findOnePlan(planId: Types.ObjectId): Promise<PlanDocument> {
+    return await findOne(this.planModel, { _id: planId });
   }
 }
