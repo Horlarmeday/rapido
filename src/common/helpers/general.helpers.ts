@@ -2,6 +2,7 @@ import { uuid } from 'uuidv4';
 import { Messages } from '../../core/messages/messages';
 import { BadGatewayException, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { chain } from 'lodash';
 
 type GenerateEmailAndSendType = {
   email: string;
@@ -46,6 +47,16 @@ export class GeneralHelpers {
   genTxReference() {
     const currentDate = new Date().toISOString().slice(0, 11);
     return `${currentDate}-${this.generateRandomCharacters(10)}`;
+  }
+
+  groupBy(data: any, fieldToGroupBy: any) {
+    return chain(data)
+      .groupBy((x) => x?.[fieldToGroupBy])
+      .map((value, key) => ({
+        date: key,
+        data: value,
+      }))
+      .value();
   }
 
   generateEmailAndSend({

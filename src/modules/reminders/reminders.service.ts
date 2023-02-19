@@ -5,11 +5,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Reminder, ReminderDocument } from './entities/reminder.entity';
 import { Model, Types } from 'mongoose';
 import { create, deleteOne, find, updateOne } from 'src/common/crud/crud';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
 
 @Injectable()
 export class RemindersService {
   constructor(
     @InjectModel(Reminder.name) private reminderModel: Model<ReminderDocument>,
+    private readonly generalHelpers: GeneralHelpers,
   ) {}
   async createReminder(
     createReminderDto: CreateReminderDto,
@@ -34,6 +36,7 @@ export class RemindersService {
   }
 
   async getUserReminders(userId: Types.ObjectId) {
-    return await find(this.reminderModel, { userId });
+    const reminders = await find(this.reminderModel, { userId });
+    return this.generalHelpers.groupBy(reminders, 'start_date');
   }
 }

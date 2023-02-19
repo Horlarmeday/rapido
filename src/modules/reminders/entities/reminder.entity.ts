@@ -1,7 +1,9 @@
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as moment from 'moment';
 
 export enum Frequency {
+  ONCE = 'Once',
   DAILY = 'Daily',
   WEEKLY = 'Weekly',
   MONTHLY = 'Monthly',
@@ -13,8 +15,17 @@ export enum Interval {
   MONTHS = 'Months',
 }
 
+export enum ReminderStatus {
+  SCHEDULED = 'Scheduled',
+  PENDING = 'Pending',
+  COMPLETE = 'Complete',
+}
+
 export type ReminderDocument = HydratedDocument<Reminder>;
-@Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
+@Schema({
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  toJSON: { getters: true, virtuals: true },
+})
 export class Reminder {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
@@ -25,10 +36,18 @@ export class Reminder {
   @Prop({ type: mongoose.Schema.Types.Mixed })
   data: any;
 
-  @Prop({ type: String, required: true })
+  @Prop({
+    type: Date,
+    required: true,
+    get: (v) => moment(v).format('YYYY-MM-DD'),
+  })
   start_date: Date;
 
-  @Prop({ type: String, required: true })
+  @Prop({
+    type: Date,
+    required: true,
+    get: (v) => moment(v).format('hh:mm:ss a'),
+  })
   start_time: Date;
 
   @Prop({
@@ -48,5 +67,18 @@ export class Reminder {
 
   @Prop({ type: Boolean, default: false })
   is_all_day: boolean;
+
+  @Prop({
+    type: String,
+    enum: {
+      values: [
+        ReminderStatus.COMPLETE,
+        ReminderStatus.SCHEDULED,
+        ReminderStatus.PENDING,
+      ],
+    },
+    default: ReminderStatus.PENDING,
+  })
+  status: ReminderStatus;
 }
 export const ReminderSchema = SchemaFactory.createForClass(Reminder);

@@ -3,6 +3,7 @@ import { RemindersService } from './reminders.service';
 import { RemindersController } from './reminders.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Reminder, ReminderSchema } from './entities/reminder.entity';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { Reminder, ReminderSchema } from './entities/reminder.entity';
     ]),
   ],
   controllers: [RemindersController],
-  providers: [RemindersService],
+  providers: [RemindersService, GeneralHelpers],
 })
 export class RemindersModule {}
