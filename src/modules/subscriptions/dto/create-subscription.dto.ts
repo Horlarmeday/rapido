@@ -5,7 +5,7 @@ import { Recurrence } from '../entities/subscription.entity';
 export class CreateSubscriptionDto {
   @IsNotEmpty()
   @IsString()
-  plan_id: Types.ObjectId;
+  planId: Types.ObjectId;
 
   @IsNotEmpty()
   @IsEnum(Recurrence)

@@ -13,11 +13,13 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
 import { Paystack } from '../../common/external/payment/providers/paystack';
+import { CardsModule } from '../cards/cards.module';
 
 @Module({
   imports: [
     UsersModule,
     PaymentsModule,
+    CardsModule,
     PlansModule,
     AdminSettingsModule,
     MongooseModule.forFeature([

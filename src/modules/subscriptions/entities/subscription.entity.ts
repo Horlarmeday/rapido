@@ -22,7 +22,7 @@ export class Subscription {
   userId: Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Plan', required: true })
-  plan_id: Types.ObjectId;
+  planId: Types.ObjectId;
 
   @Prop({ type: Date })
   current_period_end: Date;
