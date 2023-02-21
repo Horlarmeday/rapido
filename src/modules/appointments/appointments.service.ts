@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import ical, {
@@ -64,7 +69,10 @@ export class AppointmentsService {
   }
 
   async findOneAppointment(appointmentId: Types.ObjectId) {
-    return await findById(this.AppointmentModel, appointmentId);
+    const appointment = await findById(this.AppointmentModel, appointmentId);
+    if (!appointment)
+      throw new NotFoundException(Messages.APPOINTMENT_NOT_FOUND);
+    return appointment;
   }
 
   async updateAppointment(query: any, fieldsToUpdate: any) {
@@ -227,36 +235,44 @@ export class AppointmentsService {
 
   async verifyTransaction(reference: string) {
     const response = await this.paymentHandler.verifyTransaction(reference);
-    switch (response?.data?.status) {
-      case SUCCESS:
-        const appointmentId = response.data.metadata.appointment_id;
-        const appointment = await this.findOneAppointment(appointmentId);
-        await this.scheduleZoomMeeting(appointment);
-        await this.paymentService.updatePayment(reference, {
-          status: Status.SUCCESSFUL,
-          metadata: {
-            appointment_id: appointmentId,
-          },
-        });
-        return await this.findOneAppointment(appointmentId);
-      case FAILED:
-        const appointmentId1 = response.data.metadata.appointment_id;
-        await this.updateAppointment(
-          { _id: appointmentId1 },
-          {
-            payment_status: Status.FAILED,
-          },
-        );
-        await this.paymentService.updatePayment(reference, {
-          status: Status.FAILED,
-          metadata: {
-            appointment_id: appointmentId1,
-          },
-        });
-        return await this.findOneAppointment(appointmentId1);
-      case PENDING:
-        const appointmentId2 = response.data.metadata.appointment_id;
-        return await this.findOneAppointment(appointmentId2);
+    try {
+      switch (response?.data?.status) {
+        case SUCCESS:
+          const appointmentId = response.data.metadata.appointment_id;
+          const appointment = await this.findOneAppointment(appointmentId);
+          await this.scheduleZoomMeeting(appointment);
+          await this.paymentService.updatePayment(reference, {
+            status: Status.SUCCESSFUL,
+            metadata: {
+              appointment_id: appointmentId,
+            },
+          });
+          return await this.findOneAppointment(appointmentId);
+        case FAILED:
+          const appointmentId1 = response.data.metadata.appointment_id;
+          await this.updateAppointment(
+            { _id: appointmentId1 },
+            {
+              payment_status: Status.FAILED,
+            },
+          );
+          await this.paymentService.updatePayment(reference, {
+            status: Status.FAILED,
+            metadata: {
+              appointment_id: appointmentId1,
+            },
+          });
+          return await this.findOneAppointment(appointmentId1);
+        case PENDING:
+          const appointmentId2 = response.data.metadata?.appointment_id;
+          return await this.findOneAppointment(appointmentId2);
+        default:
+          const appointmentId3 = response.data.metadata?.appointment_id;
+          return await this.findOneAppointment(appointmentId3);
+      }
+    } catch (e) {
+      this.logger.error('An error occurred verifying appointment', e);
+      throw new InternalServerErrorException(e, 'An error occurred');
     }
   }
 

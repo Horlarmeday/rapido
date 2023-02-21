@@ -15,6 +15,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { CardsModule } from './modules/cards/cards.module';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ dotenv.config();
     RemindersModule,
     PlansModule,
     SubscriptionsModule,
+    CardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

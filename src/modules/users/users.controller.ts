@@ -10,6 +10,7 @@ import {
   UploadedFiles,
   Post,
   Query,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -20,6 +21,8 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryDto } from '../../common/helpers/url-query.dto';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { Types } from 'mongoose';
 
 @Controller('users')
 export class UsersController {
@@ -71,9 +74,15 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch()
-  async updateUser(@Query() queryDto: QueryDto) {
-    const result = await this.usersService.getUsers(queryDto);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+  @Patch(':id')
+  async updateUser(
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
+    @Param('id') id: Types.ObjectId,
+  ) {
+    const result = await this.usersService.updateUserProfile(
+      updateUserProfileDto,
+      id,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
   }
 }
