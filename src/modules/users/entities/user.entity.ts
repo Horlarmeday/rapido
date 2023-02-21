@@ -1,5 +1,5 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import {
   Gender,
   MaritalStatus,
@@ -288,6 +288,9 @@ export class User {
   )
   dependants?: Dependant[];
   full_name: string;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed })
+  plan: any;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {

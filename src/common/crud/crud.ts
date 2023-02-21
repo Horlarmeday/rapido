@@ -15,16 +15,18 @@ export const create = async (
  * @param model
  * @param query
  * @param selectFields
+ * @param populate
  */
 export const findOne = async (
   model: Model<HydratedDocument<any>>,
   query: any,
   selectFields?: any,
+  populate?: string | string[],
 ) =>
   model
     .findOne({ ...query })
     .select(selectFields)
-    .exec();
+    .populate(<string | string[]>populate);
 
 /**
  * Find document that matches ID
@@ -42,9 +44,17 @@ export const findById = async (
  * Find all documents that matches filter
  * @param model
  * @param query
+ * @param selectFields
  */
-export const find = async (model: Model<HydratedDocument<any>>, query: any) =>
-  model.find({ ...query }).exec();
+export const find = async (
+  model: Model<HydratedDocument<any>>,
+  query: any,
+  selectFields?: any,
+) =>
+  model
+    .find({ ...query })
+    .select(selectFields)
+    .exec();
 
 /**
  * Delete one document that matches filter

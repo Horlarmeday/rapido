@@ -14,6 +14,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { VitalsModule } from './modules/vitals/vitals.module';
+import { PlansModule } from './modules/plans/plans.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { CardsModule } from './modules/cards/cards.module';
 
 dotenv.config();
 
@@ -31,6 +34,9 @@ dotenv.config();
     TransactionsModule,
     RemindersModule,
     VitalsModule,
+    PlansModule,
+    SubscriptionsModule,
+    CardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
