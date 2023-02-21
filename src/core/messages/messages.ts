@@ -6,6 +6,7 @@ export enum Messages {
   DELETED = 'Data deleted',
   INVALID_CREDENTIALS = 'Invalid user credentials',
   NOT_FOUND = 'Data not found',
+  APPOINTMENT_NOT_FOUND = 'Appointment not found',
   NO_USER_FOUND = 'No user found',
   UNAUTHORIZED = 'You are not authorized to access this resource',
   USER_EXISTS = 'Account already exists',

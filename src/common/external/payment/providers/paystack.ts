@@ -8,6 +8,21 @@ import {
 import { Logger } from '@nestjs/common';
 import { Messages } from '../../../../core/messages/messages';
 // import { GeneralHelpers } from '../../../helpers/general.helpers';
+export type CardDetailsType = {
+  authorization_code: string;
+  bin: string;
+  last4: string;
+  exp_month: string;
+  exp_year: string;
+  channel: string;
+  card_type: string;
+  bank: string;
+  country_code: string;
+  brand: string;
+  reusable: boolean;
+  signature: string;
+  account_name: string;
+};
 
 export class Paystack implements IPaymentInterface {
   private readonly baseUrl: string = 'https://api.paystack.co/';

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Payment, PaymentDocument } from './entities/payment.entity';
@@ -6,6 +6,7 @@ import { create, findOne, updateOne } from 'src/common/crud/crud';
 
 @Injectable()
 export class PaymentsService {
+  private logger = new Logger(PaymentsService.name);
   constructor(
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
   ) {}
@@ -28,10 +29,12 @@ export class PaymentsService {
   }
 
   async updatePayment(reference: string, fieldsToUpdate) {
-    return await updateOne(
+    const payment = await updateOne(
       this.paymentModel,
       { reference },
       { ...fieldsToUpdate },
     );
+    this.logger.log(`Updated payment reference: ${reference} to successful`);
+    return payment;
   }
 }
