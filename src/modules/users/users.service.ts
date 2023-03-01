@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -9,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { RegMedium, User, UserDocument } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as mime from 'mime-types';
 import {
   countDocuments,
   create,
@@ -28,10 +30,9 @@ import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
-import { Condition } from './entities/pre-existing-condition.entity';
+import { Condition, File } from './entities/pre-existing-condition.entity';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
-
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -138,11 +139,7 @@ export class UsersService {
     return await updateOne(this.userModel, { _id: userId }, fieldsToUpdate);
   }
 
-  async profileSetup(
-    userId: Types.ObjectId,
-    profileSetupDto: ProfileSetupDto,
-    files: Express.Multer.File[],
-  ) {
+  async profileSetup(userId: Types.ObjectId, profileSetupDto: ProfileSetupDto) {
     const { profile, reg_medium } = await this.findById(userId);
     const {
       profile: {
@@ -157,6 +154,11 @@ export class UsersService {
       pre_existing_conditions,
       dependants,
     } = profileSetupDto;
+
+    const files =
+      pre_existing_conditions
+        ?.map(({ file }) => file)
+        .filter((file) => file?.url) || [];
 
     const user = await updateOne(
       this.userModel,
@@ -184,7 +186,11 @@ export class UsersService {
         dependants,
         pre_existing_conditions:
           pre_existing_conditions?.map((a) => {
-            if (a.file) delete a?.file;
+            a.file = {
+              url: '',
+              original_name: '',
+              size: '',
+            };
             return a;
           }) || [],
       },
@@ -195,7 +201,14 @@ export class UsersService {
         `${Date.now()}-${userId}-uploadProfilePhoto`,
       );
     }
-    await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
+
+    if (files?.length) {
+      await this.hasFilesAndUpload(
+        <File[]>files,
+        pre_existing_conditions,
+        userId,
+      );
+    }
     return user;
   }
 
@@ -236,12 +249,12 @@ export class UsersService {
   }
 
   private async hasFilesAndUpload(
-    files: Express.Multer.File[],
+    files: File[],
     pre_existing_conditions: Condition[] | undefined,
     userId: Types.ObjectId,
   ) {
-    if (!files?.length) return;
-    if (!pre_existing_conditions?.length) return;
+    if (!files || !files?.length) return;
+    if (!pre_existing_conditions || !pre_existing_conditions?.length) return;
     await this.taskCron.addCron(
       this.uploadProfileFiles(files, userId),
       `${Date.now()}-${userId}-uploadFiles`,
@@ -264,21 +277,28 @@ export class UsersService {
     return serializedUser;
   }
 
-  private async uploadProfileFiles(
-    files: Express.Multer.File[],
-    userId: Types.ObjectId,
-  ) {
+  private async uploadProfileFiles(files: File[], userId: Types.ObjectId) {
     try {
-      this.logger.log('Uploading files to S3 bucket');
       const promises = await Promise.all(
         files.map((file) => {
-          return this.fileUpload.uploadToS3(file.buffer, file.originalname);
+          const matches = file.url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches?.length !== 3)
+            throw new BadRequestException(Messages.INVALID_BASE64);
+
+          const buffer = Buffer.from(matches[2], 'base64');
+          const extension = mime.extension(matches[1]);
+          return this.fileUpload.uploadToS3(
+            buffer,
+            `${userId}-document.${extension}`,
+          );
         }),
       );
       this.logger.log(`Finished uploading files to S3: ${promises}`);
       const user = await this.findById(userId);
       user.pre_existing_conditions?.map((condition, index) => {
-        condition.file = promises[index];
+        condition.file.url = promises[index];
+        condition.file.size = files[index]?.size;
+        condition.file.original_name = files[index]?.original_name;
       });
       await user.save();
       this.logger.log(`Updated user profile`);

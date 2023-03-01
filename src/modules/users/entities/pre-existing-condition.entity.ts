@@ -1,4 +1,10 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+export type File = {
+  original_name: string;
+  size: string;
+  url: string;
+};
 
 @Schema({ versionKey: false, _id: false })
 export class Condition {
@@ -24,7 +30,13 @@ export class Condition {
   })
   is_condition_exists: boolean | string;
 
-  @Prop({ type: String, required: false })
-  file?: string;
+  @Prop(
+    raw({
+      size: { type: String },
+      original_name: { type: String },
+      url: { type: String },
+    }),
+  )
+  file: File;
 }
 export const ConditionsSchema = SchemaFactory.createForClass(Condition);

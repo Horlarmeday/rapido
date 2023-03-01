@@ -6,8 +6,6 @@ import {
   Delete,
   UseGuards,
   Request,
-  UseInterceptors,
-  UploadedFiles,
   Post,
   Query,
   Param,
@@ -17,7 +15,6 @@ import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ProfileSetupDto } from './dto/profile-setup.dto';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { DoesUserExist } from '../../core/guards/doesUserExist.guards';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryDto } from '../../common/helpers/url-query.dto';
@@ -51,17 +48,11 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(AnyFilesInterceptor())
   @Patch()
-  async profileSetup(
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Body() profileSetupDto: ProfileSetupDto,
-    @Request() req,
-  ) {
+  async profileSetup(@Body() profileSetupDto: ProfileSetupDto, @Request() req) {
     const result = await this.usersService.profileSetup(
       req.user.sub,
       profileSetupDto,
-      files,
     );
     return sendSuccessResponse(Messages.UPDATED, result);
   }

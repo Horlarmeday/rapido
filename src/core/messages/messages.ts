@@ -37,4 +37,5 @@ export enum Messages {
   ERROR_OCCURRED_TRANSFER = 'Error occurred transferring funds',
   TRANSACTION_INITIALIZED = 'Transaction initialized',
   TRANSACTION_VERIFIED = 'Transaction verified',
+  INVALID_BASE64 = 'Invalid base64 string',
 }
