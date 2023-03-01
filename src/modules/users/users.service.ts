@@ -189,7 +189,7 @@ export class UsersService {
             a.file = {
               url: '',
               original_name: '',
-              size: '',
+              file_type: '',
             };
             return a;
           }) || [],
@@ -297,7 +297,7 @@ export class UsersService {
       const user = await this.findById(userId);
       user.pre_existing_conditions?.map((condition, index) => {
         condition.file.url = promises[index];
-        condition.file.size = files[index]?.size;
+        condition.file.file_type = files[index]?.file_type;
         condition.file.original_name = files[index]?.original_name;
       });
       await user.save();

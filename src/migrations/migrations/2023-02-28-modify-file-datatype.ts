@@ -11,7 +11,7 @@ export class UserMigration implements MigrationInterface {
         const updatedUser = user.pre_existing_conditions?.map((cond) => {
           if (cond.file) {
             cond.file.url = <string>(<unknown>cond.file);
-            cond.file.size = '56kb';
+            cond.file.file_type = '56kb';
             cond.file.original_name = `${user._id}.jpg`;
           } else {
             // cond.file.url = '';

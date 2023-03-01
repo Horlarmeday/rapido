@@ -2,7 +2,7 @@ import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export type File = {
   original_name: string;
-  size: string;
+  file_type: string;
   url: string;
 };
 
@@ -32,7 +32,7 @@ export class Condition {
 
   @Prop(
     raw({
-      size: { type: String },
+      file_type: { type: String },
       original_name: { type: String },
       url: { type: String },
     }),
