@@ -215,11 +215,13 @@ export class User {
         start_date: { type: Date, get: (v) => moment(v).format('YYYY-MM-DD') },
         end_date: { type: Date, get: (v) => moment(v).format('YYYY-MM-DD') },
         is_condition_exists: { type: Boolean, default: false },
-        file: {
-          size: { type: String },
-          original_name: { type: String },
-          url: { type: String },
-        },
+        file: [
+          {
+            file_type: { type: String },
+            original_name: { type: String },
+            url: { type: String },
+          },
+        ],
       },
     ]),
   )

@@ -158,7 +158,7 @@ export class UsersService {
     const files =
       pre_existing_conditions
         ?.map(({ file }) => file)
-        .filter((file) => file?.url) || [];
+        .filter((file) => file && file?.length) || [];
 
     const user = await updateOne(
       this.userModel,
@@ -185,14 +185,15 @@ export class UsersService {
         emergency_contacts,
         dependants,
         pre_existing_conditions:
-          pre_existing_conditions?.map((a) => {
-            a.file = {
-              url: '',
-              original_name: '',
-              file_type: '',
-            };
-            return a;
-          }) || [],
+          pre_existing_conditions?.map((condition) => ({
+            ...condition,
+            file:
+              condition?.file?.map(({ file_type, original_name }) => ({
+                file_type,
+                original_name,
+                url: '',
+              })) || [],
+          })) || [],
       },
     );
     if (profile_photo) {
@@ -204,7 +205,7 @@ export class UsersService {
 
     if (files?.length) {
       await this.hasFilesAndUpload(
-        <File[]>files,
+        <File[][]>files,
         pre_existing_conditions,
         userId,
       );
@@ -249,7 +250,7 @@ export class UsersService {
   }
 
   private async hasFilesAndUpload(
-    files: File[],
+    files: File[][],
     pre_existing_conditions: Condition[] | undefined,
     userId: Types.ObjectId,
   ) {
@@ -277,30 +278,32 @@ export class UsersService {
     return serializedUser;
   }
 
-  private async uploadProfileFiles(files: File[], userId: Types.ObjectId) {
+  private async uploadProfileFiles(files: File[][], userId: Types.ObjectId) {
     try {
-      const promises = await Promise.all(
-        files.map((file) => {
-          const matches = file.url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      const user = await this.findById(userId);
+      files.map((file) => {
+        file.map(async ({ url, original_name: fileName }) => {
+          const matches = url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
           if (matches?.length !== 3)
             throw new BadRequestException(Messages.INVALID_BASE64);
 
           const buffer = Buffer.from(matches[2], 'base64');
           const extension = mime.extension(matches[1]);
-          return this.fileUpload.uploadToS3(
+          const s3Url = await this.fileUpload.uploadToS3(
             buffer,
             `${userId}-document.${extension}`,
           );
-        }),
-      );
-      this.logger.log(`Finished uploading files to S3: ${promises}`);
-      const user = await this.findById(userId);
-      user.pre_existing_conditions?.map((condition, index) => {
-        condition.file.url = promises[index];
-        condition.file.file_type = files[index]?.file_type;
-        condition.file.original_name = files[index]?.original_name;
+          user.pre_existing_conditions?.map(async ({ file }) => {
+            const foundFile = file.find(
+              ({ original_name }) => original_name === fileName,
+            );
+            if (foundFile) {
+              foundFile.url = s3Url;
+              await user.save();
+            }
+          });
+        });
       });
-      await user.save();
       this.logger.log(`Updated user profile`);
     } catch (e) {
       this.logger.error(`Error uploading files occurred, ${e}`);

@@ -37,6 +37,6 @@ export class Condition {
       url: { type: String },
     }),
   )
-  file: File;
+  file: File[];
 }
 export const ConditionsSchema = SchemaFactory.createForClass(Condition);
