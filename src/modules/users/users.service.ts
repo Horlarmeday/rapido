@@ -217,13 +217,50 @@ export class UsersService {
     updateUserProfileDto: UpdateUserProfileDto,
     userId: Types.ObjectId,
   ) {
-    const user = await this.findById(userId);
+    const { profile, pre_existing_conditions, dependants, emergency_contacts } =
+      updateUserProfileDto || {};
+
+    const {
+      profile: dbUser,
+      pre_existing_conditions: dbPreConditions = [],
+      dependants: dbDependants = [],
+      emergency_contacts: dbEmergencyContacts = [],
+    } = await this.findById(userId);
+
+    const fieldsToUpdate = {
+      profile: {
+        ...dbUser,
+        ...(profile?.contact && {
+          contact: {
+            ...dbUser.contact,
+            ...profile.contact,
+          },
+        }),
+        basic_health_info: {
+          ...(dbUser.basic_health_info || {}),
+          ...(profile?.basic_health_info || {}),
+        },
+        health_risk_factors: {
+          ...(dbUser.health_risk_factors || {}),
+          ...(profile?.health_risk_factors || {}),
+        },
+      },
+      pre_existing_conditions: [
+        ...dbPreConditions,
+        ...(pre_existing_conditions || []),
+      ],
+      dependants: [...dbDependants, ...(dependants || [])],
+      emergency_contacts: [
+        ...dbEmergencyContacts,
+        ...(emergency_contacts || []),
+      ],
+    };
+
     return await updateOne(
       this.userModel,
       { _id: userId },
       {
-        ...user,
-        ...updateUserProfileDto,
+        ...fieldsToUpdate,
       },
     );
   }
