@@ -66,7 +66,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('professional-practice')
+  @Patch('specialist-profile-setup')
   async specialistProfileSetup(
     @Body() professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
     @Request() req,
