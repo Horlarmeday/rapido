@@ -67,11 +67,11 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('professional-practice')
-  async updateProfessionalPractice(
+  async specialistProfileSetup(
     @Body() professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
     @Request() req,
   ) {
-    const result = await this.usersService.updateProfessionalPractice(
+    const result = await this.usersService.specialistProfileSetup(
       professionalPracticeSetupDto,
       req.user.sub,
     );

@@ -310,16 +310,40 @@ export class UsersService {
     return user;
   }
 
-  async updateProfessionalPractice(
+  async specialistProfileSetup(
     professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
     userId: Types.ObjectId,
   ) {
     const user = await findById(this.userModel, userId);
-    const { documents, professional_practice } = professionalPracticeSetupDto;
+    const {
+      documents,
+      professional_practice,
+      profile: {
+        contact: { phone, country, zip_code, state, address1, address2 },
+        marital_status,
+        gender,
+      },
+    } = professionalPracticeSetupDto;
     const updatedUser = await updateOne(
       this.userModel,
       { _id: userId },
       {
+        profile: {
+          ...user.profile,
+          marital_status,
+          gender,
+          contact: {
+            ...user.profile.contact,
+            ...(user.reg_medium !== RegMedium.LOCAL && {
+              phone: { country_code: phone.country_code, number: phone.number },
+            }),
+            address1,
+            address2,
+            country,
+            zip_code,
+            state,
+          },
+        },
         professional_practice,
         documents:
           documents?.map(({ file_type, original_name }) => ({
