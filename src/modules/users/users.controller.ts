@@ -20,6 +20,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { Types } from 'mongoose';
+import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
 
 @Controller('users')
 export class UsersController {
@@ -62,6 +63,19 @@ export class UsersController {
   async getUsers(@Query() queryDto: QueryDto) {
     const result = await this.usersService.getUsers(queryDto);
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('professional-practice')
+  async updateProfessionalPractice(
+    @Body() professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.updateProfessionalPractice(
+      professionalPracticeSetupDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
   }
 
   @UseGuards(JwtAuthGuard)

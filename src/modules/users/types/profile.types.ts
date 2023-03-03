@@ -68,3 +68,26 @@ export class Profile {
   twoFA_secret?: string;
   profile_photo: string;
 }
+
+export class ProfessionalPractice {
+  category: string;
+  area_of_specialty: string;
+  university: {
+    name: string;
+    start_year: Date;
+    end_year: Date;
+  };
+  place_of_housemanship: {
+    name: string;
+    start_year: Date;
+    end_year: Date;
+  };
+  license_number: string;
+  years_of_practice: string;
+}
+
+export class Documents {
+  url: string;
+  file_type: string;
+  original_name: string;
+}

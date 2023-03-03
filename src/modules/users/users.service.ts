@@ -33,6 +33,8 @@ import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { Condition, File } from './entities/pre-existing-condition.entity';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
+import { Documents } from './types/profile.types';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -308,6 +310,34 @@ export class UsersService {
     return user;
   }
 
+  async updateProfessionalPractice(
+    professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
+    userId: Types.ObjectId,
+  ) {
+    const user = await findById(this.userModel, userId);
+    const { documents, professional_practice } = professionalPracticeSetupDto;
+    const updatedUser = await updateOne(
+      this.userModel,
+      { _id: userId },
+      {
+        professional_practice,
+        documents:
+          documents?.map(({ file_type, original_name }) => ({
+            file_type,
+            original_name,
+            url: '',
+          })) || [],
+      },
+    );
+    if (documents?.length) {
+      await this.taskCron.addCron(
+        this.uploadDocuments(documents, user),
+        `${Date.now()}-${userId}-uploadDocuments`,
+      );
+    }
+    return updatedUser;
+  }
+
   private static excludeFields(user: UserDocument) {
     const serializedUser = user.toJSON() as Partial<User>;
     delete serializedUser.profile?.password;
@@ -362,6 +392,32 @@ export class UsersService {
       this.logger.log(`Updated user profile photo`);
     } catch (e) {
       this.logger.error(`Error occurred uploading profile photo, ${e}`);
+      throw new InternalServerErrorException('Error', e);
+    }
+  }
+
+  private async uploadDocuments(documents: Documents[], user: UserDocument) {
+    try {
+      const promises = await Promise.all(
+        documents.map(({ url }) => {
+          const matches = url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches?.length !== 3)
+            throw new BadRequestException(Messages.INVALID_BASE64);
+
+          const buffer = Buffer.from(matches[2], 'base64');
+          const extension = mime.extension(matches[1]);
+          return this.fileUpload.uploadToS3(
+            buffer,
+            `${user._id}-document.${extension}`,
+          );
+        }),
+      );
+      user.documents.map((doc, index) => {
+        doc.url = promises[index];
+      });
+      await user.save();
+    } catch (e) {
+      this.logger.error(`Error occurred uploading documents, ${e}`);
       throw new InternalServerErrorException('Error', e);
     }
   }

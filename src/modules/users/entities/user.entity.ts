@@ -1,8 +1,10 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import {
+  Documents,
   Gender,
   MaritalStatus,
+  ProfessionalPractice,
   Profile,
   Relationship,
 } from '../types/profile.types';
@@ -297,6 +299,37 @@ export class User {
 
   @Prop({ type: mongoose.Schema.Types.Mixed })
   plan: any;
+
+  @Prop(
+    raw({
+      category: { type: String },
+      area_of_specialty: { type: String },
+      university: {
+        name: { type: String },
+        start_year: { type: String },
+        end_year: { type: String },
+      },
+      place_of_housemanship: {
+        name: { type: String },
+        start_year: { type: Date },
+        end_year: { type: Date },
+      },
+      license_number: { type: String },
+      years_of_practice: { type: String },
+    }),
+  )
+  professional_practice?: ProfessionalPractice;
+
+  @Prop(
+    raw([
+      {
+        url: { type: String },
+        file_type: { type: String },
+        original_name: { type: String },
+      },
+    ]),
+  )
+  documents: Documents[];
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {
