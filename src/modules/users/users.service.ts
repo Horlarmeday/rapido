@@ -423,7 +423,8 @@ export class UsersService {
   private async uploadDocuments(documents: Documents[], user: UserDocument) {
     try {
       const promises = await Promise.all(
-        documents.map(({ url }) => {
+        documents.map(({ url, original_name }) => {
+          this.logger.log(`Uploading ${original_name} document`);
           const matches = url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
           if (matches?.length !== 3)
             throw new BadRequestException(Messages.INVALID_BASE64);
@@ -440,6 +441,7 @@ export class UsersService {
         doc.url = promises[index];
       });
       await user.save();
+      this.logger.log(`Saved ${user.full_name} professional documents`);
     } catch (e) {
       this.logger.error(`Error occurred uploading documents, ${e}`);
       throw new InternalServerErrorException('Error', e);
