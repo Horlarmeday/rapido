@@ -35,7 +35,7 @@ import {
 } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
-import { ICalendarType } from './types/apointment.types';
+import { ICalendarType } from './types/appointment.types';
 import { Messages } from '../../core/messages/messages';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
@@ -43,6 +43,8 @@ import { AdminSettingsService } from '../admin-settings/admin-settings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PaymentFor, Status } from '../payments/entities/payment.entity';
 import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
+import { QueryStatus } from './types/query.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -57,15 +59,17 @@ export class AppointmentsService {
     private readonly paymentHandler: PaymentHandler,
     private readonly adminSettingsService: AdminSettingsService,
     private readonly paymentService: PaymentsService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
   async createAppointment(
     createAppointmentDto: CreateAppointmentDto,
     currentUser: IJwtPayload,
   ) {
-    return await create(this.AppointmentModel, {
+    const appointment = await create(this.AppointmentModel, {
       ...createAppointmentDto,
       patient: currentUser.sub,
     });
+    return await this.scheduleZoomMeeting(appointment);
   }
 
   async findOneAppointment(appointmentId: Types.ObjectId) {
@@ -88,10 +92,14 @@ export class AppointmentsService {
       this.usersService.findById(appointment.specialist),
       this.usersService.findById(appointment.patient),
     ]);
+    const subscription = await this.subscriptionsService.getActiveSubscription(
+      patient.id,
+    );
     const topic = `Appointment Between ${specialist.profile.first_name} and ${patient.profile.first_name}`;
     const response = await this.zoom.createMeeting({
       start_time: appointment.start_time,
       topic,
+      duration: subscription?.planId?.call_duration ?? '5',
     });
 
     if (response.status === SUCCESS) {
@@ -113,12 +121,14 @@ export class AppointmentsService {
           start_time: appointment.start_time,
           topic,
           link: { join_url, start_url },
+          call_duration: subscription?.planId?.call_duration,
         }),
         `${Date.now()}-sendScheduleAppointmentMail`,
       );
 
       return appointment;
     }
+    return appointment;
   }
 
   generateICalendar({
@@ -127,8 +137,9 @@ export class AppointmentsService {
     start_time,
     topic,
     link,
+    call_duration,
   }: ICalendarType) {
-    const DURATION = 45;
+    const DURATION = call_duration || 5;
     const attendees = this.getAttendees([patient, specialist]);
 
     const cal = ical({
@@ -164,6 +175,7 @@ export class AppointmentsService {
     start_time,
     topic,
     link,
+    call_duration,
   }: ICalendarType) {
     this.logger.log(`Getting generated ical attachment`);
     const { attachments, attendees } = this.generateICalendar({
@@ -172,6 +184,7 @@ export class AppointmentsService {
       start_time,
       topic,
       link,
+      call_duration,
     });
     const { join_url, start_url } = link;
     for (const attendee of attendees) {
@@ -276,12 +289,38 @@ export class AppointmentsService {
     }
   }
 
-  async getPatientAppointments(userId: Types.ObjectId) {
-    return await find(this.AppointmentModel, { patient: userId });
+  async getPatientAppointments(
+    userId: Types.ObjectId,
+    queryStatus: QueryStatus,
+  ) {
+    const { status } = queryStatus || {};
+    return await find(
+      this.AppointmentModel,
+      { patient: userId, ...(status && { status }) },
+      {
+        populate: 'specialist',
+        populateSelectFields: [
+          'profile.first_name',
+          'profile.last_name',
+          'professional_practice',
+        ],
+      },
+    );
   }
 
-  async getSpecialistAppointments(userId: Types.ObjectId) {
-    return await find(this.AppointmentModel, { specialist: userId });
+  async getSpecialistAppointments(
+    userId: Types.ObjectId,
+    queryStatus: QueryStatus,
+  ) {
+    const { status } = queryStatus || {};
+    return await find(
+      this.AppointmentModel,
+      { specialist: userId, ...(status && { status }) },
+      {
+        populate: 'specialist',
+        populateSelectFields: ['profile.first_name', 'profile.last_name'],
+      },
+    );
   }
 
   async getAllAppointments(query: QueryDto) {

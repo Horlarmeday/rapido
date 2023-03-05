@@ -13,12 +13,16 @@ import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
 import { Paystack } from '../../common/external/payment/providers/paystack';
 import { PaymentsModule } from '../payments/payments.module';
+import { CardsModule } from '../cards/cards.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 @Module({
   imports: [
     UsersModule,
     AdminSettingsModule,
     PaymentsModule,
+    CardsModule,
+    SubscriptionsModule,
     MongooseModule.forFeature([
       { name: Appointment.name, schema: AppointmentSchema },
     ]),

@@ -18,12 +18,15 @@ import { Messages } from '../../core/messages/messages';
 import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
 import { VerifyAppointmentTransaction } from './dto/verify-appointment-transaction';
 import { QueryDto } from '../../common/helpers/url-query.dto';
+import { QueryStatus } from './types/query.types';
+import { DoesUserHaveCard } from '../../core/guards/doesUserHaveCard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
+  @UseGuards(DoesUserHaveCard)
   @Post()
   async create(
     @Body() createAppointmentDto: CreateAppointmentDto,
@@ -60,17 +63,25 @@ export class AppointmentsController {
   }
 
   @Get('patient')
-  async getPatientAppointment(@Request() req) {
+  async getPatientAppointment(
+    @Request() req,
+    @Query() queryStatus: QueryStatus,
+  ) {
     const result = await this.appointmentsService.getPatientAppointments(
       req.user.sub,
+      queryStatus,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
   @Get('specialist')
-  async getSpecialistAppointment(@Request() req) {
+  async getSpecialistAppointment(
+    @Request() req,
+    @Query() queryStatus: QueryStatus,
+  ) {
     const result = await this.appointmentsService.getSpecialistAppointments(
       req.user.sub,
+      queryStatus,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }

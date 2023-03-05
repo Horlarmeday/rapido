@@ -5,5 +5,6 @@ export type ICalendarType = {
   readonly specialist: User;
   readonly start_time: Date;
   readonly topic: string;
+  readonly call_duration?: string;
   readonly link: Record<string, string>;
 };
