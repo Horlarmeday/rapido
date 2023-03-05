@@ -1,5 +1,11 @@
 import { HydratedDocument, Model, Types } from 'mongoose';
 
+type FindOptionsType = {
+  selectFields?: string | string[];
+  populate?: string | string[];
+  populateSelectFields?: string | string[];
+};
+
 /**
  * Insert data into a document
  * @param model
@@ -14,19 +20,18 @@ export const create = async (
  * Find one document that matches filter
  * @param model
  * @param query
- * @param selectFields
- * @param populate
+ * @param options
  */
 export const findOne = async (
   model: Model<HydratedDocument<any>>,
   query: any,
-  selectFields?: any,
-  populate?: string | string[],
+  options?: FindOptionsType,
 ) =>
   model
     .findOne({ ...query })
-    .select(selectFields)
-    .populate(<string | string[]>populate);
+    .select(options?.selectFields)
+    .populate(<string>options?.populate, options?.populateSelectFields)
+    .exec();
 
 /**
  * Find document that matches ID
@@ -44,16 +49,17 @@ export const findById = async (
  * Find all documents that matches filter
  * @param model
  * @param query
- * @param selectFields
+ * @param options
  */
 export const find = async (
   model: Model<HydratedDocument<any>>,
   query: any,
-  selectFields?: any,
+  options?: FindOptionsType,
 ) =>
   model
     .find({ ...query })
-    .select(selectFields)
+    .select(options?.selectFields)
+    .populate(<string>options?.populate, options?.populateSelectFields)
     .exec();
 
 /**

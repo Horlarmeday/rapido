@@ -1,6 +1,12 @@
 import { sign } from 'jsonwebtoken';
 import { post } from '../axios';
 
+export type CreateMeetingType = {
+  topic: string;
+  start_time: Date;
+  duration?: string;
+};
+
 export class Zoom {
   private baseUrl = 'https://api.zoom.us/v2/';
   private readonly apiKey: string;
@@ -21,18 +27,18 @@ export class Zoom {
     };
   }
 
-  async createMeeting({ topic, start_time }) {
+  async createMeeting({ topic, start_time, duration }: CreateMeetingType) {
     const url = `${this.baseUrl}/users/me/meetings`;
-    const settings = this.settings({ topic, start_time });
+    const settings = this.settings({ topic, start_time, duration });
     return await post(url, { ...settings }, { headers: this.headers });
   }
 
-  private settings({ topic, start_time }) {
+  private settings({ topic, start_time, duration = '5' }) {
     return {
       topic,
       type: 2,
       start_time,
-      duration: '45',
+      duration,
       agenda: 'Scheduled Appointment',
       settings: {
         // alternative_hosts,

@@ -38,4 +38,6 @@ export enum Messages {
   TRANSACTION_INITIALIZED = 'Transaction initialized',
   TRANSACTION_VERIFIED = 'Transaction verified',
   INVALID_BASE64 = 'Invalid base64 string',
+  NO_CARD_SAVED = 'User has no payment method saved, kindly add a card',
+  CARD_ADDED = 'Card added successfully',
 }
