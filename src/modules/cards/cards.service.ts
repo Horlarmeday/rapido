@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Card, CardDocument } from './entities/card.entity';
 import { Model, Types } from 'mongoose';
@@ -13,11 +17,23 @@ import {
   updateOne,
 } from '../../common/crud/crud';
 import { MakeCardDefaultDto } from './dto/make-card-default.dto';
+import { PaymentFor, Status } from '../payments/entities/payment.entity';
+import { FAILED, PENDING, SUCCESS } from '../../core/constants';
+import { PaymentHandler } from '../../common/external/payment/payment.handler';
+import { UsersService } from '../users/users.service';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class CardsService {
   private logger = new Logger(CardsService.name);
-  constructor(@InjectModel(Card.name) private cardModel: Model<CardDocument>) {}
+  constructor(
+    @InjectModel(Card.name) private cardModel: Model<CardDocument>,
+    private readonly paymentHandler: PaymentHandler,
+    private readonly usersService: UsersService,
+    private readonly generalHelpers: GeneralHelpers,
+    private readonly paymentService: PaymentsService,
+  ) {}
   async saveCardDetails(cardDetails: CardDetailsType, userId: Types.ObjectId) {
     const card = {
       currency: 'NGN',
@@ -53,7 +69,11 @@ export class CardsService {
   }
 
   async getUserCards(userId: Types.ObjectId) {
-    return await find(this.cardModel, { userId }, '-auth_code');
+    return await find(
+      this.cardModel,
+      { userId },
+      { selectFields: '-auth_code' },
+    );
   }
 
   async removeCard(cardId: string) {
@@ -68,5 +88,68 @@ export class CardsService {
         default: true,
       },
     );
+  }
+
+  async initializeTransaction(userId: Types.ObjectId) {
+    const user = await this.usersService.findById(userId);
+
+    const reference = this.generalHelpers.genTxReference();
+    const amount = 100;
+    const metadata = {
+      name: user.full_name,
+      email: user.profile.contact.email,
+      payment_for: PaymentFor.ADD_CARD,
+    };
+    const response = await this.paymentHandler.initializeTransaction(
+      user.profile.contact.email,
+      amount,
+      reference,
+      metadata,
+    );
+    if (response.status === SUCCESS) {
+      await this.paymentService.create(
+        userId,
+        reference,
+        amount,
+        PaymentFor.ADD_CARD,
+      );
+    }
+    return response.data;
+  }
+
+  async verifyCard(reference: string) {
+    const response = await this.paymentHandler.verifyTransaction(reference);
+    const payment = await this.paymentService.findPaymentByReference(reference);
+    try {
+      switch (response?.data?.status) {
+        case SUCCESS:
+          await Promise.all([
+            this.paymentService.updatePayment(reference, {
+              status: Status.SUCCESSFUL,
+            }),
+            response.data?.authorization?.reusable
+              ? this.saveCardDetails(
+                  response.data.authorization,
+                  payment.userId,
+                )
+              : [],
+          ]);
+          return response;
+        case FAILED:
+          await Promise.all([
+            this.paymentService.updatePayment(reference, {
+              status: Status.FAILED,
+            }),
+          ]);
+          return response;
+        case PENDING:
+          return response;
+        default:
+          return response;
+      }
+    } catch (e) {
+      this.logger.error('An error occurred verifying card add', e);
+      throw new InternalServerErrorException(e, 'An error occurred');
+    }
   }
 }
