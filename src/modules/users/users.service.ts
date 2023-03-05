@@ -110,6 +110,14 @@ export class UsersService {
     return await findById(this.userModel, id);
   }
 
+  async findOne(query: any): Promise<UserDocument> {
+    const user = await findOne(this.userModel, query, {
+      selectFields: ['-profile.password', '-profile.twoFA_secret'],
+    });
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+    return user;
+  }
+
   async findOneByEmail(email: string): Promise<UserDocument> {
     return await findOne(this.userModel, { 'profile.contact.email': email });
   }
@@ -302,10 +310,11 @@ export class UsersService {
   }
 
   async getProfile(userId: Types.ObjectId) {
-    const user = await findOne(this.userModel, { _id: userId }, [
-      '-profile.password',
-      '-profile.twoFA_secret',
-    ]);
+    const user = await findOne(
+      this.userModel,
+      { _id: userId },
+      { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+    );
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
     return user;
   }

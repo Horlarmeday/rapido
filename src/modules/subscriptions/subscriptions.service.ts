@@ -181,4 +181,18 @@ export class SubscriptionsService {
   async getUserSubscriptions(userId: Types.ObjectId) {
     return await find(this.subscriptionModel, { userId });
   }
+
+  async getActiveSubscription(userId: Types.ObjectId) {
+    return await findOne(
+      this.subscriptionModel,
+      {
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+      },
+      {
+        populate: 'planId',
+        populateSelectFields: ['call_duration'],
+      },
+    );
+  }
 }

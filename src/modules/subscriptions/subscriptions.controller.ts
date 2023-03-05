@@ -64,4 +64,12 @@ export class SubscriptionsController {
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
+
+  @Get('active')
+  async getActiveSubscription(@Request() req) {
+    const result = await this.subscriptionsService.getActiveSubscription(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
 }

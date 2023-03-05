@@ -28,5 +28,6 @@ import { CardsModule } from '../cards/cards.module';
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService, GeneralHelpers, PaymentHandler, Paystack],
+  exports: [SubscriptionsService],
 })
 export class SubscriptionsModule {}
