@@ -16,5 +16,8 @@ export class Plan {
 
   @Prop({ type: Number, default: 14 })
   trial_days: number;
+
+  @Prop({ type: Number, default: 60 })
+  call_duration: number;
 }
 export const PlanSchema = SchemaFactory.createForClass(Plan);

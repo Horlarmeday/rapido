@@ -13,6 +13,7 @@ export enum PaymentFor {
   APPOINTMENT = 'Appointment',
   SUBSCRIPTION = 'Subscription',
   TEST = 'Test',
+  ADD_CARD = 'Adding Card',
 }
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
