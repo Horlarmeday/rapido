@@ -41,6 +41,7 @@ export class Payment {
         PaymentFor.TEST,
         PaymentFor.APPOINTMENT,
         PaymentFor.SUBSCRIPTION,
+        PaymentFor.ADD_CARD,
       ],
     },
   })

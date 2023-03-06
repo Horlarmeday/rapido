@@ -114,7 +114,7 @@ export class CardsService {
         PaymentFor.ADD_CARD,
       );
     }
-    return response.data;
+    return response?.data;
   }
 
   async verifyCard(reference: string) {
