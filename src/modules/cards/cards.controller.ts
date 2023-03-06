@@ -42,14 +42,14 @@ export class CardsController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('initialize')
+  @Post()
   async addCard(@Request() req) {
     const result = await this.cardsService.initializeTransaction(req.user.sub);
     return sendSuccessResponse(Messages.TRANSACTION_INITIALIZED, result);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('transactions/verify')
+  @Post('verify')
   async verifyTransaction(@Body() verifyCardDto: VerifyCardDto) {
     const result = await this.cardsService.verifyCard(verifyCardDto.reference);
     return sendSuccessResponse(Messages.CARD_ADDED, result);
