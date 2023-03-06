@@ -6,6 +6,7 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { Match } from '../../../core/decorators/match.decorators';
 import { Type } from 'class-transformer';
@@ -52,6 +53,7 @@ export class CreateUserDto {
   @Match('password')
   readonly confirm_password: string;
 
+  @ValidateIf((o) => o.user_type === UserType.PATIENT)
   @IsNotEmpty()
   readonly date_of_birth: Date;
 
