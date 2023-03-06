@@ -1,10 +1,13 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type File = {
   original_name: string;
   file_type: string;
   url: string;
 };
+
+export type ConditionDocument = HydratedDocument<Condition>;
 
 @Schema({ versionKey: false, _id: false })
 export class Condition {

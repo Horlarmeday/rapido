@@ -42,12 +42,6 @@ export class UsersController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
-  @Delete()
-  async remove(@Request() req) {
-    const result = await this.usersService.removeOne(req.user.sub);
-    return sendSuccessResponse(Messages.DELETED, result);
-  }
-
   @UseGuards(JwtAuthGuard)
   @Patch()
   async profileSetup(@Body() profileSetupDto: ProfileSetupDto, @Request() req) {
@@ -96,5 +90,44 @@ export class UsersController {
   async getUser(@Param('id') id: Types.ObjectId) {
     const result = await this.usersService.findOne({ _id: id });
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('pre-existing-conditions/:id')
+  async removePreExistingCondition(
+    @Param('id') conditionId: Types.ObjectId,
+    @Request() req,
+  ) {
+    const result = await this.usersService.removePreExistingCondition(
+      conditionId,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.DELETED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('emergency-contacts/:id')
+  async removeEmergencyContact(
+    @Param('id') emergencyContactId: Types.ObjectId,
+    @Request() req,
+  ) {
+    const result = await this.usersService.removeEmergencyContacts(
+      emergencyContactId,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.DELETED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('dependants/:id')
+  async removeDependants(
+    @Param('id') dependantId: Types.ObjectId,
+    @Request() req,
+  ) {
+    const result = await this.usersService.removeDependants(
+      dependantId,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.DELETED, result);
   }
 }

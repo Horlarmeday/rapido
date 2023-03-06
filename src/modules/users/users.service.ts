@@ -35,6 +35,8 @@ import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
 import { Documents } from './types/profile.types';
+const { ObjectId } = Types;
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -223,6 +225,83 @@ export class UsersService {
     return user;
   }
 
+  mapContacts(dbEmergencyContacts, emergency_contacts) {
+    const idMap = new Map(
+      emergency_contacts.map((fContact) => [fContact._id, fContact]),
+    );
+
+    const updatedEmergencyContacts: any = [];
+
+    const mappedEmergencyContacts = dbEmergencyContacts?.map((contact) => {
+      const foundContact = idMap.get(contact._id.toString());
+      if (foundContact) return { ...contact, ...foundContact };
+      return contact;
+    });
+
+    emergency_contacts?.forEach((contact) => {
+      if (!contact._id) {
+        updatedEmergencyContacts.push({ ...contact, _id: new ObjectId() });
+      }
+    });
+
+    return updatedEmergencyContacts.length
+      ? [...mappedEmergencyContacts, ...updatedEmergencyContacts]
+      : mappedEmergencyContacts;
+  }
+
+  mapDependants(dbDependants, dependants) {
+    const idMap = new Map(
+      dependants.map((fDependant) => [fDependant._id, fDependant]),
+    );
+
+    const updatedDependants: any = [];
+
+    const mappedDependants = dbDependants?.map((dependant) => {
+      const foundCondition = idMap.get(dependant._id.toString());
+      if (foundCondition) return { ...dependant, ...foundCondition };
+      return dependant;
+    });
+
+    dependants?.forEach((dependant) => {
+      if (!dependant._id) {
+        updatedDependants.push({ ...dependant, _id: new ObjectId() });
+      }
+    });
+
+    return updatedDependants.length
+      ? [...mappedDependants, ...updatedDependants]
+      : mappedDependants;
+  }
+
+  async mapPreConditions(dbPreConditions, pre_existing_conditions, userId) {
+    const idMap = new Map(
+      pre_existing_conditions.map((cond) => [cond._id, cond]),
+    );
+    const updatedConditions: any = [];
+    const files: any = [];
+
+    const mappedConditions = dbPreConditions?.map((cond) => {
+      const foundCondition = idMap.get(cond._id.toString());
+      if (foundCondition) return { ...cond, ...foundCondition };
+      return cond;
+    });
+
+    pre_existing_conditions?.forEach((cond) => {
+      if (!cond._id) {
+        updatedConditions.push({ ...cond, _id: new ObjectId() });
+        if (cond.file?.length) files.push(cond.file);
+      }
+    });
+
+    if (files.length) {
+      await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
+    }
+
+    return updatedConditions.length
+      ? [...mappedConditions, ...updatedConditions]
+      : mappedConditions;
+  }
+
   async updateUserProfile(
     updateUserProfileDto: UpdateUserProfileDto,
     userId: Types.ObjectId,
@@ -255,15 +334,22 @@ export class UsersService {
           ...(profile?.health_risk_factors || {}),
         },
       },
-      pre_existing_conditions: [
-        ...dbPreConditions,
-        ...(pre_existing_conditions || []),
-      ],
-      dependants: [...dbDependants, ...(dependants || [])],
-      emergency_contacts: [
-        ...dbEmergencyContacts,
-        ...(emergency_contacts || []),
-      ],
+      ...(pre_existing_conditions?.length && {
+        pre_existing_conditions: await this.mapPreConditions(
+          dbPreConditions,
+          pre_existing_conditions,
+          userId,
+        ),
+      }),
+      ...(dependants?.length && {
+        dependants: this.mapDependants(dbDependants, dependants),
+      }),
+      ...(emergency_contacts?.length && {
+        emergency_contacts: this.mapContacts(
+          dbEmergencyContacts,
+          emergency_contacts,
+        ),
+      }),
     };
 
     return await updateOne(
@@ -455,5 +541,32 @@ export class UsersService {
       this.logger.error(`Error occurred uploading documents, ${e}`);
       throw new InternalServerErrorException('Error', e);
     }
+  }
+
+  async removePreExistingCondition(
+    conditionId: Types.ObjectId,
+    userId: Types.ObjectId,
+  ) {
+    return this.userModel.updateOne(
+      { _id: userId },
+      { $pull: { pre_existing_conditions: { _id: conditionId } } },
+    );
+  }
+
+  async removeDependants(dependantId: Types.ObjectId, userId: Types.ObjectId) {
+    return this.userModel.updateOne(
+      { _id: userId },
+      { $pull: { dependants: { _id: dependantId } } },
+    );
+  }
+
+  async removeEmergencyContacts(
+    emergencyContactId: Types.ObjectId,
+    userId: Types.ObjectId,
+  ) {
+    return this.userModel.updateOne(
+      { _id: userId },
+      { $pull: { emergency_contacts: { _id: emergencyContactId } } },
+    );
   }
 }
