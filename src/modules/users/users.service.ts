@@ -309,12 +309,14 @@ export class UsersService {
     const { profile, pre_existing_conditions, dependants, emergency_contacts } =
       updateUserProfileDto || {};
 
+    const user = await this.findById(userId);
+
     const {
       profile: dbUser,
       pre_existing_conditions: dbPreConditions = [],
       dependants: dbDependants = [],
       emergency_contacts: dbEmergencyContacts = [],
-    } = await this.findById(userId);
+    } = user.toJSON();
 
     const fieldsToUpdate = {
       profile: {
