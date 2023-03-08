@@ -9,6 +9,7 @@ import {
   Post,
   HttpCode,
   HttpStatus,
+  Header,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CardsService } from './cards.service';
@@ -42,6 +43,7 @@ export class CardsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Header('X-Paystack-Key', <string>process.env.PAYSTACK_PUBLIC_KEY)
   @Post()
   async addCard(@Request() req) {
     const result = await this.cardsService.initializeTransaction(req.user.sub);

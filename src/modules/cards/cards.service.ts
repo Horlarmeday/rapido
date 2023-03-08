@@ -91,30 +91,19 @@ export class CardsService {
   }
 
   async initializeTransaction(userId: Types.ObjectId) {
-    const user = await this.usersService.findById(userId);
-
     const reference = this.generalHelpers.genTxReference();
     const amount = 100;
-    const metadata = {
-      name: user.full_name,
-      email: user.profile.contact.email,
-      payment_for: PaymentFor.ADD_CARD,
-    };
-    const response = await this.paymentHandler.initializeTransaction(
-      user.profile.contact.email,
-      amount,
+    const data = {
+      amount: 100 * 100, // sending in kobo
       reference,
-      metadata,
+    };
+    await this.paymentService.create(
+      userId,
+      reference,
+      amount,
+      PaymentFor.ADD_CARD,
     );
-    if (response.status === SUCCESS) {
-      await this.paymentService.create(
-        userId,
-        reference,
-        amount,
-        PaymentFor.ADD_CARD,
-      );
-    }
-    return response?.data;
+    return data;
   }
 
   async verifyCard(reference: string) {

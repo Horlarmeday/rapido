@@ -1,4 +1,4 @@
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 import { Messages } from '../../core/messages/messages';
 import { BadGatewayException, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
@@ -21,7 +21,7 @@ export class GeneralHelpers {
   }
 
   generateRandomCharacters(length: number) {
-    const uniq = uuid();
+    const uniq = uuidv4();
     return uniq
       .split('-')
       .join('')

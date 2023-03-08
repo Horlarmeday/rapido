@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsObject, IsOptional } from 'class-validator';
+import { IsObject, IsOptional } from 'class-validator';
 
 export class CreateVitalDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsObject()
   readonly body_temp: Record<number, string>;
 
