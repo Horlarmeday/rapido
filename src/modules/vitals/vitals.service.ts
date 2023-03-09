@@ -30,7 +30,45 @@ export class VitalsService {
   }
 
   async findUserVitals(userId: Types.ObjectId) {
-    return await find(this.vitalModel, { userId });
+    const vitals = await find(this.vitalModel, { userId });
+    return vitals.reduce(
+      (
+        acc,
+        {
+          body_temp,
+          blood_pressure,
+          blood_sugar_level,
+          body_weight,
+          pulse_rate,
+          _id,
+          userId,
+        },
+      ) => {
+        if (body_temp?.length) acc.body_temp = body_temp;
+        if (blood_pressure?.length) acc.blood_pressure = blood_pressure;
+        if (blood_sugar_level?.length)
+          acc.blood_sugar_level = blood_sugar_level;
+        if (body_weight?.length) acc.body_weight = body_weight;
+        if (pulse_rate?.length) acc.pulse_rate = pulse_rate;
+        acc.userId = userId;
+        acc._id = _id;
+        return acc;
+      },
+      {},
+    );
+  }
+
+  async getMostRecentVitals(userId: Types.ObjectId) {
+    const vitals = await this.findUserVitals(userId);
+    const recentVitals = {};
+    for (const [key, values] of Object.entries(vitals)) {
+      if (Array.isArray(values) && values.length > 0) {
+        recentVitals[key] = values.reduce((a, b) =>
+          a.createdAt > b.createdAt ? a : b,
+        );
+      }
+    }
+    return recentVitals;
   }
 
   async getOneVitalField(userId: Types.ObjectId, query: QueryVitalDto) {

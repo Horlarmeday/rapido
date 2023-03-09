@@ -47,6 +47,12 @@ export class VitalsController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
+  @Get('recent')
+  async getMostRecentVitals(@Request() req) {
+    const result = await this.vitalsService.getMostRecentVitals(req.user.sub);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
