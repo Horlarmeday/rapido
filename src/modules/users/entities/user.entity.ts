@@ -323,6 +323,7 @@ export class User {
   @Prop(
     raw([
       {
+        type_of_document: { type: String },
         url: { type: String },
         file_type: { type: String },
         original_name: { type: String },

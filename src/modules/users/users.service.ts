@@ -64,6 +64,7 @@ export class UsersService {
           email,
         },
       },
+      ...createUserDto,
       terms,
       marketing,
     });

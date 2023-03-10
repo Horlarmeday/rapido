@@ -87,6 +87,7 @@ export class ProfessionalPractice {
 }
 
 export class Documents {
+  type_of_document: string;
   url: string;
   file_type: string;
   original_name: string;
