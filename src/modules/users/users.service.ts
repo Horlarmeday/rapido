@@ -444,9 +444,10 @@ export class UsersService {
         },
         professional_practice,
         documents:
-          documents?.map(({ file_type, original_name }) => ({
+          documents?.map(({ file_type, original_name, type_of_document }) => ({
             file_type,
             original_name,
+            type_of_document,
             url: '',
           })) || [],
       },

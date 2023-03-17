@@ -24,6 +24,9 @@ export class Payment {
   @Prop({ type: String, required: true })
   amount: string;
 
+  @Prop({ type: String })
+  currency: string;
+
   @Prop({ type: String, required: true, unique: true })
   reference: string;
 

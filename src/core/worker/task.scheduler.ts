@@ -7,8 +7,10 @@ import { Injectable } from '@nestjs/common';
 export class TaskScheduler {
   constructor(private readonly schedulerRegistry: SchedulerRegistry) {}
 
-  async addCron(func, jobName) {
-    const date = moment().add('5', 'seconds').toDate();
+  async addCron(func, jobName, timeToRun = [5, 'seconds']) {
+    const date = moment()
+      .add(...timeToRun)
+      .toDate();
     const job = new CronJob(date, () => func);
     this.schedulerRegistry.addCronJob(jobName, job);
     job.start();

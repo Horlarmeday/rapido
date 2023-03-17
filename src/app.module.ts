@@ -17,6 +17,7 @@ import { VitalsModule } from './modules/vitals/vitals.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { CardsModule } from './modules/cards/cards.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ dotenv.config();
     PlansModule,
     SubscriptionsModule,
     CardsModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

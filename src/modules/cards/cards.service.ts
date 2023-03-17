@@ -56,7 +56,7 @@ export class CardsService {
       this.logger.log(`User ${userId} card details was saved successfully`);
       return await create(this.cardModel, { ...card });
     }
-    this.logger.log(`Returning ${userId} card details`);
+    this.logger.log(`Card already exists, returning ${userId} card details`);
     return existingCard;
   }
 
