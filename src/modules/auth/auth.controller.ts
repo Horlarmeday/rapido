@@ -36,9 +36,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @UseGuards(IsAuthorized)
   @UseGuards(IsEmailVerified)
   @HttpCode(HttpStatus.OK)
-  @UseGuards(IsAuthorized)
   async loginWithEmail(@Request() req) {
     const { message, result } = await this.authService.login(req.user);
     return sendSuccessResponse(message, result);
