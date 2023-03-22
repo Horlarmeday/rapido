@@ -17,8 +17,9 @@ import { Model, Types } from 'mongoose';
 import {
   Appointment,
   AppointmentDocument,
+  AppointmentStatus,
 } from './entities/appointment.entity';
-import { Zoom } from '../../common/external/zoom/zoom';
+import { MeetingStatus, Zoom } from '../../common/external/zoom/zoom';
 import { UsersService } from '../users/users.service';
 import { IJwtPayload } from '../auth/types/jwt-payload.type';
 import * as moment from 'moment';
@@ -85,6 +86,21 @@ export class AppointmentsService {
       { ...query },
       { ...fieldsToUpdate },
     );
+  }
+
+  async cancelAppointment(query: any, appointmentId: Types.ObjectId) {
+    const appointment = await this.findOneAppointment(appointmentId);
+    const response = await this.zoom.cancelMeeting(
+      appointment.meeting_id,
+      MeetingStatus.END,
+    );
+
+    if (response.statusCode === 204) {
+      await this.updateAppointment(
+        { _id: appointmentId },
+        { status: AppointmentStatus.CANCELLED },
+      );
+    }
   }
 
   async scheduleZoomMeeting(appointment: AppointmentDocument) {

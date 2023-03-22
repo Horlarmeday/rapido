@@ -52,7 +52,14 @@ export class Reminder {
 
   @Prop({
     type: String,
-    enum: { values: [Frequency.DAILY, Frequency.MONTHLY, Frequency.WEEKLY] },
+    enum: {
+      values: [
+        Frequency.DAILY,
+        Frequency.MONTHLY,
+        Frequency.WEEKLY,
+        Frequency.ONCE,
+      ],
+    },
   })
   frequency: Frequency;
 

@@ -5,8 +5,10 @@ import { Status } from '../../payments/entities/payment.entity';
 export type AppointmentDocument = HydratedDocument<Appointment>;
 
 export enum AppointmentStatus {
-  OPEN = 'OPEN',
-  CLOSE = 'CLOSE',
+  FULFILLED = 'FULFILLED',
+  UNFULFILLED = 'UNFULFILLED',
+  CANCELLED = 'CANCELLED',
+  'FAILED' = 'FAILED',
 }
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
@@ -47,8 +49,15 @@ export class Appointment {
 
   @Prop({
     type: String,
-    enum: { values: [AppointmentStatus.OPEN, AppointmentStatus.CLOSE] },
-    default: AppointmentStatus.OPEN,
+    enum: {
+      values: [
+        AppointmentStatus.UNFULFILLED,
+        AppointmentStatus.FULFILLED,
+        AppointmentStatus.CANCELLED,
+        AppointmentStatus.FAILED,
+      ],
+    },
+    default: AppointmentStatus.UNFULFILLED,
   })
   status: AppointmentStatus;
 }

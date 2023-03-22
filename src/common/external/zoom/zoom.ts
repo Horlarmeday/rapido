@@ -1,11 +1,16 @@
 import { sign } from 'jsonwebtoken';
-import { post } from '../axios';
+import { post, put } from '../axios';
 
 export type CreateMeetingType = {
   topic: string;
   start_time: Date;
   duration?: string;
 };
+
+export enum MeetingStatus {
+  END = 'end',
+  RECOVER = 'recover',
+}
 
 export class Zoom {
   private baseUrl = 'https://api.zoom.us/v2/';
@@ -31,6 +36,12 @@ export class Zoom {
     const url = `${this.baseUrl}/users/me/meetings`;
     const settings = this.settings({ topic, start_time, duration });
     return await post(url, { ...settings }, { headers: this.headers });
+  }
+
+  async cancelMeeting(meetingId: string, meetingStatus: MeetingStatus) {
+    const url = `${this.baseUrl}/meetings/${meetingId}/status`;
+    const body = { action: meetingStatus };
+    return await put(url, { ...body }, { headers: this.headers });
   }
 
   private settings({ topic, start_time, duration = '5' }) {

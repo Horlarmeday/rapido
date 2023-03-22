@@ -18,6 +18,7 @@ export const post = async (
     return {
       status: SUCCESS,
       data: response.data,
+      statusCode: response.status,
     };
   } catch (e) {
     logger.error(`An error occurred ${e?.response?.data?.message}`);
@@ -33,8 +34,29 @@ export const get = async (url: string, headers, params = {}) => {
     return {
       status: SUCCESS,
       data: response.data,
+      statusCode: response.status,
     };
   } catch (e) {
+    logger.error(`An error occurred ${e?.message}`);
+    throw new BadRequestException(e.message);
+  }
+};
+
+export const put = async (
+  url: string,
+  data = {},
+  { headers, auth }: AxiosConfig,
+) => {
+  const logger = new Logger();
+  try {
+    const response = await axios.put(url, data, { headers, auth });
+    return {
+      status: SUCCESS,
+      data: response.data,
+      statusCode: response.status,
+    };
+  } catch (e) {
+    logger.error(`An error occurred ${e?.response?.data?.message}`);
     logger.error(`An error occurred ${e?.message}`);
     throw new BadRequestException(e.message);
   }
