@@ -27,6 +27,9 @@ import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 import { PhoneOtpVerifyDto } from './dto/phone-otp-verify.dto';
 import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
+import { IsAuthorized } from '../../core/guards/isAuthorized.guards';
+import { GoogleLoginDto } from './dto/google-login.dto';
+import { AppleLoginDto } from './dto/apple-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +38,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @UseGuards(IsEmailVerified)
   @HttpCode(HttpStatus.OK)
+  @UseGuards(IsAuthorized)
   async loginWithEmail(@Request() req) {
     const { message, result } = await this.authService.login(req.user);
     return sendSuccessResponse(message, result);
@@ -61,8 +65,9 @@ export class AuthController {
 
   @Post('apple/redirect')
   @HttpCode(HttpStatus.OK)
-  async redirect(@Body() payload): Promise<any> {
-    const result = await this.authService.appleLogin(payload);
+  async redirect(@Body() appleLoginDto: AppleLoginDto): Promise<any> {
+    const { payload, user_type } = appleLoginDto;
+    const result = await this.authService.appleLogin(payload, user_type);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
@@ -85,9 +90,9 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('google/alt-login')
-  async googleLogin(@Body() body) {
-    const { token } = body;
-    const result = await this.authService.googleAltLogin(token);
+  async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
+    const { token, user_type } = googleLoginDto;
+    const result = await this.authService.googleAltLogin(token, user_type);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 

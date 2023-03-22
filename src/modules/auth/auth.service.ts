@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { RegMedium, UserDocument } from '../users/entities/user.entity';
+import {
+  RegMedium,
+  UserDocument,
+  UserType,
+} from '../users/entities/user.entity';
 import { IJwtPayload } from './types/jwt-payload.type';
 import { JwtService } from '@nestjs/jwt';
 import { Messages } from '../../core/messages/messages';
@@ -89,7 +93,7 @@ export class AuthService {
     });
   }
 
-  async googleAltLogin(token: string) {
+  async googleAltLogin(token: string, user_type: UserType) {
     const data = await this.decodeGoogleData(token);
     if (!data.email) throw new BadRequestException(Messages.NO_GOOGLE_USER);
     return this.socialMediaLogin({
@@ -97,6 +101,7 @@ export class AuthService {
       reg_medium: RegMedium.GOOGLE,
       is_email_verified: true,
       email_verified_at: new Date(),
+      user_type,
     });
   }
 
@@ -128,7 +133,7 @@ export class AuthService {
     throw new BadRequestException(Messages.NO_APPLE_USER);
   }
 
-  async appleLogin(req) {
+  async appleLogin(req, user_type) {
     const data = await this.decodeAppleData(req);
     if (!data.email) throw new BadRequestException(Messages.NO_APPLE_USER);
     return this.socialMediaLogin({
@@ -136,18 +141,23 @@ export class AuthService {
       reg_medium: RegMedium.APPLE,
       is_email_verified: true,
       email_verified_at: new Date(),
+      user_type,
     });
   }
 
   async socialMediaLogin(loggedInUser: SocialMediaUserType) {
-    const { email } = loggedInUser;
+    const { email, user_type } = loggedInUser;
 
-    let user;
-    user = await this.usersService.findOneByEmail(email);
+    let user = await this.usersService.findOneByEmail(email);
+
+    if (user) {
+      await this.isAuthorized(email, user_type);
+    }
 
     if (!user) {
       user = await this.usersService.createSocialMediaUser(loggedInUser);
     }
+
     const payload = AuthService.formatJwtPayload(user);
     return await this.generateToken(payload);
   }
@@ -469,5 +479,15 @@ export class AuthService {
   private removeLeadingZero(phone: string) {
     if (phone.startsWith('0')) return phone.slice(1);
     return phone;
+  }
+
+  private async isAuthorized(email: string, user_type: UserType) {
+    const user = await this.usersService.findOneByEmailAndUserType(
+      email,
+      user_type,
+    );
+    if (!user)
+      throw new BadRequestException(Messages.APPROPRIATE_FORM_AUTHENTICATION);
+    return user;
   }
 }

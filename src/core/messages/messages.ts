@@ -40,4 +40,5 @@ export enum Messages {
   INVALID_BASE64 = 'Invalid base64 string',
   NO_CARD_SAVED = 'User has no payment method saved, kindly add a card',
   CARD_ADDED = 'Card added successfully',
+  APPROPRIATE_FORM_AUTHENTICATION = 'No user found, Kindly use the appropriate form for authenticating',
 }

@@ -7,7 +7,12 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { RegMedium, User, UserDocument } from './entities/user.entity';
+import {
+  RegMedium,
+  User,
+  UserDocument,
+  UserType,
+} from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as mime from 'mime-types';
@@ -123,6 +128,16 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<UserDocument> {
     return await findOne(this.userModel, { 'profile.contact.email': email });
+  }
+
+  async findOneByEmailAndUserType(
+    email: string,
+    user_type: UserType,
+  ): Promise<UserDocument> {
+    return await findOne(this.userModel, {
+      'profile.contact.email': email,
+      user_type,
+    });
   }
 
   async findOneByPhone(phone: string): Promise<UserDocument> {
