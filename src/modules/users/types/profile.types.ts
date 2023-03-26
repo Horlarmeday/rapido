@@ -1,3 +1,5 @@
+import { File } from '../entities/pre-existing-condition.entity';
+
 export enum Gender {
   MALE = 'Male',
   FEMALE = 'Female',
@@ -90,4 +92,11 @@ export class Documents {
   url: string;
   file_type: string;
   original_name: string;
+}
+
+export class Award {
+  title: string;
+  description: string;
+  date: string;
+  file: File[];
 }

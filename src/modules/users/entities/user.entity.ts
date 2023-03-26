@@ -1,6 +1,7 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import {
+  Award,
   Documents,
   Gender,
   MaritalStatus,
@@ -331,6 +332,24 @@ export class User {
     ]),
   )
   documents: Documents[];
+
+  @Prop(
+    raw([
+      {
+        title: { type: String },
+        description: { type: String },
+        date: { type: String },
+        file: [
+          {
+            file_type: { type: String },
+            original_name: { type: String },
+            url: { type: String },
+          },
+        ],
+      },
+    ]),
+  )
+  awards: Award[];
 
   @Prop({ type: String, default: 0 })
   earnings: string;

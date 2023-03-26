@@ -23,6 +23,8 @@ import { Types } from 'mongoose';
 import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
 import { SpecialistAvailabilityDto } from './dto/specialist-availability.dto';
 import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
+import { CreateAwardDto } from './dto/create-award.dto';
+import { CreateCertificationsDto } from './dto/create-certifications.dto';
 
 @Controller('users')
 export class UsersController {
@@ -155,6 +157,29 @@ export class UsersController {
     const result = await this.usersService.createPatientPreferences(
       req.user.sub,
       specialistPreferencesDto,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('awards')
+  async addAward(@Body() createAwardDto: CreateAwardDto, @Request() req) {
+    const result = await this.usersService.addAward(
+      createAwardDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('certifications')
+  async addCertifications(
+    @Body() createCertificationsDto: CreateCertificationsDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.addCertifications(
+      createCertificationsDto,
+      req.user.sub,
     );
     return sendSuccessResponse(Messages.CREATED, result);
   }

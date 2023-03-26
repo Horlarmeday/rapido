@@ -36,7 +36,7 @@ import { verificationEmail } from '../../core/emails/mails/verificationEmail';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsService } from '../user-settings/user-settings.service';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
-import { Condition, File } from './entities/pre-existing-condition.entity';
+import { File } from './entities/pre-existing-condition.entity';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
@@ -48,6 +48,8 @@ import {
   SpecialistPreferencesDocument,
 } from './entities/specialist-preferences.entity';
 import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
+import { CreateAwardDto } from './dto/create-award.dto';
+import { CreateCertificationsDto } from './dto/create-certifications.dto';
 
 const { ObjectId } = Types;
 
@@ -244,7 +246,8 @@ export class UsersService {
       await this.hasFilesAndUpload(
         <File[][]>files,
         pre_existing_conditions,
-        userId,
+        this.uploadProfileFiles(files, userId, 'pre_existing_conditions'),
+        `${Date.now()}-${userId}-uploadFiles`,
       );
     }
     return user;
@@ -319,7 +322,12 @@ export class UsersService {
     });
 
     if (files.length) {
-      await this.hasFilesAndUpload(files, pre_existing_conditions, userId);
+      await this.hasFilesAndUpload(
+        files,
+        pre_existing_conditions,
+        this.uploadProfileFiles(files, userId, 'pre_existing_conditions'),
+        `${Date.now()}-${userId}-uploadFiles`,
+      );
     }
 
     return updatedConditions.length
@@ -394,58 +402,68 @@ export class UsersService {
       +currentPage,
       pageLimit,
     );
-    let users;
+    let result: { users: UserDocument[]; count: number };
 
     if (search) {
-      users = await this.searchUsers(filterBy, limit, offset, search);
+      result = await this.searchUsers(filterBy, limit, offset, search);
     } else {
-      users = await this.queryUsers(filterBy, limit, offset);
+      result = await this.queryUsers(filterBy, limit, offset);
     }
 
     return this.generalHelpers.paginate(
-      users,
+      result.users,
       +currentPage,
       limit,
-      await countDocuments(this.userModel, { user_type: filterBy }), //todo: Need to recalculate the total patients using the query
+      result.count,
     );
   }
 
-  async searchUsers(filterBy, limit, offset, search) {
-    //todo: Need to recalculate the total patients using the query
-    return await findAndCountAll({
+  async searchUsers(
+    filterBy: string | undefined,
+    limit: number,
+    offset: number,
+    search: string,
+  ): Promise<{ users: UserDocument[]; count: number }> {
+    const query = {
+      ...(filterBy && { user_type: filterBy }),
+      $text: { $search: search },
+    };
+    const users = (await findAndCountAll({
       model: this.userModel,
-      query: {
-        ...(filterBy && { user_type: filterBy }),
-        $text: { $search: search },
-      },
+      query,
       limit,
       offset,
       options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
       displayScore: true,
-    });
+    })) as UserDocument[];
+    return { users, count: await countDocuments(this.userModel, { ...query }) };
   }
 
-  async queryUsers(filterBy, limit, offset) {
-    return await findAndCountAll({
+  async queryUsers(
+    filterBy: string | undefined,
+    limit: number,
+    offset: number,
+  ): Promise<{ users: UserDocument[]; count: number }> {
+    const query = { ...(filterBy && { user_type: filterBy }) };
+    const users = (await findAndCountAll({
       model: this.userModel,
-      query: { ...(filterBy && { user_type: filterBy }) },
+      query,
       limit,
       offset,
       options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
-    });
+    })) as UserDocument[];
+    return { users, count: await countDocuments(this.userModel, { ...query }) };
   }
 
   private async hasFilesAndUpload(
     files: File[][],
-    pre_existing_conditions: Condition[] | undefined,
-    userId: Types.ObjectId,
+    fields: any[] | undefined,
+    funcToRun,
+    jobName,
   ) {
     if (!files || !files?.length) return;
-    if (!pre_existing_conditions || !pre_existing_conditions?.length) return;
-    await this.taskCron.addCron(
-      this.uploadProfileFiles(files, userId),
-      `${Date.now()}-${userId}-uploadFiles`,
-    );
+    if (!fields || !fields?.length) return;
+    await this.taskCron.addCron(funcToRun, jobName);
   }
 
   async getProfile(payload: IJwtPayload) {
@@ -523,8 +541,69 @@ export class UsersService {
     );
     if (documents?.length) {
       await this.taskCron.addCron(
-        this.uploadDocuments(documents, user),
+        this.uploadSpecialistDocuments(documents, user),
         `${Date.now()}-${userId}-uploadDocuments`,
+      );
+    }
+    return updatedUser;
+  }
+
+  async addAward(createAwardDto: CreateAwardDto, userId: Types.ObjectId) {
+    const { awards } = createAwardDto;
+    const files =
+      awards?.map(({ file }) => file).filter((file) => file && file?.length) ||
+      [];
+
+    const user = await updateOne(
+      this.userModel,
+      { _id: userId },
+      {
+        awards:
+          awards?.map((condition) => ({
+            ...condition,
+            file:
+              condition?.file?.map(({ file_type, original_name }) => ({
+                file_type,
+                original_name,
+                url: '',
+              })) || [],
+          })) || [],
+      },
+    );
+    if (files?.length) {
+      await this.hasFilesAndUpload(
+        files,
+        awards,
+        this.uploadProfileFiles(files, userId, 'awards'),
+        `${Date.now()}-uploadAwards`,
+      );
+    }
+    return user;
+  }
+
+  async addCertifications(
+    createCertificationsDto: CreateCertificationsDto,
+    userId: Types.ObjectId,
+  ) {
+    const { documents } = createCertificationsDto;
+    const user = await this.findById(userId);
+    const updatedUser = await updateOne(
+      this.userModel,
+      { _id: userId },
+      {
+        documents:
+          documents?.map(({ file_type, original_name, type_of_document }) => ({
+            file_type,
+            original_name,
+            type_of_document,
+            url: '',
+          })) || [],
+      },
+    );
+    if (documents?.length) {
+      await this.taskCron.addCron(
+        this.uploadSpecialistDocuments(documents, user),
+        `${Date.now()}-${user._id}-uploadDocuments`,
       );
     }
     return updatedUser;
@@ -537,7 +616,11 @@ export class UsersService {
     return serializedUser;
   }
 
-  private async uploadProfileFiles(files: File[][], userId: Types.ObjectId) {
+  private async uploadProfileFiles(
+    files: File[][],
+    userId: Types.ObjectId,
+    fieldToUpdate,
+  ) {
     try {
       const user = await this.findById(userId);
       files.map((file) => {
@@ -552,7 +635,7 @@ export class UsersService {
             buffer,
             `${userId}-document.${extension}`,
           );
-          user.pre_existing_conditions?.map(async ({ file }) => {
+          user[fieldToUpdate]?.map(async ({ file }) => {
             const foundFile = file.find(
               ({ original_name }) => original_name === fileName,
             );
@@ -588,7 +671,10 @@ export class UsersService {
     }
   }
 
-  private async uploadDocuments(documents: Documents[], user: UserDocument) {
+  private async uploadSpecialistDocuments(
+    documents: Documents[],
+    user: UserDocument,
+  ) {
     try {
       const promises = await Promise.all(
         documents.map(({ url, original_name }) => {
