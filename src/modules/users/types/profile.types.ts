@@ -2,7 +2,6 @@ export enum Gender {
   MALE = 'Male',
   FEMALE = 'Female',
 }
-
 export enum MaritalStatus {
   MARRIED = 'Married',
   SINGLE = 'Single',

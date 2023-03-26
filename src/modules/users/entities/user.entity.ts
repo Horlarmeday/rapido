@@ -331,10 +331,22 @@ export class User {
     ]),
   )
   documents: Documents[];
+
+  @Prop({ type: String, default: 0 })
+  earnings: string;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {
   return `${this.profile.first_name} ${this.profile.last_name}`;
+});
+
+UserSchema.index({
+  'profile.first_name': 'text',
+  'profile.last_name': 'text',
+  'profile.contact.email': 'text',
+  'professional_practice.category': 'text',
+  'profile.gender': 'text',
+  user_type: 'text',
 });
 
 export { UserSchema };

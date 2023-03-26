@@ -5,8 +5,9 @@ import { Status } from '../../payments/entities/payment.entity';
 export type AppointmentDocument = HydratedDocument<Appointment>;
 
 export enum AppointmentStatus {
-  FULFILLED = 'FULFILLED',
-  UNFULFILLED = 'UNFULFILLED',
+  COMPLETED = 'COMPLETED',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
   CANCELLED = 'CANCELLED',
   'FAILED' = 'FAILED',
 }
@@ -51,14 +52,49 @@ export class Appointment {
     type: String,
     enum: {
       values: [
-        AppointmentStatus.UNFULFILLED,
-        AppointmentStatus.FULFILLED,
+        AppointmentStatus.CLOSED,
+        AppointmentStatus.COMPLETED,
         AppointmentStatus.CANCELLED,
         AppointmentStatus.FAILED,
+        AppointmentStatus.OPEN,
       ],
     },
-    default: AppointmentStatus.UNFULFILLED,
+    default: AppointmentStatus.OPEN,
   })
   status: AppointmentStatus;
+
+  // static async paginate(param: {
+  //   paginate: number;
+  //   populate?: string | string[];
+  //   page: number;
+  //   populateSelectFields?: string | string[];
+  //   order?: number;
+  //   query?: any;
+  //   selectFields?: string | string[];
+  // }) {
+  //   const generalHelpers = new GeneralHelpers();
+  //   const { limit, offset } = generalHelpers.calcLimitAndOffset(
+  //     param.page,
+  //     param.paginate,
+  //   );
+  //   const options = Object.assign({ limit, offset }, param);
+  //   const data = await findAndCountAll(options);
+  //   return paginate(data, param.page, limit);
+  // }
 }
-export const AppointmentSchema = SchemaFactory.createForClass(Appointment);
+const AppointmentSchema = SchemaFactory.createForClass(Appointment);
+AppointmentSchema.pre('find', function (next) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  if (this?.options._recursed) {
+    return next();
+  }
+  this.populate({
+    path: 'specialist patient',
+    options: { _recursed: true },
+    select: 'profile.first_name profile.last_name',
+  });
+  next();
+});
+
+export { AppointmentSchema };

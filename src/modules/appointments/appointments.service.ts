@@ -46,13 +46,18 @@ import { PaymentFor, Status } from '../payments/entities/payment.entity';
 import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
 import { QueryStatus } from './types/query.types';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { ReferSpecialistDto } from './dto/refer-specialist.dto';
+import { Referral, ReferralDocument } from './entities/referral.entity';
 
 @Injectable()
 export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
   constructor(
     @InjectModel(Appointment.name)
-    private AppointmentModel: Model<AppointmentDocument>,
+    private appointmentModel: Model<AppointmentDocument>,
+    @InjectModel(Referral.name)
+    private referralModel: Model<ReferralDocument>,
     private readonly zoom: Zoom,
     private readonly usersService: UsersService,
     private readonly generalHelpers: GeneralHelpers,
@@ -66,7 +71,7 @@ export class AppointmentsService {
     createAppointmentDto: CreateAppointmentDto,
     currentUser: IJwtPayload,
   ) {
-    const appointment = await create(this.AppointmentModel, {
+    const appointment = await create(this.appointmentModel, {
       ...createAppointmentDto,
       patient: currentUser.sub,
     });
@@ -74,7 +79,7 @@ export class AppointmentsService {
   }
 
   async findOneAppointment(appointmentId: Types.ObjectId) {
-    const appointment = await findById(this.AppointmentModel, appointmentId);
+    const appointment = await findById(this.appointmentModel, appointmentId);
     if (!appointment)
       throw new NotFoundException(Messages.APPOINTMENT_NOT_FOUND);
     return appointment;
@@ -82,13 +87,14 @@ export class AppointmentsService {
 
   async updateAppointment(query: any, fieldsToUpdate: any) {
     return await updateOne(
-      this.AppointmentModel,
+      this.appointmentModel,
       { ...query },
       { ...fieldsToUpdate },
     );
   }
 
-  async cancelAppointment(query: any, appointmentId: Types.ObjectId) {
+  async cancelAppointment(cancelAppointmentDto: CancelAppointmentDto) {
+    const { appointmentId } = cancelAppointmentDto;
     const appointment = await this.findOneAppointment(appointmentId);
     const response = await this.zoom.cancelMeeting(
       appointment.meeting_id,
@@ -121,7 +127,7 @@ export class AppointmentsService {
     if (response.status === SUCCESS) {
       const { join_url, start_url, id } = response.data;
       await updateOne(
-        this.AppointmentModel,
+        this.appointmentModel,
         { _id: appointment._id },
         {
           meeting_id: id,
@@ -138,6 +144,7 @@ export class AppointmentsService {
           topic,
           link: { join_url, start_url },
           call_duration: subscription?.planId?.call_duration,
+          appointmentId: appointment._id,
         }),
         `${Date.now()}-sendScheduleAppointmentMail`,
       );
@@ -154,6 +161,7 @@ export class AppointmentsService {
     topic,
     link,
     call_duration,
+    appointmentId,
   }: ICalendarType) {
     const DURATION = call_duration || 5;
     const attendees = this.getAttendees([patient, specialist]);
@@ -163,6 +171,7 @@ export class AppointmentsService {
       method: ICalCalendarMethod.REQUEST,
       events: [
         {
+          id: <string>(<unknown>appointmentId),
           start: start_time,
           end: moment(start_time).add(DURATION, 'm').toDate(),
           summary: `${specialist.full_name} and ${patient.full_name}`,
@@ -181,7 +190,7 @@ export class AppointmentsService {
         contentType: 'text/calendar',
       },
     ];
-    this.logger.log(`Finished generating ical attachment`);
+    this.logger.log(`Finished generating ics attachment`);
     return { attendees, attachments };
   }
 
@@ -192,6 +201,7 @@ export class AppointmentsService {
     topic,
     link,
     call_duration,
+    appointmentId,
   }: ICalendarType) {
     this.logger.log(`Getting generated ical attachment`);
     const { attachments, attendees } = this.generateICalendar({
@@ -201,6 +211,7 @@ export class AppointmentsService {
       topic,
       link,
       call_duration,
+      appointmentId,
     });
     const { join_url, start_url } = link;
     for (const attendee of attendees) {
@@ -310,18 +321,10 @@ export class AppointmentsService {
     queryStatus: QueryStatus,
   ) {
     const { status } = queryStatus || {};
-    return await find(
-      this.AppointmentModel,
-      { patient: userId, ...(status && { status }) },
-      {
-        populate: 'specialist',
-        populateSelectFields: [
-          'profile.first_name',
-          'profile.last_name',
-          'professional_practice',
-        ],
-      },
-    );
+    return await find(this.appointmentModel, {
+      patient: userId,
+      ...(status && { status }),
+    });
   }
 
   async getSpecialistAppointments(
@@ -329,14 +332,10 @@ export class AppointmentsService {
     queryStatus: QueryStatus,
   ) {
     const { status } = queryStatus || {};
-    return await find(
-      this.AppointmentModel,
-      { specialist: userId, ...(status && { status }) },
-      {
-        populate: 'specialist',
-        populateSelectFields: ['profile.first_name', 'profile.last_name'],
-      },
-    );
+    return await find(this.appointmentModel, {
+      specialist: userId,
+      ...(status && { status }),
+    });
   }
 
   async getAllAppointments(query: QueryDto) {
@@ -345,27 +344,46 @@ export class AppointmentsService {
       +currentPage,
       pageLimit,
     );
-    const appointments = await findAndCountAll(
-      this.AppointmentModel,
-      {},
+    const appointments = await findAndCountAll({
+      model: this.appointmentModel,
+      query: {},
       limit,
       offset,
-    );
+    });
 
     return this.generalHelpers.paginate(
       appointments,
       +currentPage,
       limit,
-      await countDocuments(this.AppointmentModel),
+      await countDocuments(this.appointmentModel),
     );
   }
 
   async getOneAppointment(appointmentId: string) {
     const appointment = await findById(
-      this.AppointmentModel,
+      this.appointmentModel,
       <Types.ObjectId>(<unknown>appointmentId),
     );
     if (!appointment) throw new NotFoundException(Messages.NOT_FOUND);
     return appointment;
+  }
+
+  async referPatientToSpecialist(
+    referSpecialistDto: ReferSpecialistDto,
+    userId: Types.ObjectId,
+  ) {
+    return await create(this.referralModel, {
+      ...referSpecialistDto,
+      referred_by: userId,
+    });
+  }
+
+  async getSpecialistReferrals(userId) {
+    userId = '6409a163c54cb7edc6a43568';
+    return await find(
+      this.referralModel,
+      { 'specialists.id': userId },
+      { populate: 'appointment' },
+    );
   }
 }

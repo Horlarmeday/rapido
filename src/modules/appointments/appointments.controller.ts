@@ -9,6 +9,7 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  Patch,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -20,12 +21,13 @@ import { VerifyAppointmentTransaction } from './dto/verify-appointment-transacti
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { QueryStatus } from './types/query.types';
 import { DoesUserHaveCard } from '../../core/guards/doesUserHaveCard';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
-
   @UseGuards(DoesUserHaveCard)
   @Post()
   async create(
@@ -86,6 +88,14 @@ export class AppointmentsController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
+  @Get('specialist-referrals')
+  async getSpecialistReferrals(@Request() req) {
+    const result = await this.appointmentsService.getSpecialistReferrals(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
   @Get()
   async getAppointments(@Request() req, @Query() queryDto: QueryDto) {
     const result = await this.appointmentsService.getAllAppointments(queryDto);
@@ -96,5 +106,25 @@ export class AppointmentsController {
   async getOneAppointment(@Param('id') id: string) {
     const result = await this.appointmentsService.getOneAppointment(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Patch('cancel')
+  async cancelAppointment(@Body() cancelAppointmentDto: CancelAppointmentDto) {
+    const result = await this.appointmentsService.cancelAppointment(
+      cancelAppointmentDto,
+    );
+    return sendSuccessResponse(Messages.APPOINTMENT_CANCELLED, result);
+  }
+
+  @Post('refer-specialist')
+  async referPatientToSpecialist(
+    @Body() referSpecialistDto: ReferSpecialistDto,
+    @Request() req,
+  ) {
+    const result = await this.appointmentsService.referPatientToSpecialist(
+      referSpecialistDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
   }
 }

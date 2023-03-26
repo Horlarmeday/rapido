@@ -9,12 +9,19 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { UserSettingsModule } from '../user-settings/user-settings.module';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import {
+  SpecialistPreferences,
+  SpecialistPreferencesSchema,
+} from './entities/specialist-preferences.entity';
 
 @Module({
   imports: [
     TokensModule,
     UserSettingsModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: SpecialistPreferences.name, schema: SpecialistPreferencesSchema },
+    ]),
   ],
   controllers: [UsersController],
   providers: [

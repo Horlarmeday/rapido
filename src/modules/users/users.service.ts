@@ -24,6 +24,7 @@ import {
   findById,
   findOne,
   updateOne,
+  upsert,
 } from '../../common/crud/crud';
 import { SocialMediaUserType } from '../auth/types/social-media.type';
 import { ProfileSetupDto } from './dto/profile-setup.dto';
@@ -40,6 +41,14 @@ import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
 import { Documents } from './types/profile.types';
+import { IJwtPayload } from '../auth/types/jwt-payload.type';
+import { SpecialistAvailabilityDto } from './dto/specialist-availability.dto';
+import {
+  SpecialistPreferences,
+  SpecialistPreferencesDocument,
+} from './entities/specialist-preferences.entity';
+import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
+
 const { ObjectId } = Types;
 
 @Injectable()
@@ -47,10 +56,12 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(SpecialistPreferences.name)
+    private specialistPreferencesModel: Model<SpecialistPreferencesDocument>,
     private readonly fileUpload: FileUploadHelper,
     private readonly generalHelpers: GeneralHelpers,
-    private tokensService: TokensService,
-    private userSettingsService: UserSettingsService,
+    private readonly tokensService: TokensService,
+    private readonly userSettingsService: UserSettingsService,
     private taskCron: TaskScheduler,
   ) {}
 
@@ -90,9 +101,7 @@ export class UsersService {
           email: socialMediaUserType.email,
         },
       },
-      reg_medium: socialMediaUserType.reg_medium,
-      is_email_verified: socialMediaUserType.is_email_verified,
-      email_verified_at: socialMediaUserType.email_verified_at,
+      ...socialMediaUserType,
     });
   }
 
@@ -380,24 +389,50 @@ export class UsersService {
   }
 
   async getUsers(query: QueryDto) {
-    const { currentPage, pageLimit, filterBy } = query;
+    const { currentPage, pageLimit, filterBy, search } = query;
     const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
       +currentPage,
       pageLimit,
     );
-    const users = await findAndCountAll(
-      this.userModel,
-      { ...(filterBy && { user_type: filterBy }) },
-      limit,
-      offset,
-      ['-profile.password', '-profile.twoFA_secret'],
-    );
+    let users;
+
+    if (search) {
+      users = await this.searchUsers(filterBy, limit, offset, search);
+    } else {
+      users = await this.queryUsers(filterBy, limit, offset);
+    }
+
     return this.generalHelpers.paginate(
       users,
       +currentPage,
       limit,
-      await countDocuments(this.userModel, { user_type: filterBy }),
+      await countDocuments(this.userModel, { user_type: filterBy }), //todo: Need to recalculate the total patients using the query
     );
+  }
+
+  async searchUsers(filterBy, limit, offset, search) {
+    //todo: Need to recalculate the total patients using the query
+    return await findAndCountAll({
+      model: this.userModel,
+      query: {
+        ...(filterBy && { user_type: filterBy }),
+        $text: { $search: search },
+      },
+      limit,
+      offset,
+      options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+      displayScore: true,
+    });
+  }
+
+  async queryUsers(filterBy, limit, offset) {
+    return await findAndCountAll({
+      model: this.userModel,
+      query: { ...(filterBy && { user_type: filterBy }) },
+      limit,
+      offset,
+      options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+    });
   }
 
   private async hasFilesAndUpload(
@@ -413,14 +448,33 @@ export class UsersService {
     );
   }
 
-  async getProfile(userId: Types.ObjectId) {
+  async getProfile(payload: IJwtPayload) {
     const user = await findOne(
       this.userModel,
-      { _id: userId },
-      { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+      { _id: payload.sub },
+      { selectFields: this.getSelectedFields(payload.user_type) },
     );
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
     return user;
+  }
+
+  getSelectedFields(user_type: UserType) {
+    if (user_type === UserType.SPECIALIST) {
+      return [
+        '-profile.password',
+        '-profile.twoFA_secret',
+        '-emergency_contacts',
+        '-pre_existing_conditions',
+        '-dependants',
+      ];
+    }
+    return [
+      '-profile.password',
+      '-profile.twpFA_secret',
+      '-documents',
+      '-professional_practice',
+      '-earnings',
+    ];
   }
 
   async specialistProfileSetup(
@@ -586,6 +640,28 @@ export class UsersService {
     return this.userModel.updateOne(
       { _id: userId },
       { $pull: { emergency_contacts: { _id: emergencyContactId } } },
+    );
+  }
+
+  async createTimeAvailability(
+    userId: Types.ObjectId,
+    specialistAvailabilityDto: SpecialistAvailabilityDto,
+  ) {
+    return await upsert(
+      this.specialistPreferencesModel,
+      { userId },
+      { ...specialistAvailabilityDto },
+    );
+  }
+
+  async createPatientPreferences(
+    userId: Types.ObjectId,
+    specialistPreferencesDto: SpecialistPreferencesDto,
+  ) {
+    return await upsert(
+      this.specialistPreferencesModel,
+      { userId },
+      { ...specialistPreferencesDto },
     );
   }
 }

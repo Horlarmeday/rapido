@@ -21,6 +21,8 @@ import { QueryDto } from '../../common/helpers/url-query.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { Types } from 'mongoose';
 import { ProfessionalPracticeSetupDto } from './dto/professional-practice-setup.dto';
+import { SpecialistAvailabilityDto } from './dto/specialist-availability.dto';
+import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
 
 @Controller('users')
 export class UsersController {
@@ -38,7 +40,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async findCurrentUser(@Request() req) {
-    const result = await this.usersService.getProfile(req.user.sub);
+    const result = await this.usersService.getProfile(req.user);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
@@ -129,5 +131,31 @@ export class UsersController {
       req.user.sub,
     );
     return sendSuccessResponse(Messages.DELETED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('availability')
+  async timeAvailability(
+    @Body() specialistAvailabilityDto: SpecialistAvailabilityDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.createTimeAvailability(
+      req.user.sub,
+      specialistAvailabilityDto,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('preferences')
+  async patientPreferences(
+    @Body() specialistPreferencesDto: SpecialistPreferencesDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.createPatientPreferences(
+      req.user.sub,
+      specialistPreferencesDto,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
   }
 }

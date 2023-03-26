@@ -41,4 +41,5 @@ export enum Messages {
   NO_CARD_SAVED = 'User has no payment method saved, kindly add a card',
   CARD_ADDED = 'Card added successfully',
   APPROPRIATE_FORM_AUTHENTICATION = 'No user found, Kindly use the appropriate form for authenticating',
+  APPOINTMENT_CANCELLED = 'Appointment cancelled',
 }

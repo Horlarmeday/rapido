@@ -15,6 +15,7 @@ import { Paystack } from '../../common/external/payment/providers/paystack';
 import { PaymentsModule } from '../payments/payments.module';
 import { CardsModule } from '../cards/cards.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { Referral, ReferralSchema } from './entities/referral.entity';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
     SubscriptionsModule,
     MongooseModule.forFeature([
       { name: Appointment.name, schema: AppointmentSchema },
+      { name: Referral.name, schema: ReferralSchema },
     ]),
   ],
   controllers: [AppointmentsController],

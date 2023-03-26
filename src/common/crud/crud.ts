@@ -6,6 +6,15 @@ type FindOptionsType = {
   populateSelectFields?: string | string[];
 };
 
+type FindAndCountAllType = {
+  model: Model<HydratedDocument<any>>;
+  query: any;
+  limit: number;
+  offset: number;
+  options?: FindOptionsType;
+  displayScore?: boolean;
+};
+
 /**
  * Insert data into a document
  * @param model
@@ -15,6 +24,17 @@ export const create = async (
   model: Model<HydratedDocument<any>>,
   fields: object,
 ) => model.create({ ...fields });
+
+export const upsert = async (
+  model: Model<HydratedDocument<any>>,
+  query: any,
+  fields: object,
+) =>
+  model.findOneAndUpdate(
+    { ...query },
+    { $set: { ...fields } },
+    { upsert: true, returnDocument: 'after' },
+  );
 
 /**
  * Find one document that matches filter
@@ -111,20 +131,27 @@ export const updateOne = async (
  * @param query
  * @param limit
  * @param offset
- * @param selectFields
+ * @param options
+ * @param displayScore
  */
-export const findAndCountAll = async (
-  model: Model<HydratedDocument<any>>,
-  query: any,
-  limit: number,
-  offset: number,
-  selectFields?: any,
-) =>
+export const findAndCountAll = async ({
+  model,
+  query,
+  limit,
+  offset,
+  options,
+  displayScore = false,
+}: FindAndCountAllType) =>
   model
-    .find({ ...query })
-    .select(selectFields)
+    .find(
+      { ...query },
+      { ...(displayScore && { score: { $meta: 'textScore' } }) },
+    )
+    .select(options?.selectFields)
+    .populate(<string>options?.populate, options?.populateSelectFields)
     .limit(limit)
     .skip(offset)
+    .sort({ ...(displayScore && { score: { $meta: 'textScore' } }) })
     .exec();
 
 export const countDocuments = async (

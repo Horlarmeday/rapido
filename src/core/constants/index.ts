@@ -9,3 +9,4 @@ export const FAILED = 'failed';
 export const PENDING = 'pending';
 export const APPROVED = 'approved';
 export const UPLOAD_TO_S3 = 'Upload to S3';
+export const PAYSTACK_WEBHOOK_RECEIVED = 'Paystack webhook received';
