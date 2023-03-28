@@ -338,25 +338,89 @@ export class AppointmentsService {
     });
   }
 
+  async endAppointment(appointmentId: Types.ObjectId) {
+    const appointment = await this.findOneAppointment(appointmentId);
+    const response = await this.zoom.getPastMeetingDetails(
+      appointment.meeting_id,
+    );
+    if (response.status === SUCCESS) {
+      await this.updateAppointment(
+        { _id: appointmentId },
+        {
+          status: AppointmentStatus.COMPLETED,
+          call_duration: {
+            time_taken: response.data.total_minutes,
+          },
+        },
+      );
+    }
+    return appointment;
+  }
+
   async getAllAppointments(query: QueryDto) {
-    const { currentPage, pageLimit } = query;
+    const { currentPage, pageLimit, filterBy, search } = query;
     const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
       +currentPage,
       pageLimit,
     );
-    const appointments = await findAndCountAll({
-      model: this.appointmentModel,
-      query: {},
-      limit,
-      offset,
-    });
+
+    let result: { appointments: AppointmentDocument[]; count: number };
+
+    if (search) {
+      result = await this.searchAppointments(filterBy, limit, offset, search);
+    } else {
+      result = await this.queryAppointments(filterBy, limit, offset);
+    }
 
     return this.generalHelpers.paginate(
-      appointments,
+      result.appointments,
       +currentPage,
       limit,
-      await countDocuments(this.appointmentModel),
+      result.count,
     );
+  }
+
+  async queryAppointments(
+    filterBy: string | undefined,
+    limit: number,
+    offset: number,
+  ): Promise<{ appointments: AppointmentDocument[]; count: number }> {
+    const query = {
+      ...(filterBy && filterBy === 'All' ? {} : { status: filterBy }),
+    };
+    const appointments = (await findAndCountAll({
+      model: this.appointmentModel,
+      query,
+      limit,
+      offset,
+    })) as AppointmentDocument[];
+    return {
+      appointments,
+      count: await countDocuments(this.appointmentModel, { ...query }),
+    };
+  }
+
+  async searchAppointments(
+    filterBy: string | undefined,
+    limit: number,
+    offset: number,
+    search: string,
+  ): Promise<{ appointments: AppointmentDocument[]; count: number }> {
+    const query = {
+      ...(filterBy && filterBy === 'All' ? {} : { status: filterBy }),
+      $text: { $search: search },
+    };
+    const appointments = (await findAndCountAll({
+      model: this.appointmentModel,
+      query,
+      limit,
+      offset,
+      displayScore: true,
+    })) as AppointmentDocument[];
+    return {
+      appointments,
+      count: await countDocuments(this.appointmentModel, { ...query }),
+    };
   }
 
   async getOneAppointment(appointmentId: string) {
@@ -379,7 +443,6 @@ export class AppointmentsService {
   }
 
   async getSpecialistReferrals(userId) {
-    userId = '6409a163c54cb7edc6a43568';
     return await find(
       this.referralModel,
       { 'specialists.id': userId },

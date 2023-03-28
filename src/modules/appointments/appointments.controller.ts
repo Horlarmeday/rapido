@@ -23,6 +23,7 @@ import { QueryStatus } from './types/query.types';
 import { DoesUserHaveCard } from '../../core/guards/doesUserHaveCard';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
+import { EndZoomMeetingDto } from './dto/end-zoom-meeting.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -124,6 +125,14 @@ export class AppointmentsController {
     const result = await this.appointmentsService.referPatientToSpecialist(
       referSpecialistDto,
       req.user.sub,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @Patch('end-meeting')
+  async endZoomMeeting(@Body() endZoomMeetingDto: EndZoomMeetingDto) {
+    const result = await this.appointmentsService.endAppointment(
+      endZoomMeetingDto.appointmentId,
     );
     return sendSuccessResponse(Messages.CREATED, result);
   }
