@@ -7,6 +7,7 @@ import {
 } from '../payment.types';
 import { Logger } from '@nestjs/common';
 import { Messages } from '../../../../core/messages/messages';
+import { GeneralHelpers } from '../../../helpers/general.helpers';
 // import { GeneralHelpers } from '../../../helpers/general.helpers';
 export type CardDetailsType = {
   authorization_code: string;
@@ -35,7 +36,7 @@ export class Paystack implements IPaymentInterface {
   private readonly transferToRecipientUrl = 'transfer';
   private readonly getTransactionsUrl = 'transaction';
   private readonly chargeAuthorizationUrl = 'transaction/charge_authorization/';
-  private readonly resolveAccountUrl = '/bank/resolve';
+  private readonly resolveAccountUrl = 'bank/resolve';
   private readonly initializeTransactionUrl = 'transaction/initialize';
   private logger = new Logger(Paystack.name);
 
@@ -109,7 +110,7 @@ export class Paystack implements IPaymentInterface {
       type,
       name,
       account_number,
-      // bank_code: GeneralHelpers.findBankCode(bank_name),
+      bank_code: GeneralHelpers.findBankCode(bank_name),
       currency,
     };
     const response = await post(url, data, { headers: this.headers });

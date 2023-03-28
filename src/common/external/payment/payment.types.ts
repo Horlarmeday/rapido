@@ -2,7 +2,7 @@ export type CreateTransferRecipient = {
   type?: string;
   name: string;
   account_number: string;
-  currency: 'NGN';
+  currency?: 'NGN';
   bank_name: string;
 };
 

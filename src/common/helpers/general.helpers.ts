@@ -3,6 +3,7 @@ import { Messages } from '../../core/messages/messages';
 import { BadGatewayException, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { chain } from 'lodash';
+import * as Banks from '../../modules/banks/json/banks.json';
 
 type GenerateEmailAndSendType = {
   email: string;
@@ -111,5 +112,9 @@ export class GeneralHelpers {
     } catch (e) {
       throw new BadGatewayException(e);
     }
+  }
+
+  static findBankCode(bank_name: string) {
+    return Banks.find(({ name }) => name === bank_name)?.code;
   }
 }

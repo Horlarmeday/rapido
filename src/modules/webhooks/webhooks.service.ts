@@ -92,7 +92,6 @@ export class WebhooksService {
     await deleteOne(this.webhookModel, { _id: webhookId });
     this.logger.log(`Deleted webhook ${webhookId}`);
   }
-
   addEvent(event: WebhookEvents) {
     this.events.next(event);
   }
