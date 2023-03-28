@@ -37,6 +37,7 @@ export const get = async (url: string, headers, params = {}) => {
       statusCode: response.status,
     };
   } catch (e) {
+    logger.error(`error`, e);
     logger.error(`An error occurred ${e?.message}`);
     throw new BadRequestException(e.message);
   }

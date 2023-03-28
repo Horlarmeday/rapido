@@ -19,6 +19,9 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { CardsModule } from './modules/cards/cards.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { AdminModule } from './modules/admin/admin.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { BanksModule } from './modules/banks/banks.module';
 
 dotenv.config();
 
@@ -41,6 +44,9 @@ dotenv.config();
     SubscriptionsModule,
     CardsModule,
     WebhooksModule,
+    AdminModule,
+    PromotionsModule,
+    BanksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

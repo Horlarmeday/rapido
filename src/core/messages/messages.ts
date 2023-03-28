@@ -42,4 +42,5 @@ export enum Messages {
   CARD_ADDED = 'Card added successfully',
   APPROPRIATE_FORM_AUTHENTICATION = 'No user found, Kindly use the appropriate form for authenticating',
   APPOINTMENT_CANCELLED = 'Appointment cancelled',
+  NOT_FOUND_DEFAULT_BANK = 'User has not set default bank account',
 }
