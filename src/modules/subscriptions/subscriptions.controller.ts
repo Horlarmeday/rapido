@@ -26,7 +26,7 @@ export class SubscriptionsController {
     @Body() createSubscriptionDto: CreateSubscriptionDto,
     @Request() req,
   ) {
-    const result = await this.subscriptionsService.createSubscription(
+    const result = await this.subscriptionsService.subscribeToPlan(
       createSubscriptionDto,
       req.user.sub,
     );

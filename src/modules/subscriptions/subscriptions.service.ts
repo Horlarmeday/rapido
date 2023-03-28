@@ -37,20 +37,35 @@ export class SubscriptionsService {
     private readonly paymentHandler: PaymentHandler,
     private readonly cardsService: CardsService,
   ) {}
-  async createSubscription(
+  async subscribeToPlan(
     createSubscriptionDto: CreateSubscriptionDto,
     userId: Types.ObjectId,
   ) {
-    return await create(this.subscriptionModel, {
+    //todo: Use transactions here
+    const subscription = await create(this.subscriptionModel, {
       ...createSubscriptionDto,
       userId,
     });
+    const plan = await this.plansService.findOnePlan(
+      createSubscriptionDto.planId,
+    );
+    await this.usersService.updateOne(userId, {
+      plan: {
+        plan_name: plan.name,
+        planId: createSubscriptionDto.planId,
+      },
+    });
+    return subscription;
   }
 
   async findOneSubscription(
     subscriptionId: string,
   ): Promise<SubscriptionDocument> {
-    return await findOne(this.subscriptionModel, { _id: subscriptionId });
+    return await findOne(
+      this.subscriptionModel,
+      { _id: subscriptionId },
+      { populate: 'planId' },
+    );
   }
 
   async initializeTransaction(
@@ -161,7 +176,7 @@ export class SubscriptionsService {
         ...fieldsToUpdate,
       },
     );
-    this.logger.log(`Updated subscriptionId: ${subscriptionId} to ACTIVE`);
+    this.logger.log(`Updated subscriptionId: ${subscriptionId}`);
   }
 
   calculatePeriodEnd(recurrence: Recurrence, currentDate: Date) {
@@ -179,7 +194,11 @@ export class SubscriptionsService {
   }
 
   async getUserSubscriptions(userId: Types.ObjectId) {
-    return await find(this.subscriptionModel, { userId });
+    return await find(
+      this.subscriptionModel,
+      { userId },
+      { populate: 'planId' },
+    );
   }
 
   async getActiveSubscription(userId: Types.ObjectId) {
@@ -191,7 +210,7 @@ export class SubscriptionsService {
       },
       {
         populate: 'planId',
-        populateSelectFields: ['call_duration'],
+        populateSelectFields: ['call_duration', 'name'],
       },
     );
   }

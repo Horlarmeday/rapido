@@ -298,7 +298,13 @@ export class User {
   dependants?: Dependant[];
   full_name: string;
 
-  @Prop({ type: mongoose.Schema.Types.Mixed })
+  @Prop(
+    raw({
+      plan_name: { type: String },
+      planId: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan' },
+      updatedAt: { type: Date, default: new Date() },
+    }),
+  )
   plan: any;
 
   @Prop(
