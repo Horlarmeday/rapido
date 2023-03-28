@@ -158,3 +158,14 @@ export const countDocuments = async (
   model: Model<HydratedDocument<any>>,
   filter = {},
 ) => model.countDocuments({ ...filter }).exec();
+
+export const updateOneAndReturn = async (
+  model: Model<HydratedDocument<any>>,
+  query: any,
+  fields: object,
+) =>
+  model.findOneAndUpdate(
+    { ...query },
+    { $set: { ...fields } },
+    { returnDocument: 'after' },
+  );
