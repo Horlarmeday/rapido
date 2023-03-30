@@ -11,9 +11,9 @@ export class Vital {
   @Prop(
     raw([
       {
+        _id: false,
         value: { type: String, required: true },
         unit: { type: String, required: true },
-        createdAt: { type: Date, default: new Date() },
         updatedAt: { type: Date, default: new Date() },
       },
     ]),
@@ -23,9 +23,9 @@ export class Vital {
   @Prop(
     raw([
       {
+        _id: false,
         value: { type: String, required: true },
         unit: { type: String, required: true },
-        createdAt: { type: Date, default: new Date() },
         updatedAt: { type: Date, default: new Date() },
       },
     ]),
@@ -35,9 +35,9 @@ export class Vital {
   @Prop(
     raw([
       {
+        _id: false,
         value: { type: String, required: true },
         unit: { type: String, required: true },
-        createdAt: { type: Date, default: new Date() },
         updatedAt: { type: Date, default: new Date() },
       },
     ]),
@@ -47,9 +47,9 @@ export class Vital {
   @Prop(
     raw([
       {
+        _id: false,
         value: { type: String, required: true },
         unit: { type: String, required: true },
-        createdAt: { type: Date, default: new Date() },
         updatedAt: { type: Date, default: new Date() },
       },
     ]),
@@ -59,9 +59,9 @@ export class Vital {
   @Prop(
     raw([
       {
+        _id: false,
         value: { type: String, required: true },
         unit: { type: String, required: true },
-        createdAt: { type: Date, default: new Date() },
         updatedAt: { type: Date, default: new Date() },
       },
     ]),

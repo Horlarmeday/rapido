@@ -57,8 +57,13 @@ export class VitalsController {
   async update(
     @Param('id') id: string,
     @Body() updateVitalDto: UpdateVitalDto,
+    @Request() req,
   ) {
-    const result = await this.vitalsService.updateVitals(id, updateVitalDto);
+    const result = await this.vitalsService.updateVitals(
+      id,
+      updateVitalDto,
+      req.user.sub,
+    );
     return sendSuccessResponse(Messages.UPDATED, result);
   }
 

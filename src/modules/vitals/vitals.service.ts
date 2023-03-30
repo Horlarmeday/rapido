@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateVitalDto } from './dto/create-vital.dto';
 import { UpdateVitalDto } from './dto/update-vital.dto';
 import { Model, Types } from 'mongoose';
-import { deleteOne, find, findOne, updateOne } from 'src/common/crud/crud';
+import { deleteOne, find, findOne } from 'src/common/crud/crud';
 import { Vital, VitalDocument } from './entities/vital.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryVitalDto } from './dto/query.vital.dto';
@@ -89,12 +89,20 @@ export class VitalsService {
     );
   }
 
-  async updateVitals(vitalId: string, updateVitalDto: UpdateVitalDto) {
-    return await updateOne(
-      this.vitalModel,
-      { _id: vitalId },
-      { ...updateVitalDto },
-    );
+  async updateVitals(
+    vitalId: string,
+    updateVitalDto: UpdateVitalDto,
+    userId: Types.ObjectId,
+  ) {
+    for (const vitalDtoKey in updateVitalDto) {
+      await this.vitalModel.updateOne(
+        { _id: vitalId },
+        {
+          $push: { [vitalDtoKey]: updateVitalDto[vitalDtoKey] },
+        },
+      );
+    }
+    return await this.getMostRecentVitals(userId);
   }
 
   async removeVital(vitalId: string) {
