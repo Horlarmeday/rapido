@@ -77,6 +77,29 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('awards')
+  async addAward(@Body() createAwardDto: CreateAwardDto, @Request() req) {
+    const result = await this.usersService.addAward(
+      createAwardDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('certifications')
+  async addCertifications(
+    @Body() createCertificationsDto: CreateCertificationsDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.addCertifications(
+      createCertificationsDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async updateUser(
     @Body() updateUserProfileDto: UpdateUserProfileDto,
@@ -157,29 +180,6 @@ export class UsersController {
     const result = await this.usersService.createPatientPreferences(
       req.user.sub,
       specialistPreferencesDto,
-    );
-    return sendSuccessResponse(Messages.CREATED, result);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('awards')
-  async addAward(@Body() createAwardDto: CreateAwardDto, @Request() req) {
-    const result = await this.usersService.addAward(
-      createAwardDto,
-      req.user.sub,
-    );
-    return sendSuccessResponse(Messages.CREATED, result);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('certifications')
-  async addCertifications(
-    @Body() createCertificationsDto: CreateCertificationsDto,
-    @Request() req,
-  ) {
-    const result = await this.usersService.addCertifications(
-      createCertificationsDto,
-      req.user.sub,
     );
     return sendSuccessResponse(Messages.CREATED, result);
   }

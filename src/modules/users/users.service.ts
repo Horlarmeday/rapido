@@ -499,7 +499,9 @@ export class UsersService {
     professionalPracticeSetupDto: ProfessionalPracticeSetupDto,
     userId: Types.ObjectId,
   ) {
-    const user = await findById(this.userModel, userId);
+    const user = await this.findById(userId);
+    if (user.user_type !== UserType.SPECIALIST)
+      throw new BadRequestException(Messages.UNAUTHORIZED);
     const {
       documents,
       professional_practice,
@@ -509,17 +511,19 @@ export class UsersService {
         gender,
       },
     } = professionalPracticeSetupDto;
+    const { profile, reg_medium } = user.toJSON();
+
     const updatedUser = await updateOne(
       this.userModel,
       { _id: userId },
       {
         profile: {
-          ...user.profile,
+          ...profile,
           marital_status,
           gender,
           contact: {
-            ...user.profile.contact,
-            ...(user.reg_medium !== RegMedium.LOCAL && {
+            ...profile.contact,
+            ...(reg_medium !== RegMedium.LOCAL && {
               phone: { country_code: phone.country_code, number: phone.number },
             }),
             address1,
@@ -698,7 +702,7 @@ export class UsersService {
       this.logger.log(`Saved ${user.full_name} professional documents`);
     } catch (e) {
       this.logger.error(`Error occurred uploading documents, ${e}`);
-      throw new InternalServerErrorException('Error', e);
+      throw new InternalServerErrorException(e);
     }
   }
 

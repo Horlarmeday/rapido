@@ -77,10 +77,14 @@ export class VitalsService {
       this.vitalModel,
       { userId },
       {
-        selectFields:
-          typeof fieldsToSelect === 'string'
-            ? fieldsToSelect
-            : [...fieldsToSelect],
+        ...(fieldsToSelect
+          ? {
+              selectFields:
+                typeof fieldsToSelect === 'string'
+                  ? fieldsToSelect
+                  : [...fieldsToSelect],
+            }
+          : {}),
       },
     );
   }
