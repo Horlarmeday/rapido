@@ -64,7 +64,7 @@ export class VitalsService {
     for (const [key, values] of Object.entries(vitals)) {
       if (Array.isArray(values) && values.length > 0) {
         recentVitals[key] = values.reduce((a, b) =>
-          a.createdAt > b.createdAt ? a : b,
+          a.updatedAt > b.updatedAt ? a : b,
         );
       }
     }
