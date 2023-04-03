@@ -60,6 +60,22 @@ export class GeneralHelpers {
       .value();
   }
 
+  groupByDate(data: any, fieldToGroupBy: any) {
+    return chain(data)
+      .groupBy((x) => this.withoutTime(x?.[fieldToGroupBy]))
+      .map((value, key) => ({
+        date: key,
+        data: value,
+      }))
+      .value();
+  }
+
+  withoutTime(dateTime) {
+    const date = new Date(dateTime.getTime());
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
   generateEmailAndSend({
     email,
     subject,
