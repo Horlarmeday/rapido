@@ -28,13 +28,12 @@ export const create = async (
 export const upsert = async (
   model: Model<HydratedDocument<any>>,
   query: any,
-  fields: object,
+  update: object,
 ) =>
-  model.findOneAndUpdate(
-    { ...query },
-    { $set: { ...fields } },
-    { upsert: true, returnDocument: 'after' },
-  );
+  model.findOneAndUpdate({ ...query }, update, {
+    upsert: true,
+    returnDocument: 'after',
+  });
 
 /**
  * Find one document that matches filter

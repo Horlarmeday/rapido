@@ -492,6 +492,7 @@ export class UsersService {
       '-documents',
       '-professional_practice',
       '-earnings',
+      '-average_rating',
     ];
   }
 

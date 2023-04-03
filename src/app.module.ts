@@ -22,6 +22,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AdminModule } from './modules/admin/admin.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { BanksModule } from './modules/banks/banks.module';
+import { RatingsModule } from './modules/ratings/ratings.module';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ dotenv.config();
     AdminModule,
     PromotionsModule,
     BanksModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
