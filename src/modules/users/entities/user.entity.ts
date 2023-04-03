@@ -359,6 +359,9 @@ export class User {
 
   @Prop({ type: String, default: 0 })
   earnings: string;
+
+  @Prop({ type: Number, default: 0 })
+  average_rating: number;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {

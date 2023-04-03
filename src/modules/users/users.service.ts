@@ -740,7 +740,7 @@ export class UsersService {
     return await upsert(
       this.specialistPreferencesModel,
       { userId },
-      { ...specialistAvailabilityDto },
+      { $set: { ...specialistAvailabilityDto } },
     );
   }
 
@@ -751,7 +751,11 @@ export class UsersService {
     return await upsert(
       this.specialistPreferencesModel,
       { userId },
-      { ...specialistPreferencesDto },
+      { $set: { ...specialistPreferencesDto } },
     );
+  }
+
+  async getTimeAvailabilityAndPreferences(userId: Types.ObjectId) {
+    return await findOne(this.specialistPreferencesModel, { userId });
   }
 }

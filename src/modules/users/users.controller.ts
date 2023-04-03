@@ -47,6 +47,15 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('availability')
+  async getTimeAvailabilityAndPreferences(@Request() req) {
+    const result = await this.usersService.getTimeAvailabilityAndPreferences(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch()
   async profileSetup(@Body() profileSetupDto: ProfileSetupDto, @Request() req) {
     const result = await this.usersService.profileSetup(
