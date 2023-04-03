@@ -17,6 +17,7 @@ import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { QueryVitalDto } from './dto/query.vital.dto';
+import { VitalChartDataDto } from './dto/vital-chart-data.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('vitals')
@@ -50,6 +51,18 @@ export class VitalsController {
   @Get('recent')
   async getMostRecentVitals(@Request() req) {
     const result = await this.vitalsService.getMostRecentVitals(req.user.sub);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('chart')
+  async getVitalsChartData(
+    @Query() vitalChartDataDto: VitalChartDataDto,
+    @Request() req,
+  ) {
+    const result = await this.vitalsService.getVitalsChartData(
+      vitalChartDataDto,
+      req.user.sub,
+    );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 

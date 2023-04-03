@@ -6,4 +6,5 @@ export class QueryDto {
   readonly sort?: string; // [-1, 1]
   readonly start?: Date;
   readonly end?: Date;
+  readonly fieldsToSelect?: string;
 }

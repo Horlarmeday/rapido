@@ -6,11 +6,15 @@ import { deleteOne, find, findOne } from 'src/common/crud/crud';
 import { Vital, VitalDocument } from './entities/vital.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryVitalDto } from './dto/query.vital.dto';
+import { VitalChartDataDto } from './dto/vital-chart-data.dto';
+import { GeneralHelpers } from '../../common/helpers/general.helpers';
+import * as moment from 'moment';
 
 @Injectable()
 export class VitalsService {
   constructor(
     @InjectModel(Vital.name) private vitalModel: Model<VitalDocument>,
+    private readonly generalHelpers: GeneralHelpers,
   ) {}
   async createVitals(createVitalDto: CreateVitalDto, userId: Types.ObjectId) {
     for (const vitalDtoKey in createVitalDto) {
@@ -107,5 +111,27 @@ export class VitalsService {
 
   async removeVital(vitalId: string) {
     return await deleteOne(this.vitalModel, { _id: vitalId });
+  }
+
+  async getVitalsChartData(
+    vitalChartDataDto: VitalChartDataDto,
+    userId: Types.ObjectId,
+  ) {
+    const { vitalToSelect, start_date, end_date } = vitalChartDataDto;
+    const vital = await findOne(
+      this.vitalModel,
+      { userId },
+      { selectFields: vitalToSelect },
+    );
+    const startDate = moment(start_date);
+    const endDate = moment(end_date);
+
+    const selectedVital = vital?.[vitalToSelect];
+    const data = selectedVital.filter(
+      (d) =>
+        startDate.isSameOrAfter(d.updatedAt) ||
+        endDate.isSameOrBefore(d.updatedAt),
+    );
+    return this.generalHelpers.groupByDate(data, 'updatedAt');
   }
 }
