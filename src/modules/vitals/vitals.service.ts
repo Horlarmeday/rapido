@@ -123,14 +123,10 @@ export class VitalsService {
       { userId },
       { selectFields: vitalToSelect },
     );
-    const startDate = moment(start_date);
-    const endDate = moment(end_date);
 
     const selectedVital = vital?.[vitalToSelect];
-    const data = selectedVital.filter(
-      (d) =>
-        startDate.isSameOrAfter(d.updatedAt) ||
-        endDate.isSameOrBefore(d.updatedAt),
+    const data = selectedVital.filter((d) =>
+      moment(d.updatedAt).isBetween(start_date, end_date, undefined, '[]'),
     );
     return this.generalHelpers.groupByDate(data, 'updatedAt');
   }
