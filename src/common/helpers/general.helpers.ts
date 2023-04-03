@@ -4,6 +4,7 @@ import { BadGatewayException, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { chain } from 'lodash';
 import * as Banks from '../../modules/banks/json/banks.json';
+import * as moment from 'moment';
 
 type GenerateEmailAndSendType = {
   email: string;
@@ -64,7 +65,7 @@ export class GeneralHelpers {
     return chain(data)
       .groupBy((x) => this.withoutTime(x?.[fieldToGroupBy]))
       .map((value, key) => ({
-        date: key,
+        date: moment(key).format('YYYY-MM-DD'),
         data: value,
       }))
       .value();
