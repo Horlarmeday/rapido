@@ -7,7 +7,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { CardsModule } from '../cards/cards.module';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { WebhookEventsListener } from './events/webhook-listener.events';
+import { WebsocketGateway } from '../../core/websocket/websocket.gateway';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { WebhookEventsListener } from './events/webhook-listener.events';
     WebhooksService,
     TaskScheduler,
     SchedulerRegistry,
-    WebhookEventsListener,
+    WebsocketGateway,
   ],
 })
 export class WebhooksModule {}

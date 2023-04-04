@@ -13,9 +13,9 @@ import { PaystackWebhookData, WebhookEventTypes } from './types/webhook.types';
 import { Status } from '../payments/entities/payment.entity';
 import { PaymentsService } from '../payments/payments.service';
 import { CardsService } from '../cards/cards.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WebhookEvents } from './events/webhook.events';
 import { Subject } from 'rxjs';
+import { WebsocketGateway } from '../../core/websocket/websocket.gateway';
 
 @Injectable()
 export class WebhooksService {
@@ -26,7 +26,7 @@ export class WebhooksService {
     private readonly taskCron: TaskScheduler,
     private readonly paymentService: PaymentsService,
     private readonly cardService: CardsService,
-    private eventEmitter: EventEmitter2,
+    private readonly websocketGateway: WebsocketGateway,
   ) {}
   async createWebhook(body: PaystackWebhookData) {
     this.logger.log(`Received webhook ${body.event} from Paystack`);
@@ -34,7 +34,8 @@ export class WebhooksService {
       event: body?.event,
       data: body?.data,
     });
-    this.addEvent(
+    this.websocketGateway.server.emit(
+      'event',
       new WebhookEvents({
         event: webhook.event,
         data: webhook.data,
@@ -91,12 +92,5 @@ export class WebhooksService {
   async deleteWebhook(webhookId) {
     await deleteOne(this.webhookModel, { _id: webhookId });
     this.logger.log(`Deleted webhook ${webhookId}`);
-  }
-  addEvent(event: WebhookEvents) {
-    this.events.next(event);
-  }
-
-  sendEvent() {
-    return this.events.asObservable();
   }
 }
