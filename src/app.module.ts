@@ -23,6 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { BanksModule } from './modules/banks/banks.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
+import { WebsocketGateway } from './core/websocket/websocket.gateway';
 
 dotenv.config();
 
@@ -51,6 +52,6 @@ dotenv.config();
     RatingsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, WebsocketGateway],
 })
 export class AppModule {}

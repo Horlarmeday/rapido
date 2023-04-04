@@ -1,13 +1,13 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class VitalChartDataDto {
   @IsNotEmpty()
   readonly vitalToSelect: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   readonly start_date: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   readonly end_date: Date;
   readonly duration?: string;
 }

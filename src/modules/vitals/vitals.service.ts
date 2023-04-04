@@ -124,9 +124,14 @@ export class VitalsService {
       { selectFields: vitalToSelect },
     );
 
+    const startDate =
+      start_date || moment().subtract(6, 'months').format('YYYY-MM-DD');
+    const endDate = end_date || moment().format('YYYY-MM-DD');
+
     const selectedVital = vital?.[vitalToSelect];
+
     const data = selectedVital.filter((d) =>
-      moment(d.updatedAt).isBetween(start_date, end_date, undefined, '[]'),
+      moment(d.updatedAt).isBetween(startDate, endDate, undefined, '[]'),
     );
     return this.generalHelpers.groupByDate(data, 'updatedAt');
   }

@@ -51,7 +51,7 @@ export class GeneralHelpers {
     return `${currentDate}-${this.generateRandomCharacters(10)}`;
   }
 
-  groupBy(data: any, fieldToGroupBy: any) {
+  groupBy(data: any, fieldToGroupBy: string) {
     return chain(data)
       .groupBy((x) => x?.[fieldToGroupBy])
       .map((value, key) => ({
@@ -61,7 +61,7 @@ export class GeneralHelpers {
       .value();
   }
 
-  groupByDate(data: any, fieldToGroupBy: any) {
+  groupByDate(data: any, fieldToGroupBy: string) {
     return chain(data)
       .groupBy((x) => this.withoutTime(x?.[fieldToGroupBy]))
       .map((value, key) => ({
