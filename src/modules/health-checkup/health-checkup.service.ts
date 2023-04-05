@@ -11,7 +11,7 @@ import {
 } from './entities/health-checkup.entity';
 import { Model, Types } from 'mongoose';
 import { BeginCheckupDto } from './dto/begin-checkup.dto';
-import { create } from '../../common/crud/crud';
+import { create, updateOne } from '../../common/crud/crud';
 
 const { ObjectId } = Types;
 
@@ -32,8 +32,24 @@ export class HealthCheckupService {
     });
   }
 
-  async diagnosis(checkDiagnosisDto: CheckDiagnosisDto) {
-    return await this.infermedica.diagnosis(checkDiagnosisDto);
+  async diagnosis(
+    checkDiagnosisDto: CheckDiagnosisDto,
+    userId: Types.ObjectId,
+  ) {
+    const response = await this.infermedica.diagnosis(checkDiagnosisDto);
+    if (checkDiagnosisDto.should_stop) {
+      const checkup = await this.healthCheckupModel
+        .findOne({ userId })
+        .sort({ createdAt: -1 });
+      if (checkup) {
+        await updateOne(
+          this.healthCheckupModel,
+          { _id: checkup._id },
+          { request: checkDiagnosisDto, response },
+        );
+      }
+    }
+    return response;
   }
 
   async getRiskFactors(age: number) {

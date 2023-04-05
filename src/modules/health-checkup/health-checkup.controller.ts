@@ -49,8 +49,14 @@ export class HealthCheckupController {
   }
 
   @Post('diagnosis')
-  async checkDiagnosis(@Body() checkDiagnosisDto: CheckDiagnosisDto) {
-    const result = await this.healthCheckupService.diagnosis(checkDiagnosisDto);
+  async checkDiagnosis(
+    @Body() checkDiagnosisDto: CheckDiagnosisDto,
+    @Request() req,
+  ) {
+    const result = await this.healthCheckupService.diagnosis(
+      checkDiagnosisDto,
+      req.user.sub,
+    );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
