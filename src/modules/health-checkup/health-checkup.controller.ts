@@ -21,7 +21,7 @@ export class HealthCheckupController {
       beginCheckupDto,
       req.user.sub,
     );
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.CREATED, result);
   }
 
   @Post('parse')

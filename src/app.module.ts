@@ -24,6 +24,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { BanksModule } from './modules/banks/banks.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { WebsocketGateway } from './core/websocket/websocket.gateway';
+import { HealthCheckupModule } from './modules/health-checkup/health-checkup.module';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ dotenv.config();
     PromotionsModule,
     BanksModule,
     RatingsModule,
+    HealthCheckupModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebsocketGateway],
