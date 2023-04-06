@@ -4,6 +4,7 @@ import {
   verifyIdToken,
 } from 'apple-signin-auth';
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { FileUploadHelper } from '../../../common/helpers/file-upload.helpers';
 
 export type AppleResponseType = {
   authorization: {
@@ -22,21 +23,29 @@ export type AppleResponseType = {
 
 @Injectable()
 export class AppleAuth {
-  private readonly clientSecret: string;
+  private fileHelper: FileUploadHelper = new FileUploadHelper();
+  private secretKey;
   constructor() {
-    this.clientSecret = getClientSecret({
-      clientID: <string>process.env.APPLE_CLIENT_ID,
-      keyIdentifier: <string>process.env.APPLE_KEY_ID,
-      privateKeyPath: <string>process.env.APPLE_KEYFILE_PATH,
-      teamID: <string>process.env.APPLE_TEAM_ID,
-    });
+    this.init().then((res) => (this.secretKey = res));
+  }
+
+  async init() {
+    return await this.fileHelper.readAndDownloadFile();
   }
 
   async validate(payload: AppleResponseType) {
     const { authorization } = payload;
+
+    const clientSecret = getClientSecret({
+      clientID: <string>process.env.APPLE_CLIENT_ID,
+      keyIdentifier: <string>process.env.APPLE_KEY_ID,
+      privateKeyPath: this.secretKey,
+      teamID: <string>process.env.APPLE_TEAM_ID,
+    });
+
     const tokens = await getAuthorizationToken(authorization.code, {
       clientID: <string>process.env.APPLE_CLIENT_ID,
-      clientSecret: this.clientSecret,
+      clientSecret: clientSecret,
       redirectUri: <string>process.env.APPLE_CALLBACK,
     });
 
