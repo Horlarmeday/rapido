@@ -13,8 +13,6 @@ import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { GoogleOauthGuard } from './guards/google-auth.guard';
-import { AppleOauthGuard } from './guards/apple-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { EmailOtpVerifyDto } from './dto/email-otp-verify.dto';
@@ -44,28 +42,9 @@ export class AuthController {
     return sendSuccessResponse(message, result);
   }
 
-  @Get('google')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuth(@Request() req) {
-    console.log('Getting Google Oauth');
-  }
-
-  @Get('google/redirect')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuthRedirect(@Request() req: Request) {
-    const result = await this.authService.googleLogin(req);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
-  }
-
-  @Get()
-  @UseGuards(AppleOauthGuard)
-  async appleAuth(@Request() req): Promise<any> {
-    console.log('Getting Apple Oauth');
-  }
-
-  @Post('apple/redirect')
+  @Post('apple')
   @HttpCode(HttpStatus.OK)
-  async redirect(@Body() appleLoginDto: AppleLoginDto): Promise<any> {
+  async appleLogin(@Body() appleLoginDto: AppleLoginDto): Promise<any> {
     const { payload, user_type } = appleLoginDto;
     const result = await this.authService.appleLogin(payload, user_type);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);

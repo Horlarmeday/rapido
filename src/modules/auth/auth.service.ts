@@ -40,6 +40,7 @@ import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
+import { AppleAuth, AppleResponseType } from './strategies/appleAuth.strategy';
 
 @Injectable()
 export class AuthService {
@@ -51,6 +52,7 @@ export class AuthService {
     private readonly googleAuth: GoogleAuth,
     private readonly userSettingService: UserSettingsService,
     private readonly twilio: Twilio,
+    private readonly appleAuth: AppleAuth,
   ) {}
 
   async validateUserByEmail(
@@ -83,16 +85,6 @@ export class AuthService {
     return { message: Messages.USER_AUTHENTICATED, result: token };
   }
 
-  async googleLogin(req) {
-    if (!req.user) throw new BadRequestException(Messages.NO_GOOGLE_USER);
-    return this.socialMediaLogin({
-      ...req.user,
-      reg_medium: RegMedium.GOOGLE,
-      is_email_verified: true,
-      email_verified_at: new Date(),
-    });
-  }
-
   async googleAltLogin(token: string, user_type: UserType) {
     const data = await this.decodeGoogleData(token);
     if (!data.email) throw new BadRequestException(Messages.NO_GOOGLE_USER);
@@ -110,32 +102,23 @@ export class AuthService {
     return await this.googleAuth.validate(token);
   }
 
-  async decodeAppleData(payload: any) {
-    let user;
-    if (!payload?.id_token)
-      throw new BadRequestException(Messages.UNAUTHORIZED);
+  async decodeAppleData(payload: AppleResponseType) {
+    if (!payload) throw new BadRequestException(Messages.UNAUTHORIZED);
+    const { data, user } = await this.appleAuth.validate(payload);
+    if (!data?.email) throw new BadRequestException(Messages.NO_APPLE_USER);
 
-    if (payload.hasOwnProperty('id_token')) {
-      if (payload.hasOwnProperty('user')) {
-        const userData = JSON.parse(payload.user);
-        user = {
-          first_name: userData?.name.firstName,
-          last_name: userData?.name?.lastName,
-          email: userData?.email,
-        };
-        return user;
-      }
-      const decodedObj = await this.jwtService.decode(payload.id_token);
+    if (user) {
       return {
-        email: decodedObj != null && decodedObj['email'],
+        first_name: user.name.firstName,
+        last_name: user?.name?.lastName,
+        email: user?.email,
       };
     }
-    throw new BadRequestException(Messages.NO_APPLE_USER);
+    return { email: data.email };
   }
 
-  async appleLogin(req, user_type) {
-    const data = await this.decodeAppleData(req);
-    if (!data.email) throw new BadRequestException(Messages.NO_APPLE_USER);
+  async appleLogin(payload: AppleResponseType, user_type: UserType) {
+    const data = await this.decodeAppleData(payload);
     return this.socialMediaLogin({
       ...data,
       reg_medium: RegMedium.APPLE,

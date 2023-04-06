@@ -10,9 +10,9 @@ import * as dotenv from 'dotenv';
 import { TokensModule } from '../tokens/tokens.module';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { GoogleAuth } from './strategies/googleAuth.strategy';
-import { GoogleStrategy } from './strategies/google.strategy';
 import { UserSettingsModule } from '../user-settings/user-settings.module';
 import { Twilio } from '../../common/external/twilio/twilio';
+import { AppleAuth } from './strategies/appleAuth.strategy';
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ dotenv.config();
     JwtStrategy,
     GeneralHelpers,
     GoogleAuth,
-    GoogleStrategy,
+    AppleAuth,
     Twilio,
   ],
 })
