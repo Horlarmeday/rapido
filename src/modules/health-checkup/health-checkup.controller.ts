@@ -1,4 +1,14 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { HealthCheckupService } from './health-checkup.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ParseTextDto } from './dto/parse-text.dto';
@@ -9,6 +19,7 @@ import { SuggestedSymptomsDto } from './dto/suggested-symptoms.dto';
 import { CheckDiagnosisDto } from './dto/check-diagnosis.dto';
 import { ExplainConditionDto } from './dto/explain-condition.dto';
 import { BeginCheckupDto } from './dto/begin-checkup.dto';
+import { SearchQueryDto } from './dto/search-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('health-checkup')
@@ -21,23 +32,26 @@ export class HealthCheckupController {
       beginCheckupDto,
       req.user.sub,
     );
-    return sendSuccessResponse(Messages.CREATED, result);
+    return sendSuccessResponse(Messages.CREATED, result?.data);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('parse')
   async parseFreeText(@Body() parseTextDto: ParseTextDto) {
     const result = await this.healthCheckupService.parseFreeText(parseTextDto);
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('risk-factors')
   async getRiskFactors(@Body() riskFactorsDto: RiskFactorsDto) {
     const result = await this.healthCheckupService.getRiskFactors(
       riskFactorsDto.age,
     );
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('symptoms')
   async getSuggestedSymptoms(
     @Body() suggestedSymptomsDto: SuggestedSymptomsDto,
@@ -45,9 +59,10 @@ export class HealthCheckupController {
     const result = await this.healthCheckupService.getSuggestedSymptoms(
       suggestedSymptomsDto,
     );
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('diagnosis')
   async checkDiagnosis(
     @Body() checkDiagnosisDto: CheckDiagnosisDto,
@@ -57,14 +72,21 @@ export class HealthCheckupController {
       checkDiagnosisDto,
       req.user.sub,
     );
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('explain-condition')
   async explainCondition(@Body() explainConditionDto: ExplainConditionDto) {
     const result = await this.healthCheckupService.explainCondition(
       explainConditionDto,
     );
-    return sendSuccessResponse(Messages.RETRIEVED, result);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
+  }
+
+  @Get('search')
+  async search(@Query() searchQueryDto: SearchQueryDto) {
+    const result = await this.healthCheckupService.search(searchQueryDto);
+    return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 }

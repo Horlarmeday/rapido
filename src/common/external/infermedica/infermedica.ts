@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { get, post } from '../axios';
+import { SearchQueryDto } from '../../../modules/health-checkup/dto/search-query.dto';
 
 export class Infermedica {
   private baseUrl = 'https://api.infermedica.com/v3/';
@@ -31,7 +32,7 @@ export class Infermedica {
   }
 
   getSuggestedSymptoms(data) {
-    return post(`${this.baseUrl}suggest`, JSON.stringify(data), {
+    return post(`${this.baseUrl}suggest`, data, {
       headers: this.headers,
     });
   }
@@ -46,5 +47,17 @@ export class Infermedica {
     return post(`${this.baseUrl}explain`, JSON.stringify(data), {
       headers: this.headers,
     });
+  }
+
+  search(data: SearchQueryDto) {
+    const { phrase, sex, max_results, age } = data;
+    const params = {
+      phrase,
+      'age.value': age,
+      sex,
+      max_results,
+      types: 'symptom',
+    };
+    return get(`${this.baseUrl}search`, this.headers, params);
   }
 }

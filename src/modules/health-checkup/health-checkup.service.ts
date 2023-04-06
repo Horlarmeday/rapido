@@ -12,6 +12,7 @@ import {
 import { Model, Types } from 'mongoose';
 import { BeginCheckupDto } from './dto/begin-checkup.dto';
 import { create, updateOne } from '../../common/crud/crud';
+import { SearchQueryDto } from './dto/search-query.dto';
 
 const { ObjectId } = Types;
 
@@ -66,5 +67,9 @@ export class HealthCheckupService {
 
   async explainCondition(explainConditionDto: ExplainConditionDto) {
     return this.infermedica.explain(explainConditionDto);
+  }
+
+  async search(searchQueryDto: SearchQueryDto) {
+    return this.infermedica.search(searchQueryDto);
   }
 }
