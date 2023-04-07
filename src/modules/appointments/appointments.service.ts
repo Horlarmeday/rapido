@@ -33,6 +33,7 @@ import {
   findAndCountAll,
   findById,
   updateOne,
+  upsert,
 } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
 import { User } from '../users/entities/user.entity';
@@ -49,6 +50,7 @@ import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 import { Referral, ReferralDocument } from './entities/referral.entity';
+import { MeetingNotesDto } from './dto/meeting-notes.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -447,6 +449,14 @@ export class AppointmentsService {
       this.referralModel,
       { 'specialists.id': userId },
       { populate: 'appointment' },
+    );
+  }
+
+  async addMeetingNotes(meetingNotesDto: MeetingNotesDto) {
+    return await upsert(
+      this.appointmentModel,
+      { _id: meetingNotesDto.appointmentId },
+      { $push: { notes: { ...meetingNotesDto } } },
     );
   }
 }

@@ -24,6 +24,7 @@ import { DoesUserHaveCard } from '../../core/guards/doesUserHaveCard';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 import { EndZoomMeetingDto } from './dto/end-zoom-meeting.dto';
+import { MeetingNotesDto } from './dto/meeting-notes.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -135,5 +136,13 @@ export class AppointmentsController {
       endZoomMeetingDto.appointmentId,
     );
     return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @Patch('meeting-notes')
+  async addMeetingNotes(@Body() meetingNotesDto: MeetingNotesDto) {
+    const result = await this.appointmentsService.addMeetingNotes(
+      meetingNotesDto,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
   }
 }

@@ -87,6 +87,16 @@ export class Appointment {
     default: MeetingType.VIDEO_AUDIO,
   })
   meeting_type: MeetingType;
+
+  @Prop(
+    raw([
+      {
+        content: { type: String },
+        createdAt: { type: Date, default: new Date() },
+      },
+    ]),
+  )
+  notes: string[];
 }
 const AppointmentSchema = SchemaFactory.createForClass(Appointment);
 AppointmentSchema.pre('find', function (next) {
