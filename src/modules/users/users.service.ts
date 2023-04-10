@@ -50,6 +50,8 @@ import {
 import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
 import { CreateAwardDto } from './dto/create-award.dto';
 import { CreateCertificationsDto } from './dto/create-certifications.dto';
+import { PatientAdvancedFilterDto } from './dto/patient-advanced-filter.dto';
+import { SpecialistAdvancedFilterDto } from './dto/specialist-advanced-filter.dto';
 
 const { ObjectId } = Types;
 
@@ -488,11 +490,13 @@ export class UsersService {
     }
     return [
       '-profile.password',
-      '-profile.twpFA_secret',
+      '-profile.twoFA_secret',
       '-documents',
       '-professional_practice',
       '-earnings',
       '-average_rating',
+      '-verification_status',
+      '-awards',
     ];
   }
 
@@ -758,5 +762,178 @@ export class UsersService {
 
   async getTimeAvailabilityAndPreferences(userId: Types.ObjectId) {
     return await findOne(this.specialistPreferencesModel, { userId });
+  }
+
+  // ADMIN METHODS
+  async getPatients(patientAdvancedFilterDto: PatientAdvancedFilterDto) {
+    const {
+      currentPage,
+      gender,
+      pageLimit,
+      dateReg,
+      maxDependant,
+      minDependant,
+      search,
+      country,
+      state,
+      plan,
+    } = patientAdvancedFilterDto;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const query = {
+      user_type: UserType.PATIENT,
+      ...(gender && { 'profile.gender': gender }),
+      ...(country && { 'profile.contact.country': country }),
+      ...(state && { 'profile.contact.state': state }),
+      ...(dateReg && {
+        createdAt: {
+          $gte: new Date(new Date(dateReg).setHours(0, 0, 0)),
+          $lte: new Date(new Date(dateReg).setHours(23, 59, 59)),
+        },
+      }),
+      ...(minDependant && { dependants: { $size: +minDependant } }),
+      ...(maxDependant && { dependants: { $size: +maxDependant } }),
+      ...(plan && { 'plan.plan_name': plan }),
+    };
+    let result: { patients: UserDocument[]; count: number };
+
+    if (search) {
+      result = await this.searchPatients(limit, offset, search, query);
+    } else {
+      result = await this.queryPatients(limit, offset, query);
+    }
+
+    return this.generalHelpers.paginate(
+      result.patients,
+      +currentPage,
+      limit,
+      result.count,
+    );
+  }
+
+  async searchPatients(
+    limit: number,
+    offset: number,
+    search: string,
+    query,
+  ): Promise<{ patients: UserDocument[]; count: number }> {
+    const patients = (await findAndCountAll({
+      model: this.userModel,
+      query,
+      limit,
+      offset,
+      options: { selectFields: this.getSelectedFields(query.user_type) },
+      displayScore: true,
+    })) as UserDocument[];
+    return {
+      patients,
+      count: await countDocuments(this.userModel, { ...query }),
+    };
+  }
+
+  async queryPatients(
+    limit: number,
+    offset: number,
+    query,
+  ): Promise<{ patients: UserDocument[]; count: number }> {
+    const patients = (await findAndCountAll({
+      model: this.userModel,
+      query,
+      limit,
+      offset,
+      options: { selectFields: this.getSelectedFields(query.user_type) },
+    })) as UserDocument[];
+    return {
+      patients,
+      count: await countDocuments(this.userModel, { ...query }),
+    };
+  }
+
+  async getSpecialists(
+    specialistAdvancedFilterDto: SpecialistAdvancedFilterDto,
+  ) {
+    const {
+      currentPage,
+      gender,
+      pageLimit,
+      dateReg,
+      search,
+      country,
+      state,
+      category,
+      status,
+    } = specialistAdvancedFilterDto;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const query = {
+      user_type: UserType.SPECIALIST,
+      ...(gender && { 'profile.gender': gender }),
+      ...(country && { 'profile.contact.country': country }),
+      ...(state && { 'profile.contact.state': state }),
+      ...(dateReg && {
+        createdAt: {
+          $gte: new Date(new Date(dateReg).setHours(0, 0, 0)),
+          $lte: new Date(new Date(dateReg).setHours(23, 59, 59)),
+        },
+      }),
+      ...(status && { status }),
+      ...(category && { 'professional_practice.category': category }),
+    };
+    let result: { specialists: UserDocument[]; count: number };
+
+    if (search) {
+      result = await this.searchSpecialists(limit, offset, search, query);
+    } else {
+      result = await this.querySpecialists(limit, offset, query);
+    }
+
+    return this.generalHelpers.paginate(
+      result.specialists,
+      +currentPage,
+      limit,
+      result.count,
+    );
+  }
+
+  async searchSpecialists(
+    limit: number,
+    offset: number,
+    search: string,
+    query,
+  ): Promise<{ specialists: UserDocument[]; count: number }> {
+    const specialists = (await findAndCountAll({
+      model: this.userModel,
+      query,
+      limit,
+      offset,
+      options: { selectFields: this.getSelectedFields(query.user_type) },
+      displayScore: true,
+    })) as UserDocument[];
+    return {
+      specialists,
+      count: await countDocuments(this.userModel, { ...query }),
+    };
+  }
+
+  async querySpecialists(
+    limit: number,
+    offset: number,
+    query,
+  ): Promise<{ specialists: UserDocument[]; count: number }> {
+    const specialists = (await findAndCountAll({
+      model: this.userModel,
+      query,
+      limit,
+      offset,
+      options: { selectFields: this.getSelectedFields(query.user_type) },
+    })) as UserDocument[];
+    return {
+      specialists,
+      count: await countDocuments(this.userModel, { ...query }),
+    };
   }
 }

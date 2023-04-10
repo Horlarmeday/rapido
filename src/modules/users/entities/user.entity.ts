@@ -27,6 +27,18 @@ export enum RegMedium {
   LOCAL = 'LOCAL',
 }
 
+export enum ProfileStatus {
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+  CANCELLED = 'Cancelled',
+}
+
+export enum VerificationStatus {
+  VERIFIED = 'Verified',
+  UNVERIFIED = 'Unverified',
+  SUSPENDED = 'Suspended',
+}
+
 @Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   toJSON: { getters: true, virtuals: true },
@@ -362,6 +374,32 @@ export class User {
 
   @Prop({ type: Number, default: 0 })
   average_rating: number;
+
+  @Prop({
+    type: String,
+    enum: {
+      values: [
+        VerificationStatus.SUSPENDED,
+        VerificationStatus.VERIFIED,
+        VerificationStatus.UNVERIFIED,
+      ],
+    },
+    default: VerificationStatus.UNVERIFIED,
+  })
+  verification_status: VerificationStatus;
+
+  @Prop({
+    type: String,
+    enum: {
+      values: [
+        ProfileStatus.ACTIVE,
+        ProfileStatus.CANCELLED,
+        ProfileStatus.CANCELLED,
+      ],
+    },
+    default: ProfileStatus.ACTIVE,
+  })
+  status: ProfileStatus;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {
