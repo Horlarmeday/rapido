@@ -36,7 +36,7 @@ export class FileUploadHelper {
       const data = await this.S3.getObject(params).promise();
       return data.Body?.toString('utf-8');
     } catch (e) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(e);
     }
   }
 }
