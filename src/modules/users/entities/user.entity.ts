@@ -107,6 +107,7 @@ export class User {
             minLength: 10,
             maxLength: 10,
             unique: true,
+            sparse: true,
           },
         },
         address1: { type: String },
