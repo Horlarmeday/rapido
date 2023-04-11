@@ -14,16 +14,17 @@ export type TransferRecipient = {
 
 export type TransferToRecipient = {
   recipient: TransferRecipient;
-  amount: string;
+  amount: number;
   reference: string;
-  reason: string;
-  currency: string;
+  reason?: string;
+  currency?: string;
 };
 
 export type TokenizedCharge = {
   email: string;
-  amount: string;
+  amount: number;
   reference: string;
   token: string;
   currency: string;
+  metadata: object;
 };

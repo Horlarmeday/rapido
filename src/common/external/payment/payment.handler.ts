@@ -39,6 +39,7 @@ export class PaymentHandler implements IPaymentInterface {
     reference,
     token,
     currency = 'NGN',
+    metadata = {},
   }: TokenizedCharge) {
     return this.paystack.tokenizedCharge({
       email,
@@ -46,6 +47,7 @@ export class PaymentHandler implements IPaymentInterface {
       currency,
       reference,
       token,
+      metadata,
     });
   }
 

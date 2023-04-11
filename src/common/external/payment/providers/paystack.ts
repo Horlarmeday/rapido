@@ -85,13 +85,20 @@ export class Paystack implements IPaymentInterface {
     return get(url, this.headers, params);
   }
 
-  async tokenizedCharge({ email, amount, reference, token }: TokenizedCharge) {
+  async tokenizedCharge({
+    email,
+    amount,
+    reference,
+    token,
+    metadata,
+  }: TokenizedCharge) {
     const url = `${this.baseUrl}${this.chargeAuthorizationUrl}`;
     const data = {
       email,
       amount: (+amount * 100).toString(),
       reference,
       token,
+      metadata,
     };
     const response = await post(url, data, { headers: this.headers });
     this.logger.log(`A card charge attempt made on ${email} account`);
@@ -134,14 +141,14 @@ export class Paystack implements IPaymentInterface {
       account_number: recipient.account_number,
       bank_name: recipient.bank_name,
     });
-    if (beneficiary.data.recipient_code) {
+    if (beneficiary?.data?.data?.recipient_code) {
       const data = {
         source: 'balance',
         reason,
         amount: (+amount * 100).toString(),
         currency,
         reference,
-        recipient: beneficiary.data.recipient_code,
+        recipient: beneficiary.data.data.recipient_code,
       };
       const response = await post(url, data, { headers: this.headers });
       this.logger.log(
