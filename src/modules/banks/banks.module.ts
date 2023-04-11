@@ -11,5 +11,6 @@ import { Paystack } from '../../common/external/payment/providers/paystack';
   ],
   controllers: [BanksController],
   providers: [BanksService, Paystack],
+  exports: [BanksService],
 })
 export class BanksModule {}

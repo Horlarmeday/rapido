@@ -45,6 +45,12 @@ export class BanksService {
     return await find(this.bankModel, { userId });
   }
 
+  async getBank(bankId: Types.ObjectId) {
+    const bank = await findOne(this.bankModel, { _id: bankId });
+    if (!bank) throw new NotFoundException(Messages.BANK_NOT_FOUND);
+    return bank;
+  }
+
   makeBankAccountDefault(bankId: Types.ObjectId) {
     return updateOneAndReturn(
       this.bankModel,
