@@ -24,6 +24,9 @@ export class Subscription {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Plan', required: true })
   planId: Types.ObjectId;
 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Card', required: true })
+  cardId: Types.ObjectId;
+
   @Prop({ type: Date })
   current_period_end: Date;
 

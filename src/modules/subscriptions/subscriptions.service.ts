@@ -41,25 +41,55 @@ export class SubscriptionsService {
     createSubscriptionDto: CreateSubscriptionDto,
     userId: Types.ObjectId,
   ) {
-    //todo: Use transactions here
-    const subscription = await create(this.subscriptionModel, {
-      ...createSubscriptionDto,
-      userId,
+    const { cardId, planId, recurrence } = createSubscriptionDto;
+    const [user, card, plan] = await Promise.all([
+      this.usersService.findById(userId),
+      this.cardsService.getCard(cardId),
+      this.plansService.findOnePlan(planId),
+    ]);
+    const amount =
+      recurrence === Recurrence.ANNUALLY
+        ? plan.amount * 12 // multiply amount by the next 12 months
+        : plan.amount;
+    const reference = this.generalHelpers.genTxReference();
+    const metadata = {
+      name: user.full_name,
+      email: user.profile.contact.email,
+      payment_for: PaymentFor.SUBSCRIPTION,
+    };
+    const response = await this.paymentHandler.tokenizedCharge({
+      email: user.profile.contact.email,
+      amount,
+      reference,
+      token: card.auth_code,
+      currency: 'NGN',
+      metadata,
     });
-    const plan = await this.plansService.findOnePlan(
-      createSubscriptionDto.planId,
-    );
-    await this.usersService.updateOne(userId, {
-      plan: {
-        plan_name: plan.name,
-        planId: createSubscriptionDto.planId,
-      },
-    });
-    return subscription;
+    if (response.status === SUCCESS) {
+      await this.paymentService.create(
+        userId,
+        reference,
+        plan.amount,
+        PaymentFor.SUBSCRIPTION,
+      );
+      //todo: Use transactions here
+      const subscription = await create(this.subscriptionModel, {
+        ...createSubscriptionDto,
+        userId,
+      });
+      await this.usersService.updateOne(userId, {
+        plan: {
+          plan_name: plan.name,
+          planId: plan._id,
+        },
+      });
+      return this.verifySubscription(reference, subscription._id);
+    }
+    throw new InternalServerErrorException();
   }
 
   async findOneSubscription(
-    subscriptionId: string,
+    subscriptionId: Types.ObjectId,
   ): Promise<SubscriptionDocument> {
     return await findOne(
       this.subscriptionModel,
@@ -105,12 +135,11 @@ export class SubscriptionsService {
     return response.data;
   }
 
-  async verifySubscription(reference: string) {
+  async verifySubscription(reference: string, subscriptionId: Types.ObjectId) {
     const response = await this.paymentHandler.verifyTransaction(reference);
     try {
       switch (response?.data?.status) {
         case SUCCESS:
-          const subscriptionId = response.data.metadata.subscription_id;
           const subscription = await this.findOneSubscription(subscriptionId);
           await Promise.all([
             this.updateSubscription(subscriptionId, {
@@ -136,10 +165,9 @@ export class SubscriptionsService {
           ]);
           return this.findOneSubscription(subscriptionId);
         case FAILED:
-          const subscriptionId1 = response.data.metadata.subscription_id;
-          const subscription1 = await this.findOneSubscription(subscriptionId1);
+          const subscription1 = await this.findOneSubscription(subscriptionId);
           await Promise.all([
-            this.updateSubscription(subscriptionId1, {
+            this.updateSubscription(subscriptionId, {
               status: SubscriptionStatus.DECLINED,
               current_period_end: this.calculatePeriodEnd(
                 subscription1.recurrence,
@@ -150,17 +178,15 @@ export class SubscriptionsService {
             this.paymentService.updatePayment(reference, {
               status: Status.FAILED,
               metadata: {
-                subscription_id: subscriptionId1,
+                subscription_id: subscriptionId,
               },
             }),
           ]);
-          return this.findOneSubscription(subscriptionId1);
+          return this.findOneSubscription(subscriptionId);
         case PENDING:
-          const subscriptionId2 = response.data.metadata.subscription_id;
-          return this.findOneSubscription(subscriptionId2);
+          return this.findOneSubscription(subscriptionId);
         default:
-          const subscriptionId3 = response.data.metadata.subscription_id;
-          return this.findOneSubscription(subscriptionId3);
+          return this.findOneSubscription(subscriptionId);
       }
     } catch (e) {
       this.logger.error('An error occurred verifying subscription', e);
@@ -168,7 +194,10 @@ export class SubscriptionsService {
     }
   }
 
-  async updateSubscription(subscriptionId: string, fieldsToUpdate: object) {
+  async updateSubscription(
+    subscriptionId: Types.ObjectId,
+    fieldsToUpdate: object,
+  ) {
     await updateOne(
       this.subscriptionModel,
       { _id: subscriptionId },

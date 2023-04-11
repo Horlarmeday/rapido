@@ -51,8 +51,10 @@ export class SubscriptionsController {
   async verifyTransaction(
     @Body() verifySubTransactionDto: VerifySubTransactionDto,
   ) {
+    const { reference, subscriptionId } = verifySubTransactionDto;
     const result = await this.subscriptionsService.verifySubscription(
-      verifySubTransactionDto.reference,
+      reference,
+      subscriptionId,
     );
     return sendSuccessResponse(Messages.TRANSACTION_VERIFIED, result);
   }
