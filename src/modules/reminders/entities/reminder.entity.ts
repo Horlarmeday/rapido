@@ -69,6 +69,7 @@ export class Reminder {
   @Prop({
     type: String,
     enum: { values: [Interval.DAYS, Interval.MONTHS, Interval.WEEKS] },
+    default: Interval.DAYS,
   })
   interval: Interval;
 

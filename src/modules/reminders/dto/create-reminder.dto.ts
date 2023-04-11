@@ -1,5 +1,11 @@
 import { Frequency, Interval } from '../entities/reminder.entity';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateReminderDto {
@@ -18,6 +24,7 @@ export class CreateReminderDto {
   @IsEnum(Frequency)
   frequency: Frequency;
 
+  @ValidateIf((o) => o.interval !== null)
   @IsEnum(Interval)
   interval: Interval;
 
