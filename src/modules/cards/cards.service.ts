@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Card, CardDocument } from './entities/card.entity';
@@ -23,6 +24,7 @@ import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { UsersService } from '../users/users.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { PaymentsService } from '../payments/payments.service';
+import { Messages } from '../../core/messages/messages';
 
 @Injectable()
 export class CardsService {
@@ -140,5 +142,11 @@ export class CardsService {
       this.logger.error('An error occurred verifying card add', e);
       throw new InternalServerErrorException(e, 'An error occurred');
     }
+  }
+
+  async getCard(cardId: Types.ObjectId): Promise<CardDocument> {
+    const card = await findOne(this.cardModel, { _id: cardId });
+    if (!card) throw new NotFoundException(Messages.CARD_NOT_FOUND);
+    return card;
   }
 }

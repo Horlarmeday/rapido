@@ -8,6 +8,10 @@ export class CreateSubscriptionDto {
   planId: Types.ObjectId;
 
   @IsNotEmpty()
+  @IsString()
+  cardId: Types.ObjectId;
+
+  @IsNotEmpty()
   @IsEnum(Recurrence)
   recurrence: Recurrence;
 }
