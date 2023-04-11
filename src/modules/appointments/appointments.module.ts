@@ -40,5 +40,6 @@ import { Referral, ReferralSchema } from './entities/referral.entity';
     PaymentHandler,
     Paystack,
   ],
+  exports: [AppointmentsService],
 })
 export class AppointmentsModule {}

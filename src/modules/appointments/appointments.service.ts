@@ -4,6 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { isEmpty } from 'lodash';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import ical, {
@@ -325,7 +326,7 @@ export class AppointmentsService {
     const { status } = queryStatus || {};
     return await find(this.appointmentModel, {
       patient: userId,
-      ...(status && { status }),
+      ...(!isEmpty(status) && { status }),
     });
   }
 
