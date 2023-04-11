@@ -6,5 +6,5 @@ export enum AdminStatus {
 
 export enum Role {
   ADMIN = 'Admin',
-  SUPERADMIN = 'SuperAdmin',
+  SUPERADMIN = 'Super Admin',
 }

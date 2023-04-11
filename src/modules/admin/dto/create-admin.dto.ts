@@ -1,5 +1,12 @@
-import { AdminStatus, Role } from '../types/admin.types';
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { Role } from '../types/admin.types';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateAdminDto {
   @IsNotEmpty()
@@ -14,10 +21,24 @@ export class CreateAdminDto {
   @IsNotEmpty()
   @IsString()
   readonly password: string;
-  @IsNotEmpty()
-  @IsEnum(AdminStatus)
-  readonly status: AdminStatus;
+
   @IsNotEmpty()
   @IsEnum(Role)
   readonly role: Role;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly country_code: string;
+
+  @IsString()
+  @MinLength(10, {
+    message:
+      'Phone number is too short. Minimal length is $constraint1 characters, but actual is $value',
+  })
+  @MaxLength(10, {
+    message:
+      'Phone number is too long. Minimal length is $constraint1 characters, but actual is $value',
+  })
+  @IsNotEmpty()
+  readonly phone: string;
 }

@@ -21,7 +21,13 @@ export class AdminService {
     private readonly walletsService: WalletsService,
   ) {}
   async createAdminAccount(createAdminDto: CreateAdminDto) {
-    return await create(this.adminModel, { ...createAdminDto });
+    return await create(this.adminModel, {
+      ...createAdminDto,
+      phone: {
+        country_code: createAdminDto.country_code,
+        number: createAdminDto.phone,
+      },
+    });
   }
 
   async getPatients(patientAdvancedFilterDto: PatientAdvancedFilterDto) {
