@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -6,6 +6,7 @@ import { Messages } from '../../core/messages/messages';
 import { PatientAdvancedFilterDto } from '../users/dto/patient-advanced-filter.dto';
 import { Types } from 'mongoose';
 import { SpecialistAdvancedFilterDto } from '../users/dto/specialist-advanced-filter.dto';
+import { QueryIntervalDto } from './dto/query-interval.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -44,6 +45,22 @@ export class AdminController {
   @Get('specialists/:id')
   async getSpecialist(@Param('id') id: Types.ObjectId) {
     const result = await this.adminService.getSpecialist(id);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('dashboard-patients-analytics')
+  async getPatientDashboardAnalytics(
+    @Query() queryIntervalDto: QueryIntervalDto,
+  ) {
+    const result = await this.adminService.dashboardPatientAnalytics(
+      queryIntervalDto,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('dashboard-specialists-analytics')
+  async getSpecialistDashboardAnalytics() {
+    const result = await this.adminService.dashboardSpecialistAnalytics();
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 }

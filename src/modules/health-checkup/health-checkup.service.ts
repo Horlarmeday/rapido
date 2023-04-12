@@ -41,7 +41,7 @@ export class HealthCheckupService {
     if (checkDiagnosisDto.should_stop) {
       const checkup = await this.healthCheckupModel
         .findOne({ userId })
-        .sort({ createdAt: -1 });
+        .sort({ created_at: -1 });
       if (checkup) {
         await updateOne(
           this.healthCheckupModel,

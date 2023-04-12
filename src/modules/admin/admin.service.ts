@@ -10,6 +10,7 @@ import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { SpecialistAdvancedFilterDto } from '../users/dto/specialist-advanced-filter.dto';
 import { WalletsService } from '../wallets/wallets.service';
+import { QueryIntervalDto } from './dto/query-interval.dto';
 
 @Injectable()
 export class AdminService {
@@ -56,5 +57,13 @@ export class AdminService {
       this.appointmentsService.getSpecialistAppointments(userId, {}),
     ]);
     return { ...user, transactions, appointments };
+  }
+
+  async dashboardSpecialistAnalytics() {
+    return await this.usersService.dashboardSpecialistAnalytics();
+  }
+
+  async dashboardPatientAnalytics(queryIntervalDto: QueryIntervalDto) {
+    return await this.usersService.dashboardPatientAnalytics(queryIntervalDto);
   }
 }

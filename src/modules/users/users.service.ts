@@ -12,6 +12,7 @@ import {
   User,
   UserDocument,
   UserType,
+  VerificationStatus,
 } from './entities/user.entity';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -52,6 +53,8 @@ import { CreateAwardDto } from './dto/create-award.dto';
 import { CreateCertificationsDto } from './dto/create-certifications.dto';
 import { PatientAdvancedFilterDto } from './dto/patient-advanced-filter.dto';
 import { SpecialistAdvancedFilterDto } from './dto/specialist-advanced-filter.dto';
+import { Interval, QueryIntervalDto } from '../admin/dto/query-interval.dto';
+import moment from 'moment';
 
 const { ObjectId } = Types;
 
@@ -788,7 +791,7 @@ export class UsersService {
       ...(country && { 'profile.contact.country': country }),
       ...(state && { 'profile.contact.state': state }),
       ...(dateReg && {
-        createdAt: {
+        created_at: {
           $gte: new Date(new Date(dateReg).setHours(0, 0, 0)),
           $lte: new Date(new Date(dateReg).setHours(23, 59, 59)),
         },
@@ -875,7 +878,7 @@ export class UsersService {
       ...(country && { 'profile.contact.country': country }),
       ...(state && { 'profile.contact.state': state }),
       ...(dateReg && {
-        createdAt: {
+        created_at: {
           $gte: new Date(new Date(dateReg).setHours(0, 0, 0)),
           $lte: new Date(new Date(dateReg).setHours(23, 59, 59)),
         },
@@ -935,5 +938,170 @@ export class UsersService {
       specialists,
       count: await countDocuments(this.userModel, { ...query }),
     };
+  }
+
+  async dashboardSpecialistAnalytics() {
+    const [totalSpecialists, verifiedSpecialists, categoriesCount] =
+      await Promise.all([
+        countDocuments(this.userModel, {
+          user_type: UserType.SPECIALIST,
+        }),
+        countDocuments(this.userModel, {
+          user_type: UserType.SPECIALIST,
+          verification_status: VerificationStatus.VERIFIED,
+        }),
+        this.userModel.aggregate([
+          {
+            $group: {
+              _id: '$professional_practice.category',
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+      ]);
+    const unVerifiedSpecialists = totalSpecialists - verifiedSpecialists;
+    const percentageVerified = (verifiedSpecialists / totalSpecialists) * 100;
+    const percentageUnverified =
+      (unVerifiedSpecialists / totalSpecialists) * 100;
+    return {
+      totalSpecialists,
+      verifiedSpecialists,
+      unVerifiedSpecialists,
+      percentageVerified,
+      percentageUnverified,
+      categoriesCount,
+    };
+  }
+
+  async dashboardPatientAnalytics(queryIntervalDto: QueryIntervalDto) {
+    switch (queryIntervalDto.interval) {
+      case Interval.WEEK:
+        const [patients, newPatients, weekData] = await Promise.all([
+          countDocuments(this.userModel, {
+            user_type: UserType.PATIENT,
+            created_at: {
+              $gte: moment().startOf('week').toDate(),
+              $lt: new Date(new Date().setHours(23, 59, 59)),
+            },
+          }),
+          countDocuments(this.userModel, {
+            user_type: UserType.PATIENT,
+            is_email_verified: false,
+            created_at: {
+              $gte: moment().startOf('week').toDate(),
+              $lt: new Date(new Date().setHours(23, 59, 59)),
+            },
+          }),
+          this.userModel.aggregate([
+            {
+              $match: {
+                created_at: {
+                  $gte: moment().startOf('week').toDate(),
+                  $lt: moment().endOf('week').toDate(),
+                },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
+                },
+                count: { $sum: 1 },
+              },
+            },
+          ]),
+        ]);
+        return {
+          duration: Interval.WEEK,
+          totalPatients: patients,
+          newPatients,
+          graphData: weekData,
+        };
+      case Interval.MONTH:
+        const [monthPatients, newMonthPatients, monthData] = await Promise.all([
+          countDocuments(this.userModel, {
+            user_type: UserType.PATIENT,
+            created_at: {
+              $gte: moment().startOf('month').toDate(),
+              $lt: new Date(new Date().setHours(23, 59, 59)),
+            },
+          }),
+          countDocuments(this.userModel, {
+            user_type: UserType.PATIENT,
+            is_email_verified: false,
+            created_at: {
+              $gte: moment().startOf('month').toDate(),
+              $lt: new Date(new Date().setHours(23, 59, 59)),
+            },
+          }),
+          this.userModel.aggregate([
+            {
+              $match: {
+                created_at: {
+                  $gte: moment().startOf('month').toDate(),
+                  $lt: moment().endOf('month').toDate(),
+                },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
+                },
+                count: { $sum: 1 },
+              },
+            },
+          ]),
+        ]);
+        return {
+          duration: Interval.MONTH,
+          totalPatients: monthPatients,
+          newPatients: newMonthPatients,
+          graphData: monthData,
+        };
+      default:
+        const [defaultTotalPatients, defaultNewPatients, defaultData] =
+          await Promise.all([
+            countDocuments(this.userModel, {
+              user_type: UserType.PATIENT,
+              created_at: {
+                $gte: moment().startOf('week').toDate(),
+                $lt: new Date(new Date().setHours(23, 59, 59)),
+              },
+            }),
+            countDocuments(this.userModel, {
+              user_type: UserType.PATIENT,
+              is_email_verified: false,
+              created_at: {
+                $gte: moment().startOf('week').toDate(),
+                $lt: new Date(new Date().setHours(23, 59, 59)),
+              },
+            }),
+            this.userModel.aggregate([
+              {
+                $match: {
+                  created_at: {
+                    $gte: moment().startOf('week').toDate(),
+                    $lt: moment().endOf('week').toDate(),
+                  },
+                },
+              },
+              {
+                $group: {
+                  _id: {
+                    $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
+                  },
+                  count: { $sum: 1 },
+                },
+              },
+            ]),
+          ]);
+        return {
+          duration: Interval.WEEK,
+          totalPatients: defaultTotalPatients,
+          newPatients: defaultNewPatients,
+          graphData: defaultData,
+        };
+    }
   }
 }

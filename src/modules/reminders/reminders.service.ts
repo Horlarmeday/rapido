@@ -23,7 +23,7 @@ export class RemindersService {
   ) {
     return await create(this.reminderModel, {
       ...createReminderDto,
-      interval: createReminderDto.interval || Interval.DAYS,
+      interval: createReminderDto?.interval || Interval.DAYS,
       userId,
     });
   }
