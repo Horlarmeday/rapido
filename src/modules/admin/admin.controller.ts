@@ -19,7 +19,9 @@ export class AdminController {
   }
 
   @Get('patients')
-  async getPatients(patientAdvancedFilterDto: PatientAdvancedFilterDto) {
+  async getPatients(
+    @Query() patientAdvancedFilterDto: PatientAdvancedFilterDto,
+  ) {
     const result = await this.adminService.getPatients(
       patientAdvancedFilterDto,
     );
@@ -34,7 +36,7 @@ export class AdminController {
 
   @Get('specialists')
   async getSpecialists(
-    specialistAdvancedFilterDto: SpecialistAdvancedFilterDto,
+    @Query() specialistAdvancedFilterDto: SpecialistAdvancedFilterDto,
   ) {
     const result = await this.adminService.getSpecialists(
       specialistAdvancedFilterDto,
