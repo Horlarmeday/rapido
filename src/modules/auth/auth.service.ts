@@ -60,7 +60,7 @@ export class AuthService {
     pass: string,
   ): Promise<IJwtPayload | null> {
     const user = await this.usersService.findOneByEmail(email);
-    if (user && user?.reg_medium !== RegMedium.LOCAL) {
+    if (user && !user?.profile?.password) {
       throw new BadRequestException(Messages.SOCIAL_MEDIA_LOGIN);
     }
     const isValidPassword = await this.comparePassword(

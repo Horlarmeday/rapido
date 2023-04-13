@@ -979,14 +979,9 @@ export class UsersService {
         const [patients, newPatients, weekData] = await Promise.all([
           countDocuments(this.userModel, {
             user_type: UserType.PATIENT,
-            created_at: {
-              $gte: moment().startOf('week').toDate(),
-              $lt: new Date(new Date().setHours(23, 59, 59)),
-            },
           }),
           countDocuments(this.userModel, {
             user_type: UserType.PATIENT,
-            is_email_verified: false,
             created_at: {
               $gte: moment().startOf('week').toDate(),
               $lt: new Date(new Date().setHours(23, 59, 59)),
@@ -1021,10 +1016,6 @@ export class UsersService {
         const [monthPatients, newMonthPatients, monthData] = await Promise.all([
           countDocuments(this.userModel, {
             user_type: UserType.PATIENT,
-            created_at: {
-              $gte: moment().startOf('month').toDate(),
-              $lt: new Date(new Date().setHours(23, 59, 59)),
-            },
           }),
           countDocuments(this.userModel, {
             user_type: UserType.PATIENT,
@@ -1064,10 +1055,6 @@ export class UsersService {
           await Promise.all([
             countDocuments(this.userModel, {
               user_type: UserType.PATIENT,
-              created_at: {
-                $gte: moment().startOf('week').toDate(),
-                $lt: new Date(new Date().setHours(23, 59, 59)),
-              },
             }),
             countDocuments(this.userModel, {
               user_type: UserType.PATIENT,
