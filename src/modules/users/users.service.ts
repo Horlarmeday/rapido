@@ -54,7 +54,7 @@ import { CreateCertificationsDto } from './dto/create-certifications.dto';
 import { PatientAdvancedFilterDto } from './dto/patient-advanced-filter.dto';
 import { SpecialistAdvancedFilterDto } from './dto/specialist-advanced-filter.dto';
 import { Interval, QueryIntervalDto } from '../admin/dto/query-interval.dto';
-import moment from 'moment';
+import * as moment from 'moment';
 
 const { ObjectId } = Types;
 
@@ -952,6 +952,11 @@ export class UsersService {
         }),
         this.userModel.aggregate([
           {
+            $match: {
+              user_type: UserType.SPECIALIST,
+            },
+          },
+          {
             $group: {
               _id: '$professional_practice.category',
               count: { $sum: 1 },
@@ -973,6 +978,27 @@ export class UsersService {
     };
   }
 
+  async aggregate(unitOfTime) {
+    return this.userModel.aggregate([
+      {
+        $match: {
+          created_at: {
+            $gte: moment().startOf(unitOfTime).toDate(),
+            $lt: moment().endOf(unitOfTime).toDate(),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+  }
+
   async dashboardPatientAnalytics(queryIntervalDto: QueryIntervalDto) {
     switch (queryIntervalDto.interval) {
       case Interval.WEEK:
@@ -987,24 +1013,7 @@ export class UsersService {
               $lt: new Date(new Date().setHours(23, 59, 59)),
             },
           }),
-          this.userModel.aggregate([
-            {
-              $match: {
-                created_at: {
-                  $gte: moment().startOf('week').toDate(),
-                  $lt: moment().endOf('week').toDate(),
-                },
-              },
-            },
-            {
-              $group: {
-                _id: {
-                  $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
-                },
-                count: { $sum: 1 },
-              },
-            },
-          ]),
+          this.aggregate('week'),
         ]);
         return {
           duration: Interval.WEEK,
@@ -1019,30 +1028,12 @@ export class UsersService {
           }),
           countDocuments(this.userModel, {
             user_type: UserType.PATIENT,
-            is_email_verified: false,
             created_at: {
               $gte: moment().startOf('month').toDate(),
               $lt: new Date(new Date().setHours(23, 59, 59)),
             },
           }),
-          this.userModel.aggregate([
-            {
-              $match: {
-                created_at: {
-                  $gte: moment().startOf('month').toDate(),
-                  $lt: moment().endOf('month').toDate(),
-                },
-              },
-            },
-            {
-              $group: {
-                _id: {
-                  $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
-                },
-                count: { $sum: 1 },
-              },
-            },
-          ]),
+          this.aggregate('month'),
         ]);
         return {
           duration: Interval.MONTH,
@@ -1058,30 +1049,12 @@ export class UsersService {
             }),
             countDocuments(this.userModel, {
               user_type: UserType.PATIENT,
-              is_email_verified: false,
               created_at: {
                 $gte: moment().startOf('week').toDate(),
                 $lt: new Date(new Date().setHours(23, 59, 59)),
               },
             }),
-            this.userModel.aggregate([
-              {
-                $match: {
-                  created_at: {
-                    $gte: moment().startOf('week').toDate(),
-                    $lt: moment().endOf('week').toDate(),
-                  },
-                },
-              },
-              {
-                $group: {
-                  _id: {
-                    $dateToString: { format: '%Y-%m-%d', date: '$created_at' },
-                  },
-                  count: { $sum: 1 },
-                },
-              },
-            ]),
+            this.aggregate('week'),
           ]);
         return {
           duration: Interval.WEEK,
