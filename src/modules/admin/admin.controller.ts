@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -7,7 +15,10 @@ import { PatientAdvancedFilterDto } from '../users/dto/patient-advanced-filter.d
 import { Types } from 'mongoose';
 import { SpecialistAdvancedFilterDto } from '../users/dto/specialist-advanced-filter.dto';
 import { QueryIntervalDto } from './dto/query-interval.dto';
+import { AppointmentsQueryDto } from '../appointments/dto/appointments-query.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
@@ -40,6 +51,14 @@ export class AdminController {
   ) {
     const result = await this.adminService.getSpecialists(
       specialistAdvancedFilterDto,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('appointments')
+  async getAppointments(@Query() appointmentsQueryDto: AppointmentsQueryDto) {
+    const result = await this.adminService.getAppointments(
+      appointmentsQueryDto,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }

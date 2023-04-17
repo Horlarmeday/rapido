@@ -15,6 +15,7 @@ export enum AppointmentStatus {
   CLOSED = 'CLOSED',
   CANCELLED = 'CANCELLED',
   FAILED = 'FAILED',
+  ONGOING = 'ONGOING',
 }
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
@@ -33,7 +34,7 @@ export class Appointment {
 
   @Prop(
     raw({
-      time_taken: { type: Number },
+      time_taken: { type: Number, default: 0 },
       unit: { type: String, default: 'Minutes' },
     }),
   )
@@ -57,6 +58,9 @@ export class Appointment {
   @Prop({ type: String })
   meeting_id: string;
 
+  @Prop({ type: String })
+  meeting_class: string;
+
   @Prop({
     type: String,
     enum: { values: [Status.SUCCESSFUL, Status.FAILED, Status.PENDING] },
@@ -73,6 +77,7 @@ export class Appointment {
         AppointmentStatus.CANCELLED,
         AppointmentStatus.FAILED,
         AppointmentStatus.OPEN,
+        AppointmentStatus.ONGOING,
       ],
     },
     default: AppointmentStatus.OPEN,

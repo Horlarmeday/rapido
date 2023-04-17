@@ -37,7 +37,7 @@ import {
   upsert,
 } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
-import { User } from '../users/entities/user.entity';
+import { User, UserDocument } from '../users/entities/user.entity';
 import { ICalendarType } from './types/appointment.types';
 import { Messages } from '../../core/messages/messages';
 import { QueryDto } from '../../common/helpers/url-query.dto';
@@ -52,6 +52,7 @@ import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 import { Referral, ReferralDocument } from './entities/referral.entity';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
+import { AppointmentsQueryDto } from './dto/appointments-query.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -74,9 +75,13 @@ export class AppointmentsService {
     createAppointmentDto: CreateAppointmentDto,
     currentUser: IJwtPayload,
   ) {
+    const subscription = await this.subscriptionsService.getActiveSubscription(
+      currentUser.sub,
+    );
     const appointment = await create(this.appointmentModel, {
       ...createAppointmentDto,
       patient: currentUser.sub,
+      meeting_class: subscription?.planId?.name || 'Free',
     });
     return await this.scheduleZoomMeeting(appointment);
   }
@@ -460,4 +465,42 @@ export class AppointmentsService {
       { $push: { notes: { ...meetingNotesDto } } },
     );
   }
+
+  async getAppointments(appointmentsQueryDto: AppointmentsQueryDto) {
+    const { currentPage, pageLimit, date, status, medium, meeting_class } =
+      appointmentsQueryDto;
+    const { limit, offset } = this.generalHelpers.calcLimitAndOffset(
+      +currentPage,
+      pageLimit,
+    );
+    const query = {
+      status,
+      ...(date && {
+        created_at: {
+          $gte: new Date(new Date(date).setHours(0, 0, 0)),
+          $lte: new Date(new Date(date).setHours(23, 59, 59)),
+        },
+      }),
+      ...(medium && { meeting_type: medium }),
+      ...(meeting_class && { meeting_class }),
+    };
+    const appointments = (await findAndCountAll({
+      model: this.appointmentModel,
+      query,
+      limit,
+      offset,
+    })) as UserDocument[];
+
+    return this.generalHelpers.paginate(
+      appointments,
+      +currentPage,
+      limit,
+      await countDocuments(this.appointmentModel, { ...query }),
+    );
+  }
+
+  /**
+   * TODO: create a job to change appointment status to ongoing
+   * when meeting going on
+   */
 }

@@ -11,6 +11,7 @@ import { AppointmentsService } from '../appointments/appointments.service';
 import { SpecialistAdvancedFilterDto } from '../users/dto/specialist-advanced-filter.dto';
 import { WalletsService } from '../wallets/wallets.service';
 import { QueryIntervalDto } from './dto/query-interval.dto';
+import { AppointmentsQueryDto } from '../appointments/dto/appointments-query.dto';
 
 @Injectable()
 export class AdminService {
@@ -65,5 +66,9 @@ export class AdminService {
 
   async dashboardPatientAnalytics(queryIntervalDto: QueryIntervalDto) {
     return await this.usersService.dashboardPatientAnalytics(queryIntervalDto);
+  }
+
+  async getAppointments(appointmentsQueryDto: AppointmentsQueryDto) {
+    return this.appointmentsService.getAppointments(appointmentsQueryDto);
   }
 }
