@@ -6,6 +6,7 @@ import {
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { FileUploadHelper } from '../../../common/helpers/file-upload.helpers';
 import { UserType } from '../../users/entities/user.entity';
+import * as process from 'process';
 
 export class AppleAuthorization {
   state: UserType;
@@ -40,11 +41,11 @@ export class AppleAuth {
 
   async validate(payload: AppleResponseType) {
     const { authorization } = payload;
-
+    console.log('SECRET_KEY => ', this.secretKey);
     const clientSecret = getClientSecret({
       clientID: <string>process.env.APPLE_CLIENT_ID,
       keyIdentifier: <string>process.env.APPLE_KEY_ID,
-      privateKeyPath: this.secretKey,
+      privateKey: this.secretKey,
       teamID: <string>process.env.APPLE_TEAM_ID,
     });
 
