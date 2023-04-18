@@ -5,21 +5,26 @@ import {
 } from 'apple-signin-auth';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { FileUploadHelper } from '../../../common/helpers/file-upload.helpers';
+import { UserType } from '../../users/entities/user.entity';
 
-export type AppleResponseType = {
-  authorization: {
-    state: boolean;
-    code: string;
-    id_token: string;
+export class AppleAuthorization {
+  state: UserType;
+  code: string;
+  id_token: string;
+}
+
+export class AppleUser {
+  email: string;
+  name: {
+    firstName: string;
+    lastName: string;
   };
-  user?: {
-    email: string;
-    name: {
-      firstName: string;
-      lastName: string;
-    };
-  };
-};
+}
+
+export class AppleResponseType {
+  authorization: AppleAuthorization;
+  user?: AppleUser;
+}
 
 @Injectable()
 export class AppleAuth {

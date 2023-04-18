@@ -1,19 +1,16 @@
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import {
-  IsEnum,
-  IsNotEmpty,
-  IsNotEmptyObject,
-  IsString,
-} from 'class-validator';
-import { UserType } from '../../users/entities/user.entity';
-import { AppleResponseType } from '../strategies/appleAuth.strategy';
+  AppleAuthorization,
+  AppleUser,
+} from '../strategies/appleAuth.strategy';
+import { Type } from 'class-transformer';
 
 export class AppleLoginDto {
   @IsNotEmpty()
-  @IsNotEmptyObject()
-  readonly payload: AppleResponseType;
+  @Type(() => AppleAuthorization)
+  readonly authorization: AppleAuthorization;
 
-  @IsNotEmpty()
-  @IsString()
-  @IsEnum(UserType)
-  readonly user_type: UserType;
+  @IsOptional()
+  @Type(() => AppleUser)
+  readonly user?: AppleUser;
 }

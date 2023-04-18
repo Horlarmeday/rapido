@@ -45,8 +45,7 @@ export class AuthController {
   @Post('apple')
   @HttpCode(HttpStatus.OK)
   async appleLogin(@Body() appleLoginDto: AppleLoginDto): Promise<any> {
-    const { payload, user_type } = appleLoginDto;
-    const result = await this.authService.appleLogin(payload, user_type);
+    const result = await this.authService.appleLogin(appleLoginDto);
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 

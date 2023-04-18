@@ -41,6 +41,7 @@ import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 import { AppleAuth, AppleResponseType } from './strategies/appleAuth.strategy';
+import { AppleLoginDto } from './dto/apple-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -117,14 +118,14 @@ export class AuthService {
     return { email: data.email };
   }
 
-  async appleLogin(payload: AppleResponseType, user_type: UserType) {
-    const data = await this.decodeAppleData(payload);
+  async appleLogin(appleLoginDto: AppleLoginDto) {
+    const data = await this.decodeAppleData(appleLoginDto);
     return this.socialMediaLogin({
       ...data,
       reg_medium: RegMedium.APPLE,
       is_email_verified: true,
       email_verified_at: new Date(),
-      user_type,
+      user_type: appleLoginDto?.authorization?.state,
     });
   }
 
