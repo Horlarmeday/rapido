@@ -40,7 +40,7 @@ import { TwoFACodeDto } from './dto/twoFA-code.dto';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
-import { AppleAuth, AppleResponseType } from './strategies/appleAuth.strategy';
+import { AppleAuth } from './strategies/appleAuth.strategy';
 import { AppleLoginDto } from './dto/apple-login.dto';
 
 @Injectable()
@@ -103,9 +103,9 @@ export class AuthService {
     return await this.googleAuth.validate(token);
   }
 
-  async decodeAppleData(payload: AppleResponseType) {
-    if (!payload) throw new BadRequestException(Messages.UNAUTHORIZED);
-    const { data, user } = await this.appleAuth.validate(payload);
+  async decodeAppleData(appleLoginDto: AppleLoginDto) {
+    if (!appleLoginDto) throw new BadRequestException(Messages.UNAUTHORIZED);
+    const { data, user } = await this.appleAuth.validate(appleLoginDto);
     if (!data?.email) throw new BadRequestException(Messages.NO_APPLE_USER);
 
     if (user) {
