@@ -18,9 +18,7 @@ import { PlansModule } from './modules/plans/plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { CardsModule } from './modules/cards/cards.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AdminModule } from './modules/admin/admin.module';
-import { PromotionsModule } from './modules/promotions/promotions.module';
 import { BanksModule } from './modules/banks/banks.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { WebsocketGateway } from './core/websocket/websocket.gateway';
@@ -32,7 +30,6 @@ dotenv.config();
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
-    EventEmitterModule.forRoot(),
     UsersModule,
     AuthModule,
     TokensModule,
@@ -49,7 +46,6 @@ dotenv.config();
     CardsModule,
     WebhooksModule,
     AdminModule,
-    PromotionsModule,
     BanksModule,
     RatingsModule,
     HealthCheckupModule,

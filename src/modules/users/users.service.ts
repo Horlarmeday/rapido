@@ -516,6 +516,7 @@ export class UsersService {
       profile: {
         contact: { phone, country, zip_code, state, address1, address2 },
         marital_status,
+        profile_photo,
         gender,
       },
     } = professionalPracticeSetupDto;
@@ -551,6 +552,13 @@ export class UsersService {
           })) || [],
       },
     );
+    if (profile_photo) {
+      await this.taskCron.addCron(
+        this.uploadProfilePhoto(userId, profile_photo),
+        `${Date.now()}-${userId}-uploadProfilePhoto`,
+      );
+    }
+
     if (documents?.length) {
       await this.taskCron.addCron(
         this.uploadSpecialistDocuments(documents, user),

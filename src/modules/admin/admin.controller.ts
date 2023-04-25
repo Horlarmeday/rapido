@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
@@ -16,9 +8,7 @@ import { Types } from 'mongoose';
 import { SpecialistAdvancedFilterDto } from '../users/dto/specialist-advanced-filter.dto';
 import { QueryIntervalDto } from './dto/query-interval.dto';
 import { AppointmentsQueryDto } from '../appointments/dto/appointments-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}

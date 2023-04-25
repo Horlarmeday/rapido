@@ -32,7 +32,7 @@ export class HealthCheckupController {
       beginCheckupDto,
       req.user.sub,
     );
-    return sendSuccessResponse(Messages.CREATED, result?.data);
+    return sendSuccessResponse(Messages.CREATED, result);
   }
 
   @HttpCode(HttpStatus.OK)
