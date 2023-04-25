@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AdminSettingsService } from './admin-settings.service';
-import { AdminSettingsController } from './admin-settings.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   AdminSetting,
@@ -13,7 +12,6 @@ import {
       { name: AdminSetting.name, schema: AdminSettingSchema },
     ]),
   ],
-  controllers: [AdminSettingsController],
   providers: [AdminSettingsService],
   exports: [AdminSettingsService],
 })
