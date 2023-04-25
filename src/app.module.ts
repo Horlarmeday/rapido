@@ -18,7 +18,6 @@ import { PlansModule } from './modules/plans/plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { CardsModule } from './modules/cards/cards.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
-import { AdminModule } from './modules/admin/admin.module';
 import { BanksModule } from './modules/banks/banks.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { WebsocketGateway } from './core/websocket/websocket.gateway';
@@ -45,7 +44,6 @@ dotenv.config();
     SubscriptionsModule,
     CardsModule,
     WebhooksModule,
-    AdminModule,
     BanksModule,
     RatingsModule,
     HealthCheckupModule,
