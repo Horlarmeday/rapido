@@ -41,7 +41,6 @@ export class AppleAuth {
 
   async validate(payload: AppleResponseType) {
     const { authorization } = payload;
-    console.log('SECRET_KEY => ', this.secretKey);
     const clientSecret = getClientSecret({
       clientID: <string>process.env.APPLE_CLIENT_ID,
       keyIdentifier: <string>process.env.APPLE_KEY_ID,
