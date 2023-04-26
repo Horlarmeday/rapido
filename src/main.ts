@@ -8,8 +8,6 @@ import * as morgan from 'morgan';
 import { ValidateInputPipe } from './core/pipes/validation.pipes';
 import { ResponseInterceptor } from './core/interceptors/response.interceptors';
 import { MongoExceptions } from './core/exceptions/mongo.exceptions';
-// import * as fs from 'fs';
-// import * as v8 from 'v8';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,10 +26,6 @@ async function bootstrap() {
       forbidUnknownValues: false,
     }),
   );
-  // await fs.promises.writeFile(
-  //   `${Date.now()}.heapsnapshot`,
-  //   v8.getHeapSnapshot(),
-  // );
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new MongoExceptions());
   await app.listen(port, () => {
