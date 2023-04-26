@@ -395,7 +395,7 @@ export class User {
       values: [
         ProfileStatus.ACTIVE,
         ProfileStatus.CANCELLED,
-        ProfileStatus.CANCELLED,
+        ProfileStatus.INACTIVE,
       ],
     },
     default: ProfileStatus.ACTIVE,
