@@ -16,7 +16,6 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
-import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
 import { VerifyAppointmentTransaction } from './dto/verify-appointment-transaction';
 import { QueryDto } from '../../common/helpers/url-query.dto';
 import { QueryStatus } from './types/query.types';
@@ -41,19 +40,6 @@ export class AppointmentsController {
       req.user,
     );
     return sendSuccessResponse(Messages.CREATED, result);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Post('transactions/initialize')
-  async initializeTransaction(
-    @Request() req,
-    @Body() initAppointmentTz: InitializeAppointmentTransaction,
-  ) {
-    const result = await this.appointmentsService.initializeTransaction(
-      req.user.sub,
-      initAppointmentTz,
-    );
-    return sendSuccessResponse(Messages.TRANSACTION_INITIALIZED, result);
   }
 
   @HttpCode(HttpStatus.OK)

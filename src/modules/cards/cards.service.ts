@@ -8,7 +8,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Card, CardDocument } from './entities/card.entity';
 import { Model, Types } from 'mongoose';
 import { CardDetailsType } from '../../common/external/payment/providers/paystack';
-import * as moment from 'moment';
 import { PaymentProvider } from '../admin-settings/types/admin-settings.types';
 import {
   create,
@@ -37,18 +36,10 @@ export class CardsService {
     private readonly paymentService: PaymentsService,
   ) {}
   async saveCardDetails(cardDetails: CardDetailsType, userId: Types.ObjectId) {
-    const card = {
-      currency: 'NGN',
-      auth_code: cardDetails?.authorization_code,
-      card_type: cardDetails?.card_type,
-      last4Digit: cardDetails?.last4,
-      expiry: moment(
-        `${cardDetails?.exp_year}-${cardDetails?.exp_month}-01`,
-      ).toDate(),
-      issuer: cardDetails?.bank,
-      agent: PaymentProvider.PAYSTACK,
-      userId,
-    };
+    const card = this.generalHelpers.formatCardDetails(
+      cardDetails,
+      PaymentProvider.PAYSTACK,
+    );
     const existingCard = await this.findExistingCard(
       userId,
       cardDetails.last4,
@@ -56,7 +47,7 @@ export class CardsService {
     );
     if (!existingCard) {
       this.logger.log(`User ${userId} card details was saved successfully`);
-      return await create(this.cardModel, { ...card });
+      return await create(this.cardModel, { ...card, userId });
     }
     this.logger.log(`Card already exists, returning ${userId} card details`);
     return existingCard;

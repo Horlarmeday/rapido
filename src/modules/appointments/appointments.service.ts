@@ -44,8 +44,7 @@ import { QueryDto } from '../../common/helpers/url-query.dto';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { AdminSettingsService } from '../admin-settings/admin-settings.service';
 import { PaymentsService } from '../payments/payments.service';
-import { PaymentFor, Status } from '../payments/entities/payment.entity';
-import { InitializeAppointmentTransaction } from './dto/initialize-appointment-transaction';
+import { Status } from '../payments/entities/payment.entity';
 import { QueryStatus } from './types/query.types';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
@@ -246,38 +245,6 @@ export class AppointmentsService {
       rsvp: true,
       type: ICalAttendeeType.INDIVIDUAL,
     }));
-  }
-
-  async initializeTransaction(
-    userId: Types.ObjectId,
-    initAppointmentTz: InitializeAppointmentTransaction,
-  ) {
-    const user = await this.usersService.findById(userId);
-    const reference = this.generalHelpers.genTxReference();
-    const {
-      defaults: { appointment_fee },
-    } = await this.adminSettingsService.findOne();
-    const metadata = {
-      name: user.full_name,
-      email: user.profile.contact.email,
-      appointment_id: initAppointmentTz.appointmentId,
-      payment_for: PaymentFor.APPOINTMENT,
-    };
-    const response = await this.paymentHandler.initializeTransaction(
-      user.profile.contact.email,
-      appointment_fee,
-      reference,
-      metadata,
-    );
-    if (response.status === SUCCESS) {
-      await this.paymentService.create(
-        userId,
-        reference,
-        appointment_fee,
-        PaymentFor.APPOINTMENT,
-      );
-    }
-    return response.data;
   }
 
   async verifyTransaction(reference: string) {
