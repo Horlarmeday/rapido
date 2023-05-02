@@ -7,5 +7,5 @@ export class IJwtPayload {
   readonly first_name: string;
   readonly is_email_verified: boolean;
   readonly is_phone_verified: boolean;
-  readonly user_type: UserType;
+  readonly user_type: UserType | string;
 }

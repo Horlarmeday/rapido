@@ -466,6 +466,7 @@ export class UsersService {
   }
 
   async getProfile(payload: IJwtPayload) {
+    console.log(payload);
     const user = await findOne(
       this.userModel,
       { _id: payload.sub },
@@ -475,7 +476,7 @@ export class UsersService {
     return user;
   }
 
-  getSelectedFields(user_type: UserType) {
+  getSelectedFields(user_type: UserType | string) {
     if (user_type === UserType.SPECIALIST) {
       return [
         '-profile.password',

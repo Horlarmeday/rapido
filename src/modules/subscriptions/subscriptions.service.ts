@@ -13,7 +13,12 @@ import {
   SubscriptionStatus,
 } from './entities/subscription.entity';
 import { Model, Types } from 'mongoose';
-import { create, find, findOne, updateOne } from 'src/common/crud/crud';
+import {
+  create,
+  find,
+  findOne,
+  updateOneAndReturn,
+} from 'src/common/crud/crud';
 import { PaymentFor, Status } from '../payments/entities/payment.entity';
 import { FAILED, PENDING, SUCCESS } from '../../core/constants';
 import { UsersService } from '../users/users.service';
@@ -160,7 +165,7 @@ export class SubscriptionsService {
     subscriptionId: Types.ObjectId,
     fieldsToUpdate: object,
   ) {
-    await updateOne(
+    await updateOneAndReturn(
       this.subscriptionModel,
       { _id: subscriptionId },
       {
@@ -168,6 +173,34 @@ export class SubscriptionsService {
       },
     );
     this.logger.log(`Updated subscriptionId: ${subscriptionId}`);
+  }
+
+  async cancelSubscription(
+    subscriptionId: Types.ObjectId,
+    userId: Types.ObjectId,
+  ) {
+    const subscription = await this.updateSubscription(subscriptionId, {
+      status: SubscriptionStatus.CANCELLED,
+    });
+
+    await this.usersService.updateOne(userId, {
+      plan: null,
+    });
+    return subscription;
+  }
+
+  async expireSubscription(
+    subscriptionId: Types.ObjectId,
+    userId: Types.ObjectId,
+  ) {
+    const subscription = await this.updateSubscription(subscriptionId, {
+      status: SubscriptionStatus.EXPIRED,
+    });
+
+    await this.usersService.updateOne(userId, {
+      plan: null,
+    });
+    return subscription;
   }
 
   calculatePeriodEnd(recurrence: Recurrence, currentDate: Date) {

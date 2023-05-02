@@ -7,6 +7,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  Patch,
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { VerifySubTransactionDto } from './dto/verify-sub-transaction.dto';
+import { CancelSubscriptionDto } from './dto/cancel-subscription.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('subscriptions')
@@ -59,5 +61,17 @@ export class SubscriptionsController {
       req.user.sub,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Patch('cancel')
+  async cancelSubscription(
+    @Body() cancelSubscriptionDto: CancelSubscriptionDto,
+    @Request() req,
+  ) {
+    const result = await this.subscriptionsService.cancelSubscription(
+      cancelSubscriptionDto.subscriptionId,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
   }
 }

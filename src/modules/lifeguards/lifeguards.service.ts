@@ -34,6 +34,7 @@ import { Status } from '../payments/entities/payment.entity';
 import * as moment from 'moment';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from '../auth/dto/resend-email-otp.dto';
+import { IJwtPayload } from '../auth/types/jwt-payload.type';
 
 @Injectable()
 export class LifeguardsService {
@@ -307,13 +308,16 @@ export class LifeguardsService {
     return serializedUser;
   }
 
-  private static formatJwtPayload(lifeguard: LifeguardDocument): JwtPayload {
+  private static formatJwtPayload(
+    lifeguard: LifeguardDocument,
+  ): JwtPayload | IJwtPayload {
     const { _id, email, first_name, is_email_verified } = lifeguard;
     return {
       sub: _id,
       email,
       first_name,
       is_email_verified,
+      user_type: 'Lifeguard',
     };
   }
 }
