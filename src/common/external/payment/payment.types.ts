@@ -26,5 +26,5 @@ export type TokenizedCharge = {
   reference: string;
   token: string;
   currency: string;
-  metadata: object;
+  metadata?: object;
 };

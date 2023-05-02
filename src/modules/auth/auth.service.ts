@@ -42,6 +42,7 @@ import { ResendEmailOtpDto } from './dto/resend-email-otp.dto';
 import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 import { AppleAuth } from './strategies/appleAuth.strategy';
 import { AppleLoginDto } from './dto/apple-login.dto';
+import { JwtPayload } from '../lifeguards/types/jwt-payload.types';
 
 @Injectable()
 export class AuthService {
@@ -300,14 +301,13 @@ export class AuthService {
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
+    const link = `${originUrl}/email-verification?token=${token}&userId=${userId}`;
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
       emailBody: verificationEmail({
         firstname: user.profile.first_name,
-        token: token.token,
-        userId: user._id,
-        baseUrl: originUrl,
+        link,
       }),
     });
   }
@@ -394,15 +394,15 @@ export class AuthService {
     };
   }
 
-  private async comparePassword(
+  async comparePassword(
     enteredPassword: string,
     dbPassword: string | undefined,
   ) {
     return await bcrypt.compare(enteredPassword, <string>dbPassword);
   }
 
-  private async generateToken(
-    payload: IJwtPayload | { sub: string; email: string },
+  async generateToken(
+    payload: IJwtPayload | { sub: string; email: string } | JwtPayload,
   ) {
     return await this.jwtService.signAsync(payload);
   }

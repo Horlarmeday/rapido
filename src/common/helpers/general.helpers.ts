@@ -5,6 +5,8 @@ import * as nodemailer from 'nodemailer';
 import { chain } from 'lodash';
 import * as Banks from '../../modules/banks/json/banks.json';
 import * as moment from 'moment';
+import { CardDetailsType } from '../external/payment/providers/paystack';
+import { PaymentProvider } from '../../modules/admin-settings/types/admin-settings.types';
 
 type GenerateEmailAndSendType = {
   email: string;
@@ -133,5 +135,19 @@ export class GeneralHelpers {
 
   static findBankCode(bank_name: string) {
     return Banks.find(({ name }) => name === bank_name)?.code;
+  }
+
+  formatCardDetails(cardDetails: CardDetailsType, agent: PaymentProvider) {
+    return {
+      currency: 'NGN',
+      auth_code: cardDetails?.authorization_code,
+      card_type: cardDetails?.card_type,
+      last4Digit: cardDetails?.last4,
+      expiry: moment(
+        `${cardDetails?.exp_year}-${cardDetails?.exp_month}-01`,
+      ).toDate(),
+      issuer: cardDetails?.bank,
+      agent,
+    };
   }
 }

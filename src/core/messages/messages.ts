@@ -47,4 +47,5 @@ export enum Messages {
   WALLET_BALANCE_LOW = 'Wallet balance is low',
   BANK_NOT_FOUND = 'Bank not found',
   WITHDRAW_SUCCESSFUL = 'Withdrawal successful',
+  PAYMENT_NOT_FOUND = 'Payment reference not found',
 }

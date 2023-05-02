@@ -39,5 +39,6 @@ dotenv.config();
     AppleAuth,
     Twilio,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}
