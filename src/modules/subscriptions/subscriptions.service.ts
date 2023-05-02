@@ -16,7 +16,6 @@ import { Model, Types } from 'mongoose';
 import { create, find, findOne, updateOne } from 'src/common/crud/crud';
 import { PaymentFor, Status } from '../payments/entities/payment.entity';
 import { FAILED, PENDING, SUCCESS } from '../../core/constants';
-import { InitSubTransactionDto } from './dto/init-sub-transaction.dto';
 import { UsersService } from '../users/users.service';
 import { PlansService } from '../plans/plans.service';
 import { GeneralHelpers } from '../../common/helpers/general.helpers';
@@ -96,43 +95,6 @@ export class SubscriptionsService {
       { _id: subscriptionId },
       { populate: 'planId' },
     );
-  }
-
-  async initializeTransaction(
-    userId: Types.ObjectId,
-    initSubTz: InitSubTransactionDto,
-  ) {
-    const [user, subscription] = await Promise.all([
-      this.usersService.findById(userId),
-      this.findOneSubscription(initSubTz.subscriptionId),
-    ]);
-    const reference = this.generalHelpers.genTxReference();
-    const plan = await this.plansService.findOnePlan(subscription.planId);
-    const amount =
-      subscription.recurrence === Recurrence.ANNUALLY
-        ? plan.amount * 12 // multiply amount by the next 12 months
-        : plan.amount;
-    const metadata = {
-      name: user.full_name,
-      email: user.profile.contact.email,
-      subscription_id: initSubTz.subscriptionId,
-      payment_for: PaymentFor.SUBSCRIPTION,
-    };
-    const response = await this.paymentHandler.initializeTransaction(
-      user.profile.contact.email,
-      amount,
-      reference,
-      metadata,
-    );
-    if (response.status === SUCCESS) {
-      await this.paymentService.create(
-        userId,
-        reference,
-        plan.amount,
-        PaymentFor.SUBSCRIPTION,
-      );
-    }
-    return response.data;
   }
 
   async verifySubscription(reference: string, subscriptionId: Types.ObjectId) {

@@ -13,7 +13,6 @@ import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
-import { InitSubTransactionDto } from './dto/init-sub-transaction.dto';
 import { VerifySubTransactionDto } from './dto/verify-sub-transaction.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -31,19 +30,6 @@ export class SubscriptionsController {
       req.user.sub,
     );
     return sendSuccessResponse(Messages.CREATED, result);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Post('transactions/initialize')
-  async initializeTransaction(
-    @Request() req,
-    @Body() initSubscriptionTransaction: InitSubTransactionDto,
-  ) {
-    const result = await this.subscriptionsService.initializeTransaction(
-      req.user.sub,
-      initSubscriptionTransaction,
-    );
-    return sendSuccessResponse(Messages.TRANSACTION_INITIALIZED, result);
   }
 
   @HttpCode(HttpStatus.OK)
