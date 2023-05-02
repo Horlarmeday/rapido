@@ -23,6 +23,7 @@ import { RatingsModule } from './modules/ratings/ratings.module';
 import { WebsocketGateway } from './core/websocket/websocket.gateway';
 import { HealthCheckupModule } from './modules/health-checkup/health-checkup.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
+import { LifeguardsModule } from './modules/lifeguards/lifeguards.module';
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ dotenv.config();
     RatingsModule,
     HealthCheckupModule,
     WalletsModule,
+    LifeguardsModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebsocketGateway],
