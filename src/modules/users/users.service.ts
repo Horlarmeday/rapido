@@ -112,14 +112,13 @@ export class UsersService {
     const user = await this.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     await this.userSettingsService.create(user._id);
+    const link = `${originUrl}/email-verification?token=${token}&userId=${user._id}`;
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
       emailBody: verificationEmail({
         firstname: user.profile.first_name,
-        token: token.token,
-        userId: user._id,
-        baseUrl: originUrl,
+        link,
       }),
     });
     return UsersService.excludeFields(user);

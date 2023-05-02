@@ -5,7 +5,7 @@ import {
   TokenizedCharge,
   TransferToRecipient,
 } from '../payment.types';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { Messages } from '../../../../core/messages/messages';
 import { GeneralHelpers } from '../../../helpers/general.helpers';
 // import { GeneralHelpers } from '../../../helpers/general.helpers';
@@ -100,9 +100,14 @@ export class Paystack implements IPaymentInterface {
       token,
       metadata,
     };
-    const response = await post(url, data, { headers: this.headers });
-    this.logger.log(`A card charge attempt made on ${email} account`);
-    return response;
+    try {
+      const response = await post(url, data, { headers: this.headers });
+      this.logger.log(`A card charge attempt made on ${email} account`);
+      return response;
+    } catch (e) {
+      this.logger.error(e);
+      throw new BadRequestException(e);
+    }
   }
 
   async createTransferRecipient({
