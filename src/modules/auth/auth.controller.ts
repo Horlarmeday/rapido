@@ -141,13 +141,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   async generate2FA(@Request() req) {
-    const { otpAuthUrl } = await this.authService.generateTwoFactorAuthSecret(
-      req.user.sub,
-    );
-    return sendSuccessResponse(
-      Messages.RETRIEVED,
-      await this.authService.pipeQrCodeStream(otpAuthUrl),
-    );
+    const { otpAuthUrl, secret } =
+      await this.authService.generateTwoFactorAuthSecret(req.user.sub);
+    const dataUrl = await this.authService.pipeQrCodeStream(otpAuthUrl);
+    return sendSuccessResponse(Messages.RETRIEVED, { secret, dataUrl });
   }
 
   @HttpCode(HttpStatus.OK)
