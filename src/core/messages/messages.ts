@@ -48,4 +48,6 @@ export enum Messages {
   BANK_NOT_FOUND = 'Bank not found',
   WITHDRAW_SUCCESSFUL = 'Withdrawal successful',
   PAYMENT_NOT_FOUND = 'Payment reference not found',
+  NOT_FOUND_REFERRAL_CODE = 'Referral code not found',
+  USER_REFERRAL_CODE_NOT_EXISTS = 'User does not have referral code',
 }

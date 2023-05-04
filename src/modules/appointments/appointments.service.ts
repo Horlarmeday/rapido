@@ -49,7 +49,10 @@ import { QueryStatus } from './types/query.types';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
-import { Referral, ReferralDocument } from './entities/referral.entity';
+import {
+  AppointmentReferral,
+  AppointmentReferralDocument,
+} from './entities/referral.entity';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
 
 @Injectable()
@@ -58,8 +61,8 @@ export class AppointmentsService {
   constructor(
     @InjectModel(Appointment.name)
     private appointmentModel: Model<AppointmentDocument>,
-    @InjectModel(Referral.name)
-    private referralModel: Model<ReferralDocument>,
+    @InjectModel(AppointmentReferral.name)
+    private referralModel: Model<AppointmentReferralDocument>,
     private readonly zoom: Zoom,
     private readonly usersService: UsersService,
     private readonly generalHelpers: GeneralHelpers,
