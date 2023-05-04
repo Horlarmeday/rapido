@@ -24,6 +24,7 @@ import { WebsocketGateway } from './core/websocket/websocket.gateway';
 import { HealthCheckupModule } from './modules/health-checkup/health-checkup.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
 import { LifeguardsModule } from './modules/lifeguards/lifeguards.module';
+import { ReferralsModule } from './modules/referrals/referrals.module';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ dotenv.config();
     HealthCheckupModule,
     WalletsModule,
     LifeguardsModule,
+    ReferralsModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebsocketGateway],

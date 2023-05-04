@@ -2,10 +2,10 @@ import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ReferralType } from '../types/referral-types';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 
-export type ReferralDocument = HydratedDocument<Referral>;
+export type AppointmentReferralDocument = HydratedDocument<AppointmentReferral>;
 
-@Schema()
-export class Referral {
+@Schema({ collection: 'appointment_referrals' })
+export class AppointmentReferral {
   @Prop(
     raw([
       {
@@ -42,4 +42,5 @@ export class Referral {
   })
   appointment: Types.ObjectId;
 }
-export const ReferralSchema = SchemaFactory.createForClass(Referral);
+export const AppointmentReferralSchema =
+  SchemaFactory.createForClass(AppointmentReferral);
