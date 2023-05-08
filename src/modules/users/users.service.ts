@@ -500,6 +500,7 @@ export class UsersService {
       '-average_rating',
       '-verification_status',
       '-awards',
+      '-payment_structure',
     ];
   }
 
@@ -513,6 +514,7 @@ export class UsersService {
     const {
       documents,
       professional_practice,
+      payment_structure,
       profile: {
         contact: { phone, country, zip_code, state, address1, address2 },
         marital_status,
@@ -543,6 +545,7 @@ export class UsersService {
           },
         },
         professional_practice,
+        payment_structure,
         documents:
           documents?.map(({ file_type, original_name, type_of_document }) => ({
             file_type,

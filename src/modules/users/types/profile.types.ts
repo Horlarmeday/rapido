@@ -71,7 +71,7 @@ export class Profile {
 }
 
 export class ProfessionalPractice {
-  category: string;
+  category: SpecialistCategories;
   area_of_specialty: string;
   university: {
     name: string;
@@ -108,4 +108,12 @@ export enum SpecialistCategories {
   CARE_GIVER = 'Care Giver',
   PHARMACIST = 'Pharmacist',
   LAB_TECHNICIAN = 'Lab Technician',
+}
+
+export enum PaymentStructure {
+  SIXTY_FORTY_SPLIT = '60/40',
+  SIXTY_FIVE_THIRTY_FIVE_SPLIT = '65/35',
+  SEVENTY_THIRTY_SPLIT = '70/30',
+  SEVENTY_FIVE_TWENTY_FIVE_SPLIT = '75/25',
+  FREE_CONSULTATIONS = 'Free Consultations',
 }

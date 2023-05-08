@@ -5,9 +5,11 @@ import {
   Documents,
   Gender,
   MaritalStatus,
+  PaymentStructure,
   ProfessionalPractice,
   Profile,
   Relationship,
+  SpecialistCategories,
 } from '../types/profile.types';
 import { Condition } from './pre-existing-condition.entity';
 import { EmergencyContact } from './emergency-contact.entity';
@@ -322,7 +324,19 @@ export class User {
 
   @Prop(
     raw({
-      category: { type: String },
+      category: {
+        type: String,
+        enum: {
+          values: [
+            SpecialistCategories.THERAPIST,
+            SpecialistCategories.MEDICAL_DOCTOR,
+            SpecialistCategories.CARE_GIVER,
+            SpecialistCategories.DIETITIAN,
+            SpecialistCategories.LAB_TECHNICIAN,
+            SpecialistCategories.PHARMACIST,
+          ],
+        },
+      },
       area_of_specialty: { type: String },
       university: {
         name: { type: String },
@@ -339,6 +353,9 @@ export class User {
     }),
   )
   professional_practice?: ProfessionalPractice;
+
+  @Prop({ type: String })
+  payment_structure: PaymentStructure;
 
   @Prop(
     raw([

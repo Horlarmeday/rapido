@@ -1,10 +1,11 @@
 import {
   Documents,
+  PaymentStructure,
   ProfessionalPractice,
   Profile,
 } from '../types/profile.types';
 import { Type } from 'class-transformer';
-import { IsArray, ValidateNested } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, ValidateNested } from 'class-validator';
 
 export class ProfessionalPracticeSetupDto {
   @ValidateNested({ each: true })
@@ -19,4 +20,8 @@ export class ProfessionalPracticeSetupDto {
   @ValidateNested({ each: true })
   @Type(() => Documents)
   documents: Documents[];
+
+  @IsNotEmpty()
+  @IsEnum(PaymentStructure)
+  payment_structure: PaymentStructure;
 }
