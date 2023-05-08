@@ -50,6 +50,7 @@ import {
 import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
 import { CreateAwardDto } from './dto/create-award.dto';
 import { CreateCertificationsDto } from './dto/create-certifications.dto';
+import { ReferralsService } from '../referrals/referrals.service';
 
 const { ObjectId } = Types;
 
@@ -64,6 +65,7 @@ export class UsersService {
     private readonly generalHelpers: GeneralHelpers,
     private readonly tokensService: TokensService,
     private readonly userSettingsService: UserSettingsService,
+    private readonly referralsService: ReferralsService,
     private taskCron: TaskScheduler,
   ) {}
 
@@ -112,6 +114,7 @@ export class UsersService {
     const user = await this.create(createUserDto);
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     await this.userSettingsService.create(user._id);
+    await this.referralsService.createReferral(user._id);
     const link = `${originUrl}/email-verification?token=${token}&userId=${user._id}`;
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,

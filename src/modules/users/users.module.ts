@@ -13,11 +13,13 @@ import {
   SpecialistPreferences,
   SpecialistPreferencesSchema,
 } from './entities/specialist-preferences.entity';
+import { ReferralsService } from '../referrals/referrals.service';
 
 @Module({
   imports: [
     TokensModule,
     UserSettingsModule,
+    ReferralsService,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: SpecialistPreferences.name, schema: SpecialistPreferencesSchema },
