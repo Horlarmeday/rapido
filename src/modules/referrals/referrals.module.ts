@@ -12,5 +12,6 @@ import { Referral, ReferralSchema } from './entities/referral.entity';
   ],
   controllers: [ReferralsController],
   providers: [ReferralsService],
+  exports: [ReferralsService],
 })
 export class ReferralsModule {}
