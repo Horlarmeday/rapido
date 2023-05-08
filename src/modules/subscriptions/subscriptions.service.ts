@@ -85,6 +85,7 @@ export class SubscriptionsService {
         plan: {
           plan_name: plan.name,
           planId: plan._id,
+          updatedAt: new Date(),
         },
       });
       return this.verifySubscription(reference, subscription._id);

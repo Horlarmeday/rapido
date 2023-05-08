@@ -315,7 +315,7 @@ export class User {
     raw({
       plan_name: { type: String },
       planId: { type: mongoose.Schema.Types.ObjectId, ref: 'Plan' },
-      updatedAt: { type: Date, default: new Date() },
+      updatedAt: { type: Date },
     }),
   )
   plan: any;
