@@ -115,7 +115,9 @@ export class UsersService {
     const token = await this.tokensService.create(TokenType.EMAIL, user._id);
     await this.userSettingsService.create(user._id);
     await this.referralsService.createReferral(user._id);
-    const link = `${originUrl}/email-verification?token=${token}&userId=${user._id}`;
+    const link = `${
+      originUrl || process.env.BASE_URL
+    }/email-verification?token=${token.token}&userId=${user._id}`;
     this.generalHelpers.generateEmailAndSend({
       email: user.profile.contact.email,
       subject: Messages.EMAIL_VERIFICATION,
