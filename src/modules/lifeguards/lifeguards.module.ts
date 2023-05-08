@@ -10,11 +10,18 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { Paystack } from '../../common/external/payment/providers/paystack';
 import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     AdminSettingsModule,
     AuthModule,
+    JwtModule.register({
+      secret: process.env.JWTKEY,
+      signOptions: {
+        expiresIn: process.env.TOKEN_EXPIRATION,
+      },
+    }),
     UsersModule,
     MongooseModule.forFeature([
       { name: Lifeguard.name, schema: LifeguardSchema },

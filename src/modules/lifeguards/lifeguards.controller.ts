@@ -22,7 +22,7 @@ import { EmailOtpVerifyDto } from '../auth/dto/email-otp-verify.dto';
 import { ResendEmailOtpDto } from '../auth/dto/resend-email-otp.dto';
 import { IsEmailVerified } from './guards/is-email-verified.guards';
 import { FinishAddPaymentMethodDto } from './dto/finish-add-payment-method.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { LifeguardJwtAuthGuard } from './guards/jwt-auth.guards';
 
 @Controller('lifeguards')
 export class LifeguardsController {
@@ -60,7 +60,7 @@ export class LifeguardsController {
     return sendSuccessResponse(Messages.USER_AUTHENTICATED, result);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(LifeguardJwtAuthGuard)
   @Patch('preference')
   async setPreference(
     @Body() setPreferencesDto: SetPreferencesDto,
@@ -73,8 +73,8 @@ export class LifeguardsController {
     return sendSuccessResponse(Messages.UPDATED, result);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get()
+  @UseGuards(LifeguardJwtAuthGuard)
+  @Get('me')
   async getProfile(@Request() req) {
     const result = await this.lifeguardsService.getLifeguardProfile(
       req.user.sub,
@@ -83,7 +83,7 @@ export class LifeguardsController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(LifeguardJwtAuthGuard)
   @Post('add-payment-method')
   async beginAddPaymentMethod(@Request() req) {
     const result = await this.lifeguardsService.beginAddPaymentMethod(req.user);
@@ -91,7 +91,7 @@ export class LifeguardsController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(LifeguardJwtAuthGuard)
   @Post('verify-payment-method')
   async finishAddPaymentMethod(
     @Body() finishAddPaymentMethodDto: FinishAddPaymentMethodDto,

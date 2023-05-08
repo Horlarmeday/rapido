@@ -100,3 +100,12 @@ export class Award {
   date: string;
   file: File[];
 }
+
+export enum SpecialistCategories {
+  MEDICAL_DOCTOR = 'Medical Doctor',
+  THERAPIST = 'Therapist',
+  DIETITIAN = 'Dietitian',
+  CARE_GIVER = 'Care Giver',
+  PHARMACIST = 'Pharmacist',
+  LAB_TECHNICIAN = 'Lab Technician',
+}

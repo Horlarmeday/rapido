@@ -35,6 +35,8 @@ import * as moment from 'moment';
 import { otpEmail } from '../../core/emails/mails/otpEmail';
 import { ResendEmailOtpDto } from '../auth/dto/resend-email-otp.dto';
 import { IJwtPayload } from '../auth/types/jwt-payload.type';
+import { JwtService } from '@nestjs/jwt';
+import * as process from 'process';
 
 @Injectable()
 export class LifeguardsService {
@@ -47,6 +49,7 @@ export class LifeguardsService {
     private readonly authService: AuthService,
     private readonly generalHelpers: GeneralHelpers,
     private readonly paymentHandler: PaymentHandler,
+    private readonly jwtService: JwtService,
   ) {}
 
   private async insertToDB(fieldsToCreate: any): Promise<LifeguardDocument> {
@@ -120,7 +123,7 @@ export class LifeguardsService {
       lifeguard = await this.insertToDB(fieldsToInsert);
     }
     const payload = LifeguardsService.formatJwtPayload(lifeguard);
-    return this.authService.generateToken(payload);
+    return this.generateToken(payload);
   }
 
   async validateLifeguard(email: string, passwrd: string) {
@@ -138,10 +141,19 @@ export class LifeguardsService {
     throw new BadRequestException(Messages.INVALID_CREDENTIALS);
   }
 
+  async generateToken(
+    payload: IJwtPayload | { sub: string; email: string } | JwtPayload,
+  ) {
+    return await this.jwtService.signAsync(payload, {
+      secret: process.env.JWTKEY,
+      expiresIn: process.env.TOKEN_EXPIRATION,
+    });
+  }
+
   async login(lifeguardLoginDto: LifeguardLoginDto) {
     const { email, password } = lifeguardLoginDto;
     const payload = await this.validateLifeguard(email, password);
-    return this.authService.generateToken(payload);
+    return this.generateToken(payload);
   }
 
   async googleLogin(token: string) {
