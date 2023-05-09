@@ -43,6 +43,7 @@ import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 import { AppleAuth } from './strategies/appleAuth.strategy';
 import { AppleLoginDto } from './dto/apple-login.dto';
 import { JwtPayload } from '../lifeguards/types/jwt-payload.types';
+import { ChangePhoneNumberDto } from './dto/change-phone-number.dto';
 
 @Injectable()
 export class AuthService {
@@ -380,6 +381,26 @@ export class AuthService {
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
 
     await this.send2FAPhoneOTP(user.profile, null);
+  }
+
+  async changePhoneNumber(
+    userId: Types.ObjectId,
+    changePhoneNumberDto: ChangePhoneNumberDto,
+  ) {
+    const user = await this.usersService.findById(userId);
+    const { phone, country_code, answer } = changePhoneNumberDto;
+    // check security question exists
+    if (user?.security?.answer.toLowerCase() === answer.toLowerCase()) {
+      // check number already exists
+      const isExists = await this.usersService.findOneByPhone(phone);
+      if (isExists) throw new BadRequestException(Messages.PHONE_NUMBER_EXISTS);
+      // change phone number
+      return await this.usersService.updateOne(userId, {
+        'profile.contact.phone.country_code': country_code,
+        'profile.contact.phone.number': phone,
+      });
+    }
+    throw new BadRequestException(Messages.INCORRECT_ANSWER);
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {

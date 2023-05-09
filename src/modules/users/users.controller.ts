@@ -123,6 +123,15 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('security-question')
+  async getUserSecurityQuestion(@Request() req) {
+    const result = await this.usersService.getUserSecurityQuestion(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUser(@Param('id') id: Types.ObjectId) {
     const result = await this.usersService.findOne({ _id: id });

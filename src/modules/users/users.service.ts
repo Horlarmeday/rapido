@@ -135,7 +135,7 @@ export class UsersService {
 
   async findOne(query: any): Promise<UserDocument> {
     const user = await findOne(this.userModel, query, {
-      selectFields: ['-profile.password', '-profile.twoFA_secret'],
+      selectFields: ['-profile.password', '-profile.twoFA_secret', '-security'],
     });
     if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
     return user;
@@ -196,6 +196,7 @@ export class UsersService {
       emergency_contacts,
       pre_existing_conditions,
       dependants,
+      security,
     } = profileSetupDto;
 
     const files =
@@ -227,6 +228,7 @@ export class UsersService {
         },
         emergency_contacts,
         dependants,
+        security,
         pre_existing_conditions:
           pre_existing_conditions?.map((condition) => ({
             ...condition,
@@ -343,13 +345,19 @@ export class UsersService {
     updateUserProfileDto: UpdateUserProfileDto,
     userId: Types.ObjectId,
   ) {
-    const { profile, pre_existing_conditions, dependants, emergency_contacts } =
-      updateUserProfileDto || {};
+    const {
+      profile,
+      pre_existing_conditions,
+      dependants,
+      emergency_contacts,
+      security,
+    } = updateUserProfileDto || {};
 
     const user = await this.findById(userId);
-
+    console.log(userId);
     const {
       profile: dbUser,
+      security: dbSecurity,
       pre_existing_conditions: dbPreConditions = [],
       dependants: dbDependants = [],
       emergency_contacts: dbEmergencyContacts = [],
@@ -373,6 +381,12 @@ export class UsersService {
           ...(profile?.health_risk_factors || {}),
         },
       },
+      ...(security && {
+        security: {
+          ...(dbSecurity || {}),
+          ...(security || {}),
+        },
+      }),
       ...(pre_existing_conditions?.length && {
         pre_existing_conditions: await this.mapPreConditions(
           dbPreConditions,
@@ -437,7 +451,13 @@ export class UsersService {
       query,
       limit,
       offset,
-      options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+      options: {
+        selectFields: [
+          '-profile.password',
+          '-profile.twoFA_secret',
+          '-security',
+        ],
+      },
       displayScore: true,
     })) as UserDocument[];
     return { users, count: await countDocuments(this.userModel, { ...query }) };
@@ -454,7 +474,13 @@ export class UsersService {
       query,
       limit,
       offset,
-      options: { selectFields: ['-profile.password', '-profile.twoFA_secret'] },
+      options: {
+        selectFields: [
+          '-profile.password',
+          '-profile.twoFA_secret',
+          '-security',
+        ],
+      },
     })) as UserDocument[];
     return { users, count: await countDocuments(this.userModel, { ...query }) };
   }
@@ -489,6 +515,7 @@ export class UsersService {
         '-emergency_contacts',
         '-pre_existing_conditions',
         '-dependants',
+        '-security',
       ];
     }
     return [
@@ -501,6 +528,7 @@ export class UsersService {
       '-verification_status',
       '-awards',
       '-payment_structure',
+      '-security',
     ];
   }
 
@@ -776,5 +804,13 @@ export class UsersService {
 
   async getTimeAvailabilityAndPreferences(userId: Types.ObjectId) {
     return await findOne(this.specialistPreferencesModel, { userId });
+  }
+
+  async getUserSecurityQuestion(userId: Types.ObjectId) {
+    const user = await this.findById(userId);
+    if (user?.security?.question) {
+      return user.security.question;
+    }
+    throw new NotFoundException(Messages.SECURITY_QUESTION_NOT_FOUND);
   }
 }

@@ -117,3 +117,8 @@ export enum PaymentStructure {
   SEVENTY_FIVE_TWENTY_FIVE_SPLIT = '75/25',
   FREE_CONSULTATIONS = 'Free Consultations',
 }
+
+export class Security {
+  question: string;
+  answer: string;
+}

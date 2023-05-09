@@ -9,6 +9,7 @@ import {
   ProfessionalPractice,
   Profile,
   Relationship,
+  Security,
   SpecialistCategories,
 } from '../types/profile.types';
 import { Condition } from './pre-existing-condition.entity';
@@ -418,6 +419,15 @@ export class User {
     default: ProfileStatus.ACTIVE,
   })
   status: ProfileStatus;
+
+  @Prop(
+    raw({
+      question: { type: String, required: true },
+      answer: { type: String, required: true },
+      _id: { required: false },
+    }),
+  )
+  security: Security;
 }
 const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.virtual('full_name').get(function (this: UserDocument) {

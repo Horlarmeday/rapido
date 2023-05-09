@@ -8,6 +8,7 @@ import {
   HttpStatus,
   HttpCode,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Messages } from '../../core/messages/messages';
@@ -28,6 +29,7 @@ import { ResendPhoneOtpDto } from './dto/resend-phone-otp.dto';
 import { IsAuthorized } from '../../core/guards/isAuthorized.guards';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { AppleLoginDto } from './dto/apple-login.dto';
+import { ChangePhoneNumberDto } from './dto/change-phone-number.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -166,5 +168,19 @@ export class AuthController {
       twoFACodeDto,
     );
     return sendSuccessResponse(Messages.LOGIN_VERIFIED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Patch('change-phone-number')
+  async changePhoneNumber(
+    @Body() changePhoneNumberDto: ChangePhoneNumberDto,
+    @Request() req,
+  ) {
+    await this.authService.changePhoneNumber(
+      req.user.sub,
+      changePhoneNumberDto,
+    );
+    return sendSuccessResponse(Messages.PHONE_NUMBER_CHANGED, null);
   }
 }

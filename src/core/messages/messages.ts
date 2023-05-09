@@ -50,4 +50,8 @@ export enum Messages {
   PAYMENT_NOT_FOUND = 'Payment reference not found',
   NOT_FOUND_REFERRAL_CODE = 'Referral code not found',
   USER_REFERRAL_CODE_NOT_EXISTS = 'User does not have referral code',
+  INCORRECT_ANSWER = 'Incorrect answer',
+  PHONE_NUMBER_CHANGED = 'Phone number changed',
+  SECURITY_QUESTION_NOT_FOUND = 'Security question not found',
+  PHONE_NUMBER_EXISTS = 'Number already exists',
 }
