@@ -53,5 +53,5 @@ export enum Messages {
   INCORRECT_ANSWER = 'Incorrect answer',
   PHONE_NUMBER_CHANGED = 'Phone number changed',
   SECURITY_QUESTION_NOT_FOUND = 'Security question not found',
-  PHONE_NUMBER_EXISTS = 'Number already exists',
+  PHONE_NUMBER_EXISTS = 'Phone number already exists',
 }
