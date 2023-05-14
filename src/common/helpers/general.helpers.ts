@@ -114,28 +114,36 @@ export class GeneralHelpers {
       html: emailBody,
       attachments,
     };
-    console.log(process.env.NODE_ENV);
-    console.log('Start email message');
     const transport = this.nodeMailerTransport();
     try {
-      transport.verify(function (error, success) {
-        console.log('Success verification', success);
-        if (error) {
-          console.log(error);
-          logger.error(`Error: ${error}`);
-        } else {
-          transport.sendMail(message, (error, info) => {
-            console.log('Success send mail', info);
-            if (error) {
-              console.log(error);
-              logger.error(`Error: ${error}`);
-            }
-            console.log('It went thru', info);
-            logger.log(`Email sent to ${email}!`);
-          });
-        }
+      return new Promise((resolve, reject) => {
+        transport.sendMail(message, (error, info) => {
+          console.log('Success send mail', info);
+          if (error) {
+            logger.error(`Error: ${error}`);
+            reject(error);
+          }
+          logger.log(`Email sent to ${email}!`);
+          resolve(`Email sent`);
+        });
       });
-      console.log('End email message');
+      // transport.verify(function (error, success) {
+      //   console.log('Success verification', success);
+      //   if (error) {
+      //     console.log(error);
+      //     logger.error(`Error: ${error}`);
+      //   } else {
+      //     transport.sendMail(message, (error, info) => {
+      //       console.log('Success send mail', info);
+      //       if (error) {
+      //         console.log(error);
+      //         logger.error(`Error: ${error}`);
+      //       }
+      //       console.log('It went thru', info);
+      //       logger.log(`Email sent to ${email}!`);
+      //     });
+      //   }
+      // });
     } catch (e) {
       throw new BadGatewayException(e);
     }
