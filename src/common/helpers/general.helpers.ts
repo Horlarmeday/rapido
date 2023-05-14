@@ -114,16 +114,20 @@ export class GeneralHelpers {
       html: emailBody,
       attachments,
     };
+    console.log(message);
     const transport = this.nodeMailerTransport();
     try {
       transport.verify(function (error, success) {
         if (error) {
+          console.log(error);
           logger.error(`Error: ${error}`);
         } else {
           transport.sendMail(message, (error, info) => {
             if (error) {
+              console.log(error);
               logger.error(`Error: ${error}`);
             }
+            console.log('It went thru', info);
             logger.log(`Email sent to ${email}!`);
           });
         }
