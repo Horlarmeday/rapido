@@ -93,7 +93,7 @@ export class GeneralHelpers {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: 587,
-      secure: true, // upgrade later with STARTTLS
+      secure: false, // upgrade later with STARTTLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
