@@ -86,7 +86,7 @@ export class GeneralHelpers {
     attachments,
   }: GenerateEmailAndSendType) {
     // Send email
-    this.sendMail(email, subject, emailBody, attachments);
+    this.sendEmail(email, subject, emailBody, attachments);
   }
 
   nodeMailerTransport() {
@@ -101,7 +101,7 @@ export class GeneralHelpers {
     });
   }
 
-  sendMail(
+  sendEmail(
     email: string,
     subject: Messages | string,
     emailBody: any,
@@ -114,15 +114,17 @@ export class GeneralHelpers {
       html: emailBody,
       attachments,
     };
-    console.log(message);
+    console.log('Start email message');
     const transport = this.nodeMailerTransport();
     try {
       transport.verify(function (error, success) {
+        console.log('Success verification', success);
         if (error) {
           console.log(error);
           logger.error(`Error: ${error}`);
         } else {
           transport.sendMail(message, (error, info) => {
+            console.log('Success send mail', info);
             if (error) {
               console.log(error);
               logger.error(`Error: ${error}`);
@@ -132,6 +134,7 @@ export class GeneralHelpers {
           });
         }
       });
+      console.log('End email message');
     } catch (e) {
       throw new BadGatewayException(e);
     }
