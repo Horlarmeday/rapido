@@ -86,14 +86,16 @@ export class GeneralHelpers {
     attachments,
   }: GenerateEmailAndSendType) {
     // Send email
-    this.sendEmail(email, subject, emailBody, attachments);
+    this.sendEmail(email, subject, emailBody, attachments).then((r) =>
+      logger.log('Email sent!', r),
+    );
   }
 
   nodeMailerTransport() {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: 587,
-      secure: false, // upgrade later with STARTTLS
+      secure: true, // upgrade later with STARTTLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -101,7 +103,7 @@ export class GeneralHelpers {
     });
   }
 
-  sendEmail(
+  async sendEmail(
     email: string,
     subject: Messages | string,
     emailBody: any,
@@ -116,16 +118,17 @@ export class GeneralHelpers {
     };
     const transport = this.nodeMailerTransport();
     try {
-      return new Promise((resolve, reject) => {
-        transport.sendMail(message, (error, info) => {
-          console.log('Success send mail', info);
-          if (error) {
-            logger.error(`Error: ${error}`);
+      await new Promise((resolve, reject) => {
+        transport
+          .sendMail(message)
+          .then((info) => {
+            logger.log(`Email sent to ${email}`);
+            resolve(info);
+          })
+          .catch((error) => {
+            logger.error('An error occurred sending email', error);
             reject(error);
-          }
-          logger.log(`Email sent to ${email}!`);
-          resolve(`Email sent`);
-        });
+          });
       });
       // transport.verify(function (error, success) {
       //   console.log('Success verification', success);
