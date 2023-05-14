@@ -114,6 +114,7 @@ export class GeneralHelpers {
       html: emailBody,
       attachments,
     };
+    console.log(process.env.NODE_ENV);
     console.log('Start email message');
     const transport = this.nodeMailerTransport();
     try {
