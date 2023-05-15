@@ -497,7 +497,6 @@ export class UsersService {
   }
 
   async getProfile(payload: IJwtPayload) {
-    console.log(payload);
     const user = await findOne(
       this.userModel,
       { _id: payload.sub },

@@ -327,6 +327,7 @@ export class AppointmentsService {
           status: AppointmentStatus.COMPLETED,
           call_duration: {
             time_taken: response.data.total_minutes,
+            unit: 'Minutes',
           },
         },
       );
