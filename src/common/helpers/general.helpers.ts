@@ -94,8 +94,8 @@ export class GeneralHelpers {
   nodeMailerTransport() {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: 465,
-      secure: true, // upgrade later with STARTTLS
+      port: 587,
+      secure: false, // upgrade later with STARTTLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
