@@ -34,6 +34,7 @@ export enum ProfileStatus {
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
   CANCELLED = 'Cancelled',
+  SUSPENDED = 'Suspended',
 }
 
 export enum VerificationStatus {
@@ -414,6 +415,7 @@ export class User {
         ProfileStatus.ACTIVE,
         ProfileStatus.CANCELLED,
         ProfileStatus.INACTIVE,
+        ProfileStatus.SUSPENDED,
       ],
     },
     default: ProfileStatus.ACTIVE,
