@@ -9,13 +9,6 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  index(@Res() response: Response) {
-    response
-      .type('text/html')
-      .send(readFileSync(join(__dirname, 'index.html')).toString());
-  }
-
-  @Get()
   getHello(): string {
     return this.appService.getHello();
   }
