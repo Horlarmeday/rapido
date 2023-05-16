@@ -424,8 +424,8 @@ export class User {
 
   @Prop(
     raw({
-      question: { type: String, required: true },
-      answer: { type: String, required: true },
+      question: { type: String },
+      answer: { type: String },
       _id: { required: false },
     }),
   )
