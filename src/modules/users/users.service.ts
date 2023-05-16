@@ -548,6 +548,7 @@ export class UsersService {
         profile_photo,
         gender,
       },
+      security,
     } = professionalPracticeSetupDto;
     const { profile, reg_medium } = user.toJSON();
 
@@ -573,6 +574,7 @@ export class UsersService {
         },
         professional_practice,
         payment_structure,
+        security,
         documents:
           documents?.map(({ file_type, original_name, type_of_document }) => ({
             file_type,
