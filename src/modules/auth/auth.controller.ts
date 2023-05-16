@@ -30,6 +30,7 @@ import { IsAuthorized } from '../../core/guards/isAuthorized.guards';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { AppleLoginDto } from './dto/apple-login.dto';
 import { ChangePhoneNumberDto } from './dto/change-phone-number.dto';
+import { IsUserActive } from '../../core/guards/isUserActive.guards';
 
 @Controller('auth')
 export class AuthController {
@@ -38,6 +39,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @UseGuards(IsAuthorized)
   @UseGuards(IsEmailVerified)
+  @UseGuards(IsUserActive)
   @HttpCode(HttpStatus.OK)
   async loginWithEmail(@Request() req) {
     const { message, result } = await this.authService.login(req.user);
