@@ -48,8 +48,8 @@ export class ReferralsService {
     return referral;
   }
 
-  async getUserReferral(referrerId: Types.ObjectId) {
-    const referral = await findOne(
+  async findReferralByReferrerId(referrerId: Types.ObjectId) {
+    return await findOne(
       this.referralModel,
       {
         referrer: referrerId,
@@ -59,8 +59,15 @@ export class ReferralsService {
         populateSelectFields: ['profile.first_name', 'profile.last_name'],
       },
     );
-    if (!referral)
-      throw new NotFoundException(Messages.USER_REFERRAL_CODE_NOT_EXISTS);
+  }
+
+  async getUserReferral(referrerId: Types.ObjectId) {
+    const referral = await this.findReferralByReferrerId(referrerId);
+    if (!referral) {
+      // create the referral and send
+      await this.createReferral(referrerId);
+      return this.findReferralByReferrerId(referrerId);
+    }
     return referral;
   }
 }

@@ -42,7 +42,6 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async findCurrentUser(@Request() req) {
-    console.log(req.user);
     const result = await this.usersService.getProfile(req.user);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }

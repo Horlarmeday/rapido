@@ -354,7 +354,6 @@ export class UsersService {
     } = updateUserProfileDto || {};
 
     const user = await this.findById(userId);
-    console.log(userId);
     const {
       profile: dbUser,
       security: dbSecurity,
