@@ -20,6 +20,7 @@ import {
   countDocuments,
   create,
   deleteOne,
+  find,
   findAndCountAll,
   findById,
   findOne,
@@ -51,6 +52,7 @@ import { SpecialistPreferencesDto } from './dto/specialist-preferences.dto';
 import { CreateAwardDto } from './dto/create-award.dto';
 import { CreateCertificationsDto } from './dto/create-certifications.dto';
 import { ReferralsService } from '../referrals/referrals.service';
+import { WalletsService } from '../wallets/wallets.service';
 
 const { ObjectId } = Types;
 
@@ -67,6 +69,7 @@ export class UsersService {
     private readonly userSettingsService: UserSettingsService,
     private readonly referralsService: ReferralsService,
     private taskCron: TaskScheduler,
+    private readonly walletsService: WalletsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
@@ -411,6 +414,23 @@ export class UsersService {
         ...fieldsToUpdate,
       },
     );
+  }
+
+  async findAllUsers(query, fieldsToSelect: string | string[] | null = null) {
+    return (await find(
+      this.userModel,
+      { ...query },
+      {
+        ...(fieldsToSelect
+          ? {
+              selectFields:
+                typeof fieldsToSelect === 'string'
+                  ? fieldsToSelect
+                  : [...fieldsToSelect],
+            }
+          : {}),
+      },
+    )) as UserDocument[];
   }
 
   async getUsers(query: QueryDto) {
@@ -802,8 +822,14 @@ export class UsersService {
     );
   }
 
-  async getTimeAvailabilityAndPreferences(userId: Types.ObjectId) {
+  async getUserAvailabilityAndPreferences(userId: Types.ObjectId) {
     return await findOne(this.specialistPreferencesModel, { userId });
+  }
+
+  async getPreferences(query: any) {
+    return (await find(this.specialistPreferencesModel, {
+      ...query,
+    })) as SpecialistPreferences[];
   }
 
   async getUserSecurityQuestion(userId: Types.ObjectId) {
@@ -811,6 +837,6 @@ export class UsersService {
     if (user?.security?.question) {
       return user.security.question;
     }
-    throw new NotFoundException(Messages.SECURITY_QUESTION_NOT_FOUND);
+    return null;
   }
 }

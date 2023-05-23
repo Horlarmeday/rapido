@@ -49,7 +49,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('availability')
   async getTimeAvailabilityAndPreferences(@Request() req) {
-    const result = await this.usersService.getTimeAvailabilityAndPreferences(
+    const result = await this.usersService.getUserAvailabilityAndPreferences(
       req.user.sub,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
