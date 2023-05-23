@@ -14,10 +14,12 @@ import {
   SpecialistPreferencesSchema,
 } from './entities/specialist-preferences.entity';
 import { ReferralsModule } from '../referrals/referrals.module';
+import { WalletsModule } from "../wallets/wallets.module";
 
 @Module({
   imports: [
     TokensModule,
+    WalletsModule,
     UserSettingsModule,
     ReferralsModule,
     MongooseModule.forFeature([
