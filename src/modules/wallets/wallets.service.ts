@@ -41,6 +41,27 @@ export class WalletsService {
     })) as WalletDocument[];
   }
 
+  reduce(arr) {
+    return arr.reduce((prevVal, currVal) => prevVal + currVal.amount, 0);
+  }
+
+  async getUserEarnings(userId: Types.ObjectId) {
+    const [earnings, withdrawals] = await Promise.all([
+      find(this.walletTxnModel, {
+        type: TransactionType.CREDIT,
+        userId,
+      }),
+      find(this.walletTxnModel, {
+        type: TransactionType.DEBIT,
+        userId,
+      }),
+    ]);
+    return {
+      totalEarnings: this.reduce(earnings),
+      totalWithdrawals: this.reduce(withdrawals),
+    };
+  }
+
   async getUserWallet(userId: Types.ObjectId): Promise<WalletDocument> {
     const wallet = await findOne(this.walletModel, { userId });
     if (!wallet) throw new NotFoundException(Messages.NOT_FOUND);
