@@ -37,7 +37,7 @@ import {
   upsert,
 } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
-import { User } from '../users/entities/user.entity';
+import { User, UserDocument, UserType } from '../users/entities/user.entity';
 import { ICalendarType } from './types/appointment.types';
 import { Messages } from '../../core/messages/messages';
 import { QueryDto } from '../../common/helpers/url-query.dto';
@@ -54,6 +54,10 @@ import {
   AppointmentReferralDocument,
 } from './entities/referral.entity';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
+import {
+  RatingFilter,
+  AvailableSpecialistQueryDto,
+} from './dto/available-specialist-query.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -81,6 +85,9 @@ export class AppointmentsService {
     );
     const appointment = await create(this.appointmentModel, {
       ...createAppointmentDto,
+      start_time: new Date(
+        `${createAppointmentDto.date}:${createAppointmentDto.time}`,
+      ),
       patient: currentUser.sub,
       meeting_class: subscription?.planId?.name || 'Free',
     });
@@ -315,6 +322,22 @@ export class AppointmentsService {
     });
   }
 
+  async getAppointments(query) {
+    return (await find(this.appointmentModel, {
+      ...query,
+    })) as AppointmentDocument[];
+  }
+
+  convertTimeIntoStringFormatted(time_taken) {
+    const hours = Math.floor(time_taken / 60);
+    const minutes = time_taken % 60;
+    const seconds = 0;
+
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
   async endAppointment(appointmentId: Types.ObjectId) {
     const appointment = await this.findOneAppointment(appointmentId);
     const response = await this.zoom.getPastMeetingDetails(
@@ -328,6 +351,9 @@ export class AppointmentsService {
           call_duration: {
             time_taken: response.data.total_minutes,
             unit: 'Minutes',
+            formatted_string: this.convertTimeIntoStringFormatted(
+              response?.data?.total_minutes,
+            ),
           },
         },
       );
@@ -435,6 +461,125 @@ export class AppointmentsService {
       { $push: { notes: { ...meetingNotesDto } } },
     );
   }
+
+  isTimeInRange(
+    preferredTime: moment.MomentInput,
+    startTime: moment.MomentInput,
+    endTime: moment.MomentInput,
+  ) {
+    const format = 'HH:mm:ss';
+    const time = moment(preferredTime, format);
+    const beforeTime = moment(startTime, format);
+    const afterTime = moment(endTime, format);
+    return time.isBetween(beforeTime, afterTime, undefined, '[]');
+  }
+
+  ratingsQuery(rating: RatingFilter) {
+    switch (rating) {
+      case RatingFilter.ONE_STAR_AND_ABOVE:
+        return { average_rating: { $gte: 1 } };
+      case RatingFilter.TWO_STARS_AND_ABOVE:
+        return { average_rating: { $gte: 2 } };
+      case RatingFilter.THREE_STARS_AND_ABOVE:
+        return { average_rating: { $gte: 3 } };
+      case RatingFilter.FOUR_STARS_AND_ABOVE:
+        return { average_rating: { $gte: 4 } };
+      case RatingFilter.FIVE_STARS:
+        return { average_rating: { $eq: 5 } };
+    }
+  }
+
+  async getAvailableSpecialists(
+    availableSpecialistQueryDto: AvailableSpecialistQueryDto,
+  ) {
+    const {
+      specialist_category,
+      professional_category,
+      availabilityDates,
+      rating,
+      time_zone,
+      gender,
+    } = availableSpecialistQueryDto || {};
+    // find all specialist of that professional category and get their Ids
+    const specialists = await this.usersService.findAllUsers({
+      user_type: UserType.SPECIALIST,
+      'professional_practice.category': professional_category,
+      'professional_practice.area_of_specialty': specialist_category,
+      ...(rating && this.ratingsQuery(rating)),
+    });
+    const specialistIds = specialists.map(({ _id }) => _id);
+    // Use the ids to fetch their preferences
+    // If (gender / rating), filter specialists whose preferences those fields
+    const preferences = await this.usersService.getPreferences({
+      userId: specialistIds,
+      ...(gender && { 'preferences.gender': gender }),
+      ...(time_zone && { 'preferences.timezone': time_zone }),
+    });
+
+    /**
+     * Fetch the specialists that their preference day and time
+     * falls between the patient preferred day and time for the appointment
+     **/
+    const result: { [x: string]: UserDocument[] } = {};
+    await Promise.all(
+      availabilityDates.map(async ({ date, time }) => {
+        const daysOfTheWeek = this.generalHelpers.daysOfTheWeek();
+        const preferredDay = daysOfTheWeek[moment(date).isoWeekday()];
+        const availablePreferences = preferences.filter(
+          ({ time_availability }) =>
+            time_availability.find(
+              ({ day, start_time, end_time }) =>
+                day === preferredDay &&
+                this.isTimeInRange(time, start_time, end_time),
+            ),
+        );
+        const userIds = availablePreferences.map(({ userId }) => userId);
+        const availableSpecialists = await Promise.all(
+          userIds.filter(async (userId) => {
+            // get all the specialist appointments for that day if any
+            const appointments = await this.getAppointments({
+              userId,
+              $or: [
+                { status: AppointmentStatus.OPEN },
+                { status: AppointmentStatus.ONGOING },
+              ],
+              start_time: {
+                $gte: new Date(new Date(date).setHours(0, 0, 0)),
+                $lte: new Date(new Date(date).setHours(23, 59, 59)),
+              },
+            });
+            // check if the time patient selects does not coincide with an appointment time of the specialist
+
+            return (
+              !appointments?.length ||
+              !appointments.some(({ start_time }) => {
+                const endTime = moment(start_time)
+                  .add(1, 'hour')
+                  .format('HH:mm');
+                return this.isTimeInRange(time, start_time, endTime);
+              })
+            );
+          }),
+        );
+
+        result[moment(date).format('YYYY-MM-DD')] =
+          await this.usersService.findAllUsers(
+            {
+              _id: availableSpecialists,
+            },
+            [
+              'profile.first_name',
+              'profile.last_name',
+              'average_rating',
+              'professional_practice.years_of_practice',
+            ],
+          );
+      }),
+    );
+    // Send the remaining specialist to the client
+    return result;
+  }
+
   /**
    * TODO: create a job to change appointment status to ongoing
    * when meeting going on

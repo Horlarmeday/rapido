@@ -9,7 +9,11 @@ export class CreateAppointmentDto {
 
   @Type(() => Date)
   @IsNotEmpty()
-  start_time: Date;
+  date: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  time: string;
 
   @IsNotEmpty()
   @IsString()

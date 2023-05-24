@@ -36,9 +36,10 @@ export class Appointment {
     raw({
       time_taken: { type: Number, default: 0 },
       unit: { type: String, default: 'Minutes' },
+      formatted_string: { type: String },
     }),
   )
-  call_duration: number;
+  call_duration: any;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   patient: Types.ObjectId;

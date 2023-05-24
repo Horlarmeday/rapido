@@ -24,6 +24,7 @@ import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 import { EndZoomMeetingDto } from './dto/end-zoom-meeting.dto';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
+import { AvailableSpecialistQueryDto } from './dto/available-specialist-query.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -80,6 +81,16 @@ export class AppointmentsController {
   async getSpecialistReferrals(@Request() req) {
     const result = await this.appointmentsService.getSpecialistReferrals(
       req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('available-specialists')
+  async getAvailableSpecialists(
+    @Query() availableSpecialistQueryDto: AvailableSpecialistQueryDto,
+  ) {
+    const result = await this.appointmentsService.getAvailableSpecialists(
+      availableSpecialistQueryDto,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
