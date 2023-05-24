@@ -390,7 +390,7 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     const { phone, country_code, answer } = changePhoneNumberDto;
     // check security question exists
-    if (user?.security?.answer.toLowerCase() === answer.toLowerCase()) {
+    if (user?.security?.answer?.toLowerCase() === answer?.toLowerCase()) {
       // check number already exists
       const isExists = await this.usersService.findOneByPhone(phone);
       if (isExists) throw new BadRequestException(Messages.PHONE_NUMBER_EXISTS);
