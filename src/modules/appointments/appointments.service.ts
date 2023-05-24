@@ -58,6 +58,7 @@ import {
   RatingFilter,
   AvailableSpecialistQueryDto,
 } from './dto/available-specialist-query.dto';
+import { AvailableTimesDto } from './dto/available-times.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -534,49 +535,111 @@ export class AppointmentsService {
             ),
         );
         const userIds = availablePreferences.map(({ userId }) => userId);
-        const availableSpecialists = await Promise.all(
-          userIds.filter(async (userId) => {
-            // get all the specialist appointments for that day if any
-            const appointments = await this.getAppointments({
-              userId,
-              $or: [
-                { status: AppointmentStatus.OPEN },
-                { status: AppointmentStatus.ONGOING },
-              ],
-              start_time: {
-                $gte: new Date(new Date(date).setHours(0, 0, 0)),
-                $lte: new Date(new Date(date).setHours(23, 59, 59)),
-              },
-            });
-            // check if the time patient selects does not coincide with an appointment time of the specialist
-
-            return (
-              !appointments?.length ||
-              !appointments.some(({ start_time }) => {
-                const endTime = moment(start_time)
-                  .add(1, 'hour')
-                  .format('HH:mm');
-                return this.isTimeInRange(time, start_time, endTime);
-              })
-            );
-          }),
+        const availableSpecialists = await this.filterAvailableSpecialists(
+          userIds,
+          date,
+          time,
         );
 
         result[moment(date).format('YYYY-MM-DD')] =
-          await this.usersService.findAllUsers(
-            {
-              _id: availableSpecialists,
-            },
-            [
-              'profile.first_name',
-              'profile.last_name',
-              'average_rating',
-              'professional_practice.years_of_practice',
-            ],
-          );
+          await this.getSpecialistDetails(availableSpecialists);
       }),
     );
     // Send the remaining specialist to the client
+    return result;
+  }
+
+  async filterAvailableSpecialists(
+    userIds: Types.ObjectId[],
+    date: Date,
+    time: string,
+  ) {
+    const availableSpecialists: Types.ObjectId[] = [];
+    for (const userId of userIds) {
+      const appointments = await this.getAppointments({
+        userId,
+        $or: [
+          { status: AppointmentStatus.OPEN },
+          { status: AppointmentStatus.ONGOING },
+        ],
+        start_time: {
+          $gte: new Date(new Date(date).setHours(0, 0, 0)),
+          $lte: new Date(new Date(date).setHours(23, 59, 59)),
+        },
+      });
+
+      const isAvailable =
+        !appointments?.length ||
+        !appointments?.some(({ start_time }) => {
+          const endTime = moment(start_time).add(1, 'hour').format('HH:mm');
+          return this.isTimeInRange(time, start_time, endTime);
+        });
+
+      if (isAvailable) {
+        availableSpecialists.push(userId);
+      }
+    }
+
+    return availableSpecialists;
+  }
+
+  async getSpecialistDetails(userIds: Types.ObjectId[]) {
+    return this.usersService.findAllUsers(
+      {
+        _id: userIds,
+      },
+      [
+        'profile.first_name',
+        'profile.last_name',
+        'average_rating',
+        'professional_practice.years_of_practice',
+      ],
+    );
+  }
+
+  async getAvailableTimes(availableTimesDto: AvailableTimesDto) {
+    const { preferredDates } = availableTimesDto;
+    const result: { [x: string]: string[] } = {};
+    await Promise.all(
+      preferredDates.map(async ({ date }) => {
+        const daysOfTheWeek = this.generalHelpers.daysOfTheWeek();
+        const preferredDay = daysOfTheWeek[moment(date).isoWeekday()];
+        const preferences = await this.usersService.getPreferences({
+          'time_availability.day': preferredDay,
+        });
+
+        const timeSlots = preferences.map(
+          ({ time_availability }) => time_availability,
+        );
+        const timeIntervals: Set<string> = new Set();
+
+        for (const slots of timeSlots) {
+          for (const slot of slots) {
+            if (slot.day === preferredDay) {
+              const startTime = moment(slot.start_time, 'HH:mm');
+              const endTime = moment(slot.end_time, 'HH:mm');
+
+              // Generate 30-minute time intervals within start_time and end_time
+              const interval = moment.duration(30, 'minutes');
+              const currentTime = startTime.clone();
+
+              // Adjust the start time to the nearest 30-minute interval
+              const adjustedStartTime = currentTime.add(
+                Math.ceil(startTime.minutes() / 30) * 30 - startTime.minutes(),
+                'minutes',
+              );
+
+              while (adjustedStartTime.isSameOrBefore(endTime)) {
+                const time = adjustedStartTime.format('HH:mm');
+                timeIntervals.add(time);
+                adjustedStartTime.add(interval);
+              }
+            }
+          }
+        }
+        result[moment(date).format('YYYY-MM-DD')] = Array.from(timeIntervals);
+      }),
+    );
     return result;
   }
 
