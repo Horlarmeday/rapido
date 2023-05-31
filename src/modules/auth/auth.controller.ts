@@ -219,7 +219,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Patch('change-email-address')
+  @Patch('verify-email-address-change')
   async verifyEmailAddressChange(
     @Body() verifyEmailChangeDto: VerifyEmailChangeDto,
     @Request() req,
