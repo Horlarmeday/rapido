@@ -27,6 +27,7 @@ import { LifeguardsModule } from './modules/lifeguards/lifeguards.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { RewardsModule } from './modules/rewards/rewards.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { PrescriptionsModule } from './modules/prescriptions/prescriptions.module';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ dotenv.config();
     ReferralsModule,
     RewardsModule,
     DashboardModule,
+    PrescriptionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebsocketGateway],
