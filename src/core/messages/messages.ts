@@ -56,4 +56,5 @@ export enum Messages {
   PHONE_NUMBER_EXISTS = 'Phone number already exists',
   EMAIL_EXISTS = 'Email already exists',
   EMAIL_CHANGED = 'Email address changed',
+  PRESCRIPTION_SENT = 'Prescription sent successfully',
 }
