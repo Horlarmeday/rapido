@@ -399,7 +399,7 @@ export class AuthService {
       if (isExists) throw new BadRequestException(Messages.PHONE_NUMBER_EXISTS);
 
       const phoneNumber = `${country_code}${phone}`;
-      await this.twilio.sendPhoneVerificationCode(phoneNumber);
+      return await this.twilio.sendPhoneVerificationCode(phoneNumber);
     }
     throw new BadRequestException(Messages.INCORRECT_ANSWER);
   }
@@ -442,7 +442,7 @@ export class AuthService {
 
       const otp = await this.tokensService.create(TokenType.EMAIL, userId);
       // send OTP to user email
-      this.generalHelpers.generateEmailAndSend({
+      return this.generalHelpers.generateEmailAndSend({
         email: user.profile.contact.email,
         subject: Messages.EMAIL_VERIFICATION,
         emailBody: otpEmail(user.profile.first_name, otp.token),
