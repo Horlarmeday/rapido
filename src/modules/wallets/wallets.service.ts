@@ -20,6 +20,7 @@ import currency = require('currency.js');
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { BanksService } from '../banks/banks.service';
 import { SUCCESS } from '../../core/constants';
+import * as moment from 'moment/moment';
 
 @Injectable()
 export class WalletsService {
@@ -42,7 +43,7 @@ export class WalletsService {
   }
 
   reduce(arr) {
-    return arr.reduce((prevVal, currVal) => prevVal + currVal.amount, 0);
+    return arr.reduce((prevVal, currVal) => prevVal + currVal?.amount, 0);
   }
 
   async getUserEarnings(userId: Types.ObjectId) {
@@ -110,5 +111,26 @@ export class WalletsService {
       );
     }
     throw new InternalServerErrorException();
+  }
+
+  async totalEarningsData(userId: Types.ObjectId) {
+    const [totalEarnings, earningsThisWeek] = await Promise.all([
+      find(this.walletTxnModel, {
+        type: TransactionType.CREDIT,
+        userId,
+      }),
+      find(this.walletTxnModel, {
+        type: TransactionType.CREDIT,
+        userId,
+        created_at: {
+          $gte: moment().startOf('week').toDate(),
+          $lt: moment().endOf('week').toDate(),
+        },
+      }),
+    ]);
+    return {
+      totalEarnings: this.reduce(totalEarnings),
+      earningsThisWeek: this.reduce(earningsThisWeek),
+    };
   }
 }

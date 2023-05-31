@@ -16,6 +16,7 @@ export enum AppointmentStatus {
   CANCELLED = 'CANCELLED',
   FAILED = 'FAILED',
   ONGOING = 'ONGOING',
+  RESCHEDULED = 'RESCHEDULED',
 }
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
@@ -79,6 +80,7 @@ export class Appointment {
         AppointmentStatus.FAILED,
         AppointmentStatus.OPEN,
         AppointmentStatus.ONGOING,
+        AppointmentStatus.RESCHEDULED,
       ],
     },
     default: AppointmentStatus.OPEN,
