@@ -24,7 +24,7 @@ import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { ReferSpecialistDto } from './dto/refer-specialist.dto';
 import { EndZoomMeetingDto } from './dto/end-zoom-meeting.dto';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
-import { AvailableSpecialistQueryDto } from './dto/available-specialist-query.dto';
+import { AvailableSpecialistDto } from './dto/available-specialist.dto';
 import { AvailableTimesDto } from './dto/available-times.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -89,10 +89,10 @@ export class AppointmentsController {
   @HttpCode(HttpStatus.OK)
   @Post('available-specialists')
   async getAvailableSpecialists(
-    @Body() availableSpecialistQueryDto: AvailableSpecialistQueryDto,
+    @Body() availableSpecialistDto: AvailableSpecialistDto,
   ) {
     const result = await this.appointmentsService.getAvailableSpecialists(
-      availableSpecialistQueryDto,
+      availableSpecialistDto,
     );
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }

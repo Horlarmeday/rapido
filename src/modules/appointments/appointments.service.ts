@@ -55,9 +55,9 @@ import {
 } from './entities/referral.entity';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
 import {
+  AvailableSpecialistDto,
   RatingFilter,
-  AvailableSpecialistQueryDto,
-} from './dto/available-specialist-query.dto';
+} from './dto/available-specialist.dto';
 import { AvailableTimesDto } from './dto/available-times.dto';
 
 @Injectable()
@@ -491,7 +491,7 @@ export class AppointmentsService {
   }
 
   async getAvailableSpecialists(
-    availableSpecialistQueryDto: AvailableSpecialistQueryDto,
+    availableSpecialistQueryDto: AvailableSpecialistDto,
   ) {
     const {
       specialist_category,
@@ -557,7 +557,7 @@ export class AppointmentsService {
     const availableSpecialists: Types.ObjectId[] = [];
     for (const userId of userIds) {
       const appointments = await this.getAppointments({
-        userId,
+        specialist: userId,
         $or: [
           { status: AppointmentStatus.OPEN },
           { status: AppointmentStatus.ONGOING },
@@ -643,8 +643,53 @@ export class AppointmentsService {
     return result;
   }
 
-  /**
-   * TODO: create a job to change appointment status to ongoing
-   * when meeting going on
-   */
+  async appointmentsDataCount(
+    userId: Types.ObjectId,
+    status: AppointmentStatus,
+    created_at: { $gte: Date; $lt: Date },
+  ) {
+    return countDocuments(this.appointmentModel, {
+      specialist: userId,
+      status,
+      created_at,
+    });
+  }
+
+  async aggregatedData(userId: Types.ObjectId) {
+    const [completed, rescheduled, lastMonthCompleted, lastMonthRescheduled] =
+      await Promise.all([
+        this.appointmentsDataCount(userId, AppointmentStatus.COMPLETED, {
+          $gte: moment().startOf('month').toDate(),
+          $lt: moment().endOf('month').toDate(),
+        }),
+        this.appointmentsDataCount(userId, AppointmentStatus.RESCHEDULED, {
+          $gte: moment().startOf('month').toDate(),
+          $lt: moment().endOf('month').toDate(),
+        }),
+        this.appointmentsDataCount(userId, AppointmentStatus.COMPLETED, {
+          $gte: moment().subtract(1, 'month').startOf('month').toDate(),
+          $lt: moment().subtract(1, 'month').endOf('month').toDate(),
+        }),
+        this.appointmentsDataCount(userId, AppointmentStatus.RESCHEDULED, {
+          $gte: moment().subtract(1, 'month').startOf('month').toDate(),
+          $lt: moment().subtract(1, 'month').endOf('month').toDate(),
+        }),
+      ]);
+    return {
+      completedAppointments: completed,
+      completedAppointmentsLastMonth: lastMonthCompleted,
+      rescheduledAppointments: rescheduled,
+      rescheduledAppointmentsLastMonth: lastMonthRescheduled,
+    };
+  }
+
+  async nextAppointment(userId: Types.ObjectId) {
+    return this.appointmentModel.findOne(
+      { specialist: userId, status: AppointmentStatus.OPEN },
+      null,
+      {
+        sort: { created_at: -1 },
+      },
+    );
+  }
 }

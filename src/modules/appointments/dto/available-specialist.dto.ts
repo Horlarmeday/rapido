@@ -23,7 +23,7 @@ export class AvailabilityParam {
   time: string;
 }
 
-export class AvailableSpecialistQueryDto {
+export class AvailableSpecialistDto {
   @IsNotEmpty()
   @IsString()
   professional_category: string;
