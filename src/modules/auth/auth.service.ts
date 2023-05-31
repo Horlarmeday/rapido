@@ -44,6 +44,9 @@ import { AppleAuth } from './strategies/appleAuth.strategy';
 import { AppleLoginDto } from './dto/apple-login.dto';
 import { JwtPayload } from '../lifeguards/types/jwt-payload.types';
 import { ChangePhoneNumberDto } from './dto/change-phone-number.dto';
+import { ChangeEmailAddressDto } from './dto/change-email-address.dto';
+import { VerifyPhoneNumberChangeDto } from './dto/verify-phone-number-change.dto';
+import { VerifyEmailChangeDto } from './dto/verify-email-change.dto';
 
 @Injectable()
 export class AuthService {
@@ -394,13 +397,85 @@ export class AuthService {
       // check number already exists
       const isExists = await this.usersService.findOneByPhone(phone);
       if (isExists) throw new BadRequestException(Messages.PHONE_NUMBER_EXISTS);
+
+      const phoneNumber = `${country_code}${phone}`;
+      await this.twilio.sendPhoneVerificationCode(phoneNumber);
+    }
+    throw new BadRequestException(Messages.INCORRECT_ANSWER);
+  }
+
+  async verifyPhoneNumberChange(
+    userId: Types.ObjectId,
+    verifyPhoneNumberChangeDto: VerifyPhoneNumberChangeDto,
+  ) {
+    const { phone, country_code, code } = verifyPhoneNumberChangeDto;
+    const user = await this.usersService.findOneByPhone(
+      this.removeLeadingZero(phone),
+    );
+    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
+
+    const response = await this.twilio.verifyPhoneVerification(
+      `${country_code}${phone}`,
+      code,
+    );
+    if (response.data.status === APPROVED) {
       // change phone number
       return await this.usersService.updateOne(userId, {
         'profile.contact.phone.country_code': country_code,
         'profile.contact.phone.number': phone,
       });
     }
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
+  }
+
+  async changeEmailAddress(
+    userId: Types.ObjectId,
+    changeEmailAddressDto: ChangeEmailAddressDto,
+  ) {
+    const user = await this.usersService.findById(userId);
+    const { email, answer } = changeEmailAddressDto;
+    // check security question exists
+    if (user?.security?.answer?.toLowerCase() === answer?.toLowerCase()) {
+      // check number already exists
+      const isExists = await this.usersService.findOneByEmail(email);
+      if (isExists) throw new BadRequestException(Messages.EMAIL_EXISTS);
+
+      const otp = await this.tokensService.create(TokenType.EMAIL, userId);
+      // send OTP to user email
+      this.generalHelpers.generateEmailAndSend({
+        email: user.profile.contact.email,
+        subject: Messages.EMAIL_VERIFICATION,
+        emailBody: otpEmail(user.profile.first_name, otp.token),
+      });
+    }
     throw new BadRequestException(Messages.INCORRECT_ANSWER);
+  }
+
+  async verifyEmailAddressChange(
+    userId: Types.ObjectId,
+    verifyEmailChangeDto: VerifyEmailChangeDto,
+  ) {
+    const { email, code } = verifyEmailChangeDto;
+    const foundToken = await this.tokensService.findTokenByUserIdAndType(
+      userId,
+      code,
+      TokenType.EMAIL,
+    );
+    if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
+
+    if (moment(foundToken.expires_in).isSameOrAfter(moment())) {
+      // change email address
+      await this.usersService.updateOne(userId, {
+        'profile.contact.email': email,
+      });
+
+      // delete the token
+      await this.tokensService.removeToken(foundToken._id);
+      return true;
+    }
+    //delete expired code
+    await this.tokensService.removeToken(foundToken._id);
+    throw new BadRequestException(Messages.INVALID_EXPIRED_TOKEN);
   }
 
   private static formatJwtPayload(user: UserDocument): IJwtPayload {

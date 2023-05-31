@@ -31,6 +31,9 @@ import { GoogleLoginDto } from './dto/google-login.dto';
 import { AppleLoginDto } from './dto/apple-login.dto';
 import { ChangePhoneNumberDto } from './dto/change-phone-number.dto';
 import { IsUserActive } from '../../core/guards/isUserActive.guards';
+import { ChangeEmailAddressDto } from './dto/change-email-address.dto';
+import { VerifyPhoneNumberChangeDto } from './dto/verify-phone-number-change.dto';
+import { VerifyEmailChangeDto } from './dto/verify-email-change.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -183,6 +186,48 @@ export class AuthController {
       req.user.sub,
       changePhoneNumberDto,
     );
+    return sendSuccessResponse(Messages.PHONE_VERIFICATION_SENT, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Patch('verify-phone-number-change')
+  async verifyPhoneNumberChange(
+    @Body() verifyPhoneNumberChangeDto: VerifyPhoneNumberChangeDto,
+    @Request() req,
+  ) {
+    await this.authService.verifyPhoneNumberChange(
+      req.user.sub,
+      verifyPhoneNumberChangeDto,
+    );
     return sendSuccessResponse(Messages.PHONE_NUMBER_CHANGED, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Patch('change-email-address')
+  async changeEmailAddress(
+    @Body() changeEmailAddressDto: ChangeEmailAddressDto,
+    @Request() req,
+  ) {
+    await this.authService.changeEmailAddress(
+      req.user.sub,
+      changeEmailAddressDto,
+    );
+    return sendSuccessResponse(Messages.EMAIL_VERIFICATION_SENT, null);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Patch('change-email-address')
+  async verifyEmailAddressChange(
+    @Body() verifyEmailChangeDto: VerifyEmailChangeDto,
+    @Request() req,
+  ) {
+    await this.authService.verifyEmailAddressChange(
+      req.user.sub,
+      verifyEmailChangeDto,
+    );
+    return sendSuccessResponse(Messages.EMAIL_CHANGED, null);
   }
 }
