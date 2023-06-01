@@ -409,11 +409,6 @@ export class AuthService {
     verifyPhoneNumberChangeDto: VerifyPhoneNumberChangeDto,
   ) {
     const { phone, country_code, code } = verifyPhoneNumberChangeDto;
-    const user = await this.usersService.findOneByPhone(
-      this.removeLeadingZero(phone),
-    );
-    if (!user) throw new NotFoundException(Messages.NO_USER_FOUND);
-
     const response = await this.twilio.verifyPhoneVerification(
       `${country_code}${phone}`,
       code,
