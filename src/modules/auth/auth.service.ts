@@ -443,7 +443,7 @@ export class AuthService {
       const otp = await this.tokensService.create(TokenType.EMAIL, userId);
       // send OTP to user email
       return this.generalHelpers.generateEmailAndSend({
-        email: user.profile.contact.email,
+        email,
         subject: Messages.EMAIL_VERIFICATION,
         emailBody: otpEmail(user.profile.first_name, otp.token),
       });
