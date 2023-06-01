@@ -436,11 +436,11 @@ export class AuthService {
     const { email, answer } = changeEmailAddressDto;
     // check security question exists
     if (user?.security?.answer?.toLowerCase() === answer?.toLowerCase()) {
-      // check number already exists
+      // check email already exists
       const isExists = await this.usersService.findOneByEmail(email);
       if (isExists) throw new BadRequestException(Messages.EMAIL_EXISTS);
 
-      const otp = await this.tokensService.create(TokenType.EMAIL, userId);
+      const otp = await this.tokensService.create(TokenType.OTP, userId);
       // send OTP to user email
       return this.generalHelpers.generateEmailAndSend({
         email,
@@ -459,7 +459,7 @@ export class AuthService {
     const foundToken = await this.tokensService.findTokenByUserIdAndType(
       userId,
       code,
-      TokenType.EMAIL,
+      TokenType.OTP,
     );
     if (!foundToken) throw new BadRequestException(Messages.INVALID_TOKEN);
 
