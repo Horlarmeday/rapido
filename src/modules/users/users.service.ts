@@ -839,4 +839,8 @@ export class UsersService {
     }
     return null;
   }
+
+  async getUserEarning(userId: Types.ObjectId) {
+    return this.walletsService.getUserEarnings(userId);
+  }
 }

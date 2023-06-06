@@ -47,7 +47,7 @@ export class WalletsService {
   }
 
   async getUserEarnings(userId: Types.ObjectId) {
-    const [earnings, withdrawals] = await Promise.all([
+    const [earnings, withdrawals, currentBalance] = await Promise.all([
       find(this.walletTxnModel, {
         type: TransactionType.CREDIT,
         userId,
@@ -56,10 +56,12 @@ export class WalletsService {
         type: TransactionType.DEBIT,
         userId,
       }),
+      findOne(this.walletModel, { userId }),
     ]);
     return {
-      totalEarnings: this.reduce(earnings),
-      totalWithdrawals: this.reduce(withdrawals),
+      totalEarnings: this.reduce(earnings) || 0,
+      totalWithdrawals: this.reduce(withdrawals) || 0,
+      currentBalance: currentBalance?.available_balance || 0,
     };
   }
 

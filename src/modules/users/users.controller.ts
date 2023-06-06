@@ -131,6 +131,13 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('earnings')
+  async getUserEarnings(@Request() req) {
+    const result = await this.usersService.getUserEarning(req.user.sub);
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUser(@Param('id') id: Types.ObjectId) {
     const result = await this.usersService.findOne({ _id: id });
