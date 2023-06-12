@@ -116,7 +116,7 @@ AppointmentSchema.pre('find', function (next) {
   this.populate({
     path: 'specialist patient',
     options: { _recursed: true },
-    select: 'profile.first_name profile.last_name',
+    select: '-profile.password -profile.twoFA_secret -security',
   });
   next();
 });

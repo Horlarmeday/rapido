@@ -84,11 +84,10 @@ export class AppointmentsService {
     const subscription = await this.subscriptionsService.getActiveSubscription(
       currentUser.sub,
     );
+    const { date, time } = createAppointmentDto;
     const appointment = await create(this.appointmentModel, {
       ...createAppointmentDto,
-      start_time: new Date(
-        `${createAppointmentDto.date}:${createAppointmentDto.time}`,
-      ),
+      start_time: moment(`${date} ${time}`, true).toDate(),
       patient: currentUser.sub,
       meeting_class: subscription?.planId?.name || 'Free',
     });
