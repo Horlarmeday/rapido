@@ -26,6 +26,7 @@ import { EndZoomMeetingDto } from './dto/end-zoom-meeting.dto';
 import { MeetingNotesDto } from './dto/meeting-notes.dto';
 import { AvailableSpecialistDto } from './dto/available-specialist.dto';
 import { AvailableTimesDto } from './dto/available-times.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('appointments')
@@ -124,6 +125,16 @@ export class AppointmentsController {
       cancelAppointmentDto,
     );
     return sendSuccessResponse(Messages.APPOINTMENT_CANCELLED, result);
+  }
+
+  @Patch('reschedule')
+  async rescheduleAppointment(
+    @Body() rescheduleAppointmentDto: RescheduleAppointmentDto,
+  ) {
+    const result = await this.appointmentsService.rescheduleAppointment(
+      rescheduleAppointmentDto,
+    );
+    return sendSuccessResponse(Messages.APPOINTMENT_RESCHEDULE, result);
   }
 
   @Post('refer-specialist')

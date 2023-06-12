@@ -1,5 +1,5 @@
 import { sign } from 'jsonwebtoken';
-import { get, post, put } from '../axios';
+import { get, patch, post, put } from '../axios';
 
 export type CreateMeetingType = {
   topic: string;
@@ -42,6 +42,12 @@ export class Zoom {
     const url = `${this.baseUrl}/meetings/${meetingId}/status`;
     const body = { action: meetingStatus };
     return await put(url, { ...body }, { headers: this.headers });
+  }
+
+  async rescheduleMeeting({ meetingId, topic, start_time, duration }) {
+    const url = `${this.baseUrl}/meetings/${meetingId}`;
+    const settings = this.settings({ topic, start_time, duration });
+    return await patch(url, { ...settings }, { headers: this.headers });
   }
 
   async getPastMeetingDetails(meetingId: string) {

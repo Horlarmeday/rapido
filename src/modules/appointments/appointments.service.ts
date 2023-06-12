@@ -34,6 +34,7 @@ import {
   findAndCountAll,
   findById,
   updateOne,
+  updateOneAndReturn,
   upsert,
 } from 'src/common/crud/crud';
 import { TaskScheduler } from '../../core/worker/task.scheduler';
@@ -59,6 +60,7 @@ import {
   RatingFilter,
 } from './dto/available-specialist.dto';
 import { AvailableTimesDto } from './dto/available-times.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -94,7 +96,9 @@ export class AppointmentsService {
     return await this.scheduleZoomMeeting(appointment);
   }
 
-  async findOneAppointment(appointmentId: Types.ObjectId) {
+  async findOneAppointment(
+    appointmentId: Types.ObjectId,
+  ): Promise<AppointmentDocument> {
     const appointment = await findById(this.appointmentModel, appointmentId);
     if (!appointment)
       throw new NotFoundException(Messages.APPOINTMENT_NOT_FOUND);
@@ -102,7 +106,7 @@ export class AppointmentsService {
   }
 
   async updateAppointment(query: any, fieldsToUpdate: any) {
-    return await updateOne(
+    return await updateOneAndReturn(
       this.appointmentModel,
       { ...query },
       { ...fieldsToUpdate },
@@ -123,6 +127,50 @@ export class AppointmentsService {
         { status: AppointmentStatus.CANCELLED },
       );
     }
+    return appointment;
+  }
+
+  async rescheduleAppointment(
+    rescheduleAppointmentDto: RescheduleAppointmentDto,
+  ) {
+    const { appointmentId, time, date } = rescheduleAppointmentDto;
+    const appointment = await this.findOneAppointment(appointmentId);
+    const [specialist, patient, subscription] = await Promise.all([
+      this.usersService.findById(appointment.specialist),
+      this.usersService.findById(appointment.patient),
+      this.subscriptionsService.getActiveSubscription(appointment.patient),
+    ]);
+    const topic = `Appointment Rescheduled Between ${specialist.profile.first_name} and ${patient.profile.first_name}`;
+    const startTime = moment(`${date} ${time}`, true).toDate();
+    const response = await this.zoom.rescheduleMeeting({
+      meetingId: appointment.meeting_id,
+      topic,
+      start_time: startTime,
+      duration: subscription?.planId?.call_duration || '5',
+    });
+
+    if (response.statusCode === 204) {
+      await this.updateAppointment(
+        { _id: appointmentId },
+        { status: AppointmentStatus.RESCHEDULED, start_time: startTime },
+      );
+      await this.taskCron.addCron(
+        this.sendScheduledAppointment({
+          patient,
+          specialist,
+          start_time: startTime,
+          topic,
+          link: {
+            join_url: appointment.join_url,
+            start_url: appointment.start_url,
+          },
+          call_duration: subscription?.planId?.call_duration,
+          appointmentId: appointment._id,
+        }),
+        `${Date.now()}-sendRescheduleAppointmentMail`,
+      );
+    }
+    return appointment;
   }
 
   async scheduleZoomMeeting(appointment: AppointmentDocument) {
