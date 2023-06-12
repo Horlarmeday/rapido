@@ -38,8 +38,7 @@ export class AvailableSpecialistDto {
   @IsOptional()
   rating: RatingFilter;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsOptional()
   time_zone: string;
 
   @IsArray()

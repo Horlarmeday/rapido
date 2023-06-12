@@ -7,7 +7,7 @@ export class CreateAppointmentDto {
   @IsString()
   category: string;
 
-  @Type(() => Date)
+  @IsString()
   @IsNotEmpty()
   date: Date;
 
