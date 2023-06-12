@@ -16,6 +16,13 @@ import { sendSuccessResponse } from '../../core/responses/success.responses';
 import { Messages } from '../../core/messages/messages';
 import { Types } from 'mongoose';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UploadPrescriptionDto } from './dto/upload-prescription.dto';
+import { SendPatientPrescriptionDto } from './dto/send-patient-prescription.dto';
+import { SendPharmacyPrescriptionDto } from './dto/send-pharmacy-prescription.dto';
+import { StartOrderPaymentDto } from './dto/start-order-payment.dto';
+import { VerifyOrderPaymentDto } from './dto/verify-order-payment.dto';
+import { ConfirmOrderDto } from './dto/confirm-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions')
@@ -34,10 +41,110 @@ export class PrescriptionsController {
     return sendSuccessResponse(Messages.CREATED, result);
   }
 
+  @Post('file')
+  async uploadPrescription(
+    @Body() uploadPrescriptionDto: UploadPrescriptionDto,
+    @Request() req,
+  ) {
+    const result = await this.prescriptionsService.uploadPrescription(
+      req.user.sub,
+      uploadPrescriptionDto,
+    );
+    return sendSuccessResponse(Messages.CREATED, result);
+  }
+
+  @Get()
+  async getPrescriptions(@Request() req) {
+    const result = await this.prescriptionsService.getPrescriptions(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('internal')
+  async getInternalPrescriptions(@Request() req) {
+    const result = await this.prescriptionsService.getPrescriptionsByUser(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('external')
+  async getExternalPrescriptions(@Request() req) {
+    const result = await this.prescriptionsService.getPrescriptionFilesByUser(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Post('start-payment')
+  async startOrderPayment(
+    @Body() startOrderPaymentDto: StartOrderPaymentDto,
+    @Request() req,
+  ) {
+    const result = await this.prescriptionsService.startOrderPayment(
+      req.user.sub,
+      startOrderPaymentDto.amount,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
   @Get(':id')
   async getOnePrescription(@Param('id') id: Types.ObjectId) {
     const result = await this.prescriptionsService.getOnePrescription(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Patch('send-patient')
+  async sendPrescriptionToPatient(
+    @Body() sendPatientPrescriptionDto: SendPatientPrescriptionDto,
+  ) {
+    const result = await this.prescriptionsService.sendPrescriptionToPatient(
+      sendPatientPrescriptionDto,
+    );
+    return sendSuccessResponse(Messages.PRESCRIPTION_SENT, result);
+  }
+
+  @Patch('send-pharmacy')
+  async sendPrescriptionToPharmacy(
+    @Body() sendPharmacyPrescriptionDto: SendPharmacyPrescriptionDto,
+    @Request() req,
+  ) {
+    const result = await this.prescriptionsService.sendPrescriptionToPharmacy(
+      sendPharmacyPrescriptionDto,
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.PRESCRIPTION_SENT, result);
+  }
+
+  @Patch('verify-payment')
+  async verifyOrderPayment(
+    @Body() verifyOrderPaymentDto: VerifyOrderPaymentDto,
+  ) {
+    const result = await this.prescriptionsService.verifyOrderPayment(
+      verifyOrderPaymentDto,
+    );
+    return sendSuccessResponse(Messages.TRANSACTION_VERIFIED, result);
+  }
+
+  @Patch('confirm-order')
+  async confirmOrder(@Body() confirmOrderDto: ConfirmOrderDto) {
+    const result = await this.prescriptionsService.confirmOrder(
+      confirmOrderDto.orderId,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
+  }
+
+  @Patch('order/:id')
+  async updateOrder(
+    @Param('id') id: Types.ObjectId,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ) {
+    const result = await this.prescriptionsService.updateOrder(
+      id,
+      updateOrderDto,
+    );
+    return sendSuccessResponse(Messages.UPDATED, result);
   }
 
   @Patch(':id')
@@ -50,12 +157,6 @@ export class PrescriptionsController {
       updatePrescriptionDto,
     );
     return sendSuccessResponse(Messages.UPDATED, result);
-  }
-
-  @Patch(':id/sent')
-  async sendPrescription(@Param('id') id: Types.ObjectId) {
-    const result = await this.prescriptionsService.sendPrescription(id);
-    return sendSuccessResponse(Messages.PRESCRIPTION_SENT, result);
   }
 
   @Delete(':id')
