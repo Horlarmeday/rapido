@@ -4,7 +4,18 @@ export enum PaymentProvider {
   STRIPE = 'Stripe',
 }
 
+export class Rate {
+  number: number;
+  unit: string;
+}
+
+export class SpecialistRate {
+  category: string;
+  specialization: string;
+  rate: Rate;
+}
+
 export class AdminDefaultSettingsTypes {
-  appointment_fee: number;
   payment_provider: PaymentProvider;
+  specialist_rates: SpecialistRate[];
 }
