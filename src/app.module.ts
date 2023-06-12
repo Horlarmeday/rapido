@@ -58,6 +58,7 @@ dotenv.config();
     RewardsModule,
     DashboardModule,
     PrescriptionsModule,
+    AdminSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebsocketGateway],

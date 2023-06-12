@@ -9,6 +9,7 @@ export enum CheckupOwner {
 export type HealthCheckupDocument = HydratedDocument<HealthCheckup>;
 
 @Schema({
+  collection: 'health_checkups',
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class HealthCheckup {
