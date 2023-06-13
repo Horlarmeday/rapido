@@ -63,6 +63,9 @@ export class Appointment {
   @Prop({ type: String })
   meeting_class: string;
 
+  @Prop({ type: Number })
+  appointment_fee: number;
+
   @Prop({
     type: String,
     enum: { values: [Status.SUCCESSFUL, Status.FAILED, Status.PENDING] },

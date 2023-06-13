@@ -386,23 +386,49 @@ export class AppointmentsService {
       .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
+  async calculateAppointmentFees(
+    specialistId: Types.ObjectId,
+    totalMinutes: string | number,
+  ): Promise<number> {
+    const specialist = await this.usersService.findById(specialistId);
+    const adminSetting = await this.adminSettingsService.findOne();
+    const rate = adminSetting.specialist_rates.find(
+      ({ category, specialization, rate }) => {
+        if (
+          specialist?.professional_practice?.category === category &&
+          specialist?.professional_practice?.area_of_specialty ===
+            specialization
+        ) {
+          return rate;
+        }
+      },
+    );
+    if (rate) return +totalMinutes * +rate.rate.number;
+    return 0;
+  }
+
   async endAppointment(appointmentId: Types.ObjectId) {
     const appointment = await this.findOneAppointment(appointmentId);
     const response = await this.zoom.getPastMeetingDetails(
       appointment.meeting_id,
     );
     if (response.status === SUCCESS) {
+      const minutesUsed = response.data.total_minutes;
       await this.updateAppointment(
         { _id: appointmentId },
         {
           status: AppointmentStatus.COMPLETED,
           call_duration: {
-            time_taken: response.data.total_minutes,
+            time_taken: minutesUsed,
             unit: 'Minutes',
             formatted_string: this.convertTimeIntoStringFormatted(
               response?.data?.total_minutes,
             ),
           },
+          appointment_fee: await this.calculateAppointmentFees(
+            appointment.specialist,
+            minutesUsed,
+          ),
         },
       );
     }
