@@ -53,6 +53,18 @@ export class PrescriptionsController {
     return sendSuccessResponse(Messages.CREATED, result);
   }
 
+  @Post('start-payment')
+  async startOrderPayment(
+    @Body() startOrderPaymentDto: StartOrderPaymentDto,
+    @Request() req,
+  ) {
+    const result = await this.prescriptionsService.startOrderPayment(
+      req.user.sub,
+      startOrderPaymentDto.amount,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
   @Get()
   async getPrescriptions(@Request() req) {
     const result = await this.prescriptionsService.getPrescriptions(
@@ -77,15 +89,17 @@ export class PrescriptionsController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
-  @Post('start-payment')
-  async startOrderPayment(
-    @Body() startOrderPaymentDto: StartOrderPaymentDto,
-    @Request() req,
-  ) {
-    const result = await this.prescriptionsService.startOrderPayment(
+  @Get('orders')
+  async getPatientOrders(@Request() req) {
+    const result = await this.prescriptionsService.getPatientOrders(
       req.user.sub,
-      startOrderPaymentDto.amount,
     );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get('orders/:id')
+  async getPatientOrder(@Param('id') id: Types.ObjectId) {
+    const result = await this.prescriptionsService.getOneOrder(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
@@ -135,7 +149,7 @@ export class PrescriptionsController {
     return sendSuccessResponse(Messages.UPDATED, result);
   }
 
-  @Patch('order/:id')
+  @Patch('orders/:id')
   async updateOrder(
     @Param('id') id: Types.ObjectId,
     @Body() updateOrderDto: UpdateOrderDto,

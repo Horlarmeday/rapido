@@ -94,6 +94,10 @@ export class PrescriptionsService {
     return await find(this.prescriptionModel, { patient: userId });
   }
 
+  async getPatientOrders(userId: Types.ObjectId) {
+    return await find(this.orderModel, { patient: userId });
+  }
+
   async getPrescriptionFilesByUser(userId: Types.ObjectId) {
     return await find(this.prescriptionFileModel, { patient: userId });
   }
@@ -208,7 +212,7 @@ export class PrescriptionsService {
     });
     if (documents?.length) {
       await this.taskCron.addCron(
-        this.uploadDocument(documents, user),
+        this.uploadDocument(documents, prescription),
         `${Date.now()}-${userId}`,
       );
     }
@@ -271,7 +275,10 @@ export class PrescriptionsService {
     }
   }
 
-  private async uploadDocument(documents: Documents[], user: any) {
+  private async uploadDocument(
+    documents: Documents[],
+    prescription: PrescriptionFileDocument,
+  ) {
     try {
       const promises = await Promise.all(
         documents.map(({ url, original_name }) => {
@@ -284,15 +291,15 @@ export class PrescriptionsService {
           const extension = mime.extension(matches[1]);
           return this.fileUpload.uploadToS3(
             buffer,
-            `${user._id}-document.${extension}`,
+            `${prescription._id}-document.${extension}`,
           );
         }),
       );
-      user.documents.map((doc, index) => {
+      prescription.documents.map((doc, index) => {
         doc.url = promises[index];
       });
-      await user.save();
-      this.logger.log(`Saved ${user.full_name} professional documents`);
+      await prescription.save();
+      this.logger.log(`Saved prescriptions documents`);
     } catch (e) {
       this.logger.error(`Error occurred uploading documents, ${e}`);
       throw new InternalServerErrorException(e);
