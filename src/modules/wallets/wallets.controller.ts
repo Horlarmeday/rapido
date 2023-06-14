@@ -24,7 +24,7 @@ export class WalletsController {
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 
-  @Post()
+  @Post('withdraw')
   async withdrawFromWallet(
     @Body() withdrawFundDto: WithdrawFundDto,
     @Request() req,
