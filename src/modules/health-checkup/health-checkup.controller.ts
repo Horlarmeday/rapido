@@ -8,6 +8,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { HealthCheckupService } from './health-checkup.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,6 +21,7 @@ import { CheckDiagnosisDto } from './dto/check-diagnosis.dto';
 import { ExplainConditionDto } from './dto/explain-condition.dto';
 import { BeginCheckupDto } from './dto/begin-checkup.dto';
 import { SearchQueryDto } from './dto/search-query.dto';
+import { Types } from 'mongoose';
 
 @UseGuards(JwtAuthGuard)
 @Controller('health-checkup')
@@ -90,11 +92,9 @@ export class HealthCheckupController {
     return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
 
-  @Get('results')
-  async getCheckupResults(@Request() req) {
-    const result = await this.healthCheckupService.getCheckupResult(
-      req.user.sub,
-    );
+  @Get('results/:id')
+  async getCheckupResults(@Param('id') id: Types.ObjectId) {
+    const result = await this.healthCheckupService.getCheckupResult(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 }
