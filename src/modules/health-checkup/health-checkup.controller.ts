@@ -89,4 +89,12 @@ export class HealthCheckupController {
     const result = await this.healthCheckupService.search(searchQueryDto);
     return sendSuccessResponse(Messages.RETRIEVED, result?.data);
   }
+
+  @Get('results')
+  async getCheckupResults(@Request() req) {
+    const result = await this.healthCheckupService.getCheckupResult(
+      req.user.sub,
+    );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
 }
