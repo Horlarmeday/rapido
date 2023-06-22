@@ -141,7 +141,7 @@ export class PrescriptionsController {
     return sendSuccessResponse(Messages.TRANSACTION_VERIFIED, result);
   }
 
-  @Patch('confirm-order')
+  @Patch('orders/confirm')
   async confirmOrder(@Body() confirmOrderDto: ConfirmOrderDto) {
     const result = await this.prescriptionsService.confirmOrder(
       confirmOrderDto.orderId,
