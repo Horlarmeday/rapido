@@ -21,6 +21,7 @@ import { GeneralHelpers } from '../../common/helpers/general.helpers';
 import { PaymentHandler } from '../../common/external/payment/payment.handler';
 import { Paystack } from '../../common/external/payment/providers/paystack';
 import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
+import { Pharmacy, PharmacySchema } from './entities/pharmacy.entity';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AdminSettingsModule } from '../admin-settings/admin-settings.module';
       { name: PrescriptionFile.name, schema: PrescriptionFileSchema },
       { name: Order.name, schema: OrderSchema },
       { name: Drug.name, schema: DrugSchema },
+      { name: Pharmacy.name, schema: PharmacySchema },
     ]),
   ],
   controllers: [PrescriptionsController],

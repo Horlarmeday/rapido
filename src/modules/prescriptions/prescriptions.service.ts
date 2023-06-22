@@ -153,17 +153,20 @@ export class PrescriptionsService {
       ? this.prescriptionModel
       : this.prescriptionFileModel;
 
-    const items = prescription.items.map(async ({ drug, dose }) => {
-      const orderedDrug = await this.getOneDrug(drug);
-      return {
-        drug_name: orderedDrug?.name,
-        unit_price: orderedDrug?.price,
-        quantity: dose.quantity,
-        total: dose.quantity * +orderedDrug.price,
-      };
-    });
+    const items = await Promise.all(
+      prescription?.items.map(async ({ drug, dose }) => {
+        const orderedDrug = await this.getOneDrug(drug);
+        return {
+          drug_name: orderedDrug?.name,
+          unit_price: orderedDrug?.price,
+          quantity: dose.quantity,
+          total: dose.quantity * +orderedDrug.price,
+        };
+      }),
+    );
     const delivery_fee = 950; //todo: change this later
     const total = this.reduce(items) + delivery_fee;
+
     const [sentPrescription, _] = await Promise.all([
       await updateOneAndReturn(
         model,
@@ -176,6 +179,7 @@ export class PrescriptionsService {
         items,
         sub_total: this.reduce(items),
         total_price: total,
+        delivery_fee,
         shipping_details: {
           address: user.profile.contact.address1,
           email: user.profile.contact.email,
