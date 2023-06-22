@@ -1,9 +1,13 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Item } from '../types/prescription.types';
+import { Pharmacy } from './pharmacy.entity';
 
 export type PrescriptionDocument = HydratedDocument<Prescription>;
-
+export enum PrescriptionType {
+  INTERNAL = 'INTERNAL',
+  EXTERNAL = 'EXTERNAL',
+}
 export enum ProgressStatus {
   PRESCRIPTION_RECEIVED = 'Prescription Received',
   PRESCRIPTION_VALIDATION_FAILED = 'Prescription validation failed',
@@ -70,6 +74,13 @@ export class Prescription {
   )
   items: Item[];
 
+  @Prop({
+    type: String,
+    enum: { values: [PrescriptionType.EXTERNAL, PrescriptionType.INTERNAL] },
+    default: PrescriptionType.INTERNAL,
+  })
+  type: PrescriptionType;
+
   @Prop({ type: Boolean, default: false })
   is_sent_to_patient: boolean;
 
@@ -77,7 +88,7 @@ export class Prescription {
   is_sent_to_pharmacy: boolean;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Pharmacy' })
-  pharmacy: any;
+  pharmacy: Pharmacy;
 }
 const PrescriptionSchema = SchemaFactory.createForClass(Prescription);
 

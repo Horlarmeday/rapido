@@ -1,6 +1,7 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Documents } from '../../users/types/profile.types';
+import { PrescriptionType } from './prescription.entity';
 
 export type PrescriptionFileDocument = HydratedDocument<PrescriptionFile>;
 
@@ -32,6 +33,13 @@ export class PrescriptionFile {
     ]),
   )
   documents: Documents[];
+
+  @Prop({
+    type: String,
+    enum: { values: [PrescriptionType.EXTERNAL, PrescriptionType.INTERNAL] },
+    default: PrescriptionType.EXTERNAL,
+  })
+  type: PrescriptionType;
 
   @Prop({ type: Boolean, default: false })
   is_sent_to_pharmacy: boolean;
