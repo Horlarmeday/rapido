@@ -10,8 +10,8 @@ export type PrescriptionFileDocument = HydratedDocument<PrescriptionFile>;
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 })
 export class PrescriptionFile {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
-  specialist: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  specialist: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   patient: Types.ObjectId;
