@@ -66,6 +66,7 @@ export class Lifeguard {
         ProfileStatus.ACTIVE,
         ProfileStatus.CANCELLED,
         ProfileStatus.INACTIVE,
+        ProfileStatus.SUSPENDED,
       ],
     },
     default: ProfileStatus.ACTIVE,
