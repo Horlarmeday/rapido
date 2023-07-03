@@ -18,6 +18,7 @@ import { Messages } from '../../core/messages/messages';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { QueryVitalDto } from './dto/query.vital.dto';
 import { VitalChartDataDto } from './dto/vital-chart-data.dto';
+import { Types } from 'mongoose';
 
 @UseGuards(JwtAuthGuard)
 @Controller('vitals')
@@ -63,6 +64,12 @@ export class VitalsController {
       vitalChartDataDto,
       req.user.sub,
     );
+    return sendSuccessResponse(Messages.RETRIEVED, result);
+  }
+
+  @Get(':id')
+  async getAUserVitals(@Param('id') id: Types.ObjectId) {
+    const result = await this.vitalsService.findUserVitals(id);
     return sendSuccessResponse(Messages.RETRIEVED, result);
   }
 

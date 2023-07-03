@@ -35,7 +35,7 @@ export class VitalsService {
 
   async findUserVitals(userId: Types.ObjectId) {
     const vitals = await find(this.vitalModel, { userId });
-    return vitals.reduce(
+    return vitals?.reduce(
       (
         acc,
         {
