@@ -32,3 +32,9 @@ export class Item {
     interval: Interval;
   };
 }
+
+export class Dosage {
+  dose: Dose;
+  interval: Interval;
+  period: Period;
+}

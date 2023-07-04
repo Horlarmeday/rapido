@@ -1,6 +1,7 @@
 import mongoose, { HydratedDocument, Types } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as moment from 'moment';
+import { Dosage } from '../../prescriptions/types/prescription.types';
 
 export enum Frequency {
   ONCE = 'Once',
@@ -19,6 +20,11 @@ export enum ReminderStatus {
   SCHEDULED = 'Scheduled',
   PENDING = 'Pending',
   COMPLETE = 'Complete',
+}
+
+export enum ReminderType {
+  PRESCRIPTION = 'Prescription',
+  OTHER = 'Other',
 }
 
 export type ReminderDocument = HydratedDocument<Reminder>;
@@ -88,5 +94,32 @@ export class Reminder {
     default: ReminderStatus.PENDING,
   })
   status: ReminderStatus;
+
+  @Prop({
+    type: String,
+    enum: {
+      values: [ReminderType.OTHER, ReminderType.PRESCRIPTION],
+    },
+    default: ReminderType.OTHER,
+  })
+  type: ReminderType;
+
+  @Prop(
+    raw({
+      dose: {
+        quantity: { type: Number },
+        dosage_form: { type: String },
+      },
+      interval: {
+        time: { type: String },
+        unit: { type: String },
+      },
+      period: {
+        number: { type: Number },
+        unit: { type: String },
+      },
+    }),
+  )
+  dosage: Dosage;
 }
 export const ReminderSchema = SchemaFactory.createForClass(Reminder);

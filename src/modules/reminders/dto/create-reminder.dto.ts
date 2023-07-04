@@ -21,7 +21,8 @@ export class CreateReminderDto {
   @Type(() => Date)
   start_time: Date;
 
-  @IsEnum(Frequency)
+  @IsString()
+  @IsNotEmpty()
   frequency: Frequency;
 
   @ValidateIf((o) => o.interval !== null)
