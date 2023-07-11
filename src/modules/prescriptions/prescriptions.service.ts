@@ -161,11 +161,18 @@ export class PrescriptionsService {
           unit_price: orderedDrug?.price,
           quantity: dose.quantity,
           total: dose.quantity * +orderedDrug.price,
+          dosage_form: dose.dosage_form,
         };
       }),
     );
     const delivery_fee = 950; //todo: change this later
     const total = this.reduce(items) + delivery_fee;
+    let order_number;
+    let order;
+    do {
+      order_number = Date.now();
+      order = await this.findOrderByOrderNumber(order_number);
+    } while (order);
 
     const [sentPrescription, _] = await Promise.all([
       await updateOneAndReturn(
@@ -180,6 +187,7 @@ export class PrescriptionsService {
         sub_total: this.reduce(items),
         total_price: total,
         delivery_fee,
+        order_number,
         shipping_details: {
           address: user.profile.contact.address1,
           email: user.profile.contact.email,
@@ -312,5 +320,9 @@ export class PrescriptionsService {
 
   reduce(arr) {
     return arr.reduce((prevVal, currVal) => prevVal + currVal?.total, 0);
+  }
+
+  private async findOrderByOrderNumber(order_number: string) {
+    return await findOne(this.orderModel, { order_number });
   }
 }

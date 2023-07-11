@@ -41,6 +41,7 @@ export class Order {
         unit_price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         total: { type: Number, required: true },
+        dosage_form: { type: String, required: true },
       },
     ]),
   )
@@ -96,5 +97,8 @@ export class Order {
 
   @Prop({ type: String })
   feedback: string;
+
+  @Prop({ type: String, default: Date.now(), unique: true, required: true })
+  order_number: string;
 }
 export const OrderSchema = SchemaFactory.createForClass(Order);
