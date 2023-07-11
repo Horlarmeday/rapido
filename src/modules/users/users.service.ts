@@ -733,10 +733,19 @@ export class UsersService {
 
   private async uploadProfilePhoto(userId: Types.ObjectId, base64: string) {
     try {
-      const buffer = Buffer.from(base64, 'base64');
+      const matches = base64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches?.length !== 3)
+        throw new BadRequestException(Messages.INVALID_BASE64);
+
+      const buffer = Buffer.from(matches[2], 'base64');
+      const extension = mime.extension(matches[1]);
+
       this.logger.log('Uploading profile photo to S3 bucket');
       const promises = await Promise.all([
-        this.fileUpload.uploadToS3(buffer, `${userId}-profilePhoto.jpg`),
+        this.fileUpload.uploadToS3(
+          buffer,
+          `${userId}-profilePhoto.${extension}`,
+        ),
       ]);
       this.logger.log(`Finished uploading profile photo to S3: ${promises}`);
       const user = await this.findById(userId);
