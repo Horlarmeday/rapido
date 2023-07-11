@@ -407,6 +407,13 @@ export class UsersService {
       }),
     };
 
+    if (profile?.profile_photo) {
+      await this.taskCron.addCron(
+        this.uploadProfilePhoto(userId, profile.profile_photo),
+        `${Date.now()}-${userId}-uploadProfilePhoto`,
+      );
+    }
+
     return await updateOne(
       this.userModel,
       { _id: userId },
