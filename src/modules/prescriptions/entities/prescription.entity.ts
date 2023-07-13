@@ -41,8 +41,7 @@ export class Prescription {
     raw([
       {
         drug: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Drug',
+          type: String,
           required: true,
         },
         dose: {
